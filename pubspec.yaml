@@ -1,0 +1,80 @@
+name: crypto_app
+description: "A new Flutter project."
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+version: 1.0.0+1
+environment:
+  sdk: '>=3.3.4 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  flutter_svg: ^2.0.9
+  provider: ^6.1.2
+  shared_preferences: ^2.2.3
+  connectivity_plus: ^6.0.3
+  intl:
+  cupertino_icons: ^1.0.6
+  flutter_localization: ^0.2.0
+#  carousel_slider: ^4.2.1
+  fluttertoast: ^8.2.5
+  web_socket_channel: ^3.0.1
+  encrypt: ^5.0.3
+#  convert: ^3.1.1
+#  crypto: ^3.0.3
+  image_picker: ^1.1.2
+#  camera: ^0.11.0+1
+  permission_handler: ^11.3.1
+  web3dart: ^2.7.3
+  flutter_secure_storage: ^4.2.1
+  dropdown_button2: ^2.3.9
+  qr_flutter: ^4.1.0
+  qr_code_scanner: ^1.0.1
+  socket_io_client: ^2.0.3+1
+  html_unescape: ^2.0.0
+  image: ^4.2.0
+  path_provider: ^2.1.4
+  path: ^1.9.0
+  face_camera: ^0.1.2
+#  google_mlkit_face_detection: ^0.11.0
+#  google_ml_kit: ^0.18.0
+
+#  moralis: 0.0.2
+#  bip39: ^1.0.6
+#  ed25519_hd_key: ^2.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/usdt_abi.json
+    - assets/images/
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-SemiBold.ttf
+        - asset: assets/fonts/Poppins-Bold.ttf
+        - asset: assets/fonts/Poppins-Regular.ttf
+        - asset: assets/fonts/Poppins-Light.ttf
+        - asset: assets/fonts/Poppins-Medium.ttf
+        - asset: assets/fonts/Raleway-Regular.ttf
+        - asset: assets/fonts/Raleway-Bold.ttf
+        - asset: assets/fonts/Raleway-Light.ttf
+#  fonts:
+#    - family: Poppins
+#      fonts:
+#        - asset: assets/fonts/PoppinsSemiBold.ttf
+#          weight: 600
+#        - asset: assets/fonts/PoppinsBold.ttf
+#          weight: 700
+#        - asset: assets/fonts/PoppinsRegular.ttf
+#          weight: 400
+#        - asset: assets/fonts/PoppinsLight.ttf
+#          weight: 300
+#        - asset: assets/fonts/PoppinsMedium.ttf
+#          weight: 500
