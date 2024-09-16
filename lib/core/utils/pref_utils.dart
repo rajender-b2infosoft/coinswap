@@ -12,12 +12,11 @@ class PrefUtils {
 
   Future<void> init() async {
     _sharedPreferences ??= await SharedPreferences.getInstance();
-    print('SharedPreferences Initialized');
   }
 
   //will clear all the data
   void clearPreferencesData() async {
-      _sharedPreferences?.clear();
+    _sharedPreferences?.clear();
   }
 
   Future<void> setThemeData(String value){

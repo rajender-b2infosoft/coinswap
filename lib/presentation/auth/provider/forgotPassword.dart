@@ -15,6 +15,47 @@ class ForgotPasswordProvider with ChangeNotifier {
     _initializeEncryptionService();
   }
 
+
+  String _password = '';
+  bool _hasUppercase = false;
+  bool _hasNumber = false;
+  bool _hasSpecialCharacter = false;
+  bool _isLengthValid = false;
+  bool _doPasswordsMatch = false;
+  bool _isPasswordBeingTyped = false;
+
+  String get password => _password;
+  bool get hasUppercase => _hasUppercase;
+  bool get hasNumber => _hasNumber;
+  bool get hasSpecialCharacter => _hasSpecialCharacter;
+  bool get isLengthValid => _isLengthValid;
+  bool get doPasswordsMatch => _doPasswordsMatch;
+  bool get isPasswordBeingTyped => _isPasswordBeingTyped;
+
+  void updatePassword(String newPassword) {
+    _password = newPassword;
+    _isPasswordBeingTyped = newPassword.isNotEmpty;
+    _hasUppercase = newPassword.contains(RegExp(r'[A-Z]'));
+    _hasNumber = newPassword.contains(RegExp(r'[0-9]'));
+    _hasSpecialCharacter = newPassword.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
+    _isLengthValid = newPassword.length >= 8;
+    _doPasswordsMatch = newController.text == confController.text ;
+    notifyListeners();
+  }
+
+  bool _obscureTextNew = true;
+  bool get obscureTextNew => _obscureTextNew;
+  bool _obscureText = true;
+  bool get obscureText => _obscureText;
+  void setObscureText(type) {
+    if(type == 'new'){
+      _obscureTextNew = !_obscureTextNew;
+    }else{
+      _obscureText = !_obscureText;
+    }
+    notifyListeners();
+  }
+
   Future<void> _initializeEncryptionService() async {
     try {
       await _encryptionService.initialize();
@@ -40,13 +81,18 @@ class ForgotPasswordProvider with ChangeNotifier {
   TextEditingController get newController => _newController;
   TextEditingController get confController => _confController;
 
-  Future forgotPassword(context, email, type) async {
+  void updateEmail(String newEmail) {
+    _emailController.text = newEmail;
+    notifyListeners();
+  }
+
+  Future forgotPassword(context, email, type, page) async {
     _isLoading = true;
     notifyListeners();
     try{
       final response = await apiService.forgot_password(email, type);
       if (response != null && response['status'] == 'success') {
-        NavigatorService.pushNamed(AppRoutes.forgotpasswordotp, argument: {'email': email});
+        NavigatorService.pushNamed(AppRoutes.forgotpasswordotp, argument: {'email': email, 'page': page});
         CommonWidget().snackBar(context, appTheme.green, response['message']);
       } else {
         CommonWidget().snackBar(context, appTheme.red, response['message']);
@@ -59,11 +105,11 @@ class ForgotPasswordProvider with ChangeNotifier {
     }
   }
 
-  Future verifyForgotPasswordOtp(context, email, otp, type) async{
+  Future verifyForgotPasswordOtp(context, email, otp, type, page) async{
     try{
       final response = await apiService.verifyForgotPassword(email, otp, type);
       if (response != null && response['status'] == 'success') {
-        NavigatorService.pushNamedAndRemoveUntil(AppRoutes.forgotPasswordChange, argument: {'email': email});
+        NavigatorService.pushNamedAndRemoveUntil(AppRoutes.forgotPasswordChange, argument: {'email': email, 'page': page});
         CommonWidget().snackBar(context, appTheme.green, response['message']);
       } else {
         CommonWidget().snackBar(context, appTheme.red, response['message']);
@@ -76,13 +122,13 @@ class ForgotPasswordProvider with ChangeNotifier {
     }
   }
 
-  Future changePassword(context, email, type, newPassword, confirmPassword) async{
+  Future changePassword(context, email, type, newPassword, confirmPassword, page) async{
     try{
       final response = await apiService.changePassword(email, type, newPassword, confirmPassword);
       if (response != null && response['status'] == 'success') {
-        PopupUtil().imgPopUp(context, 'Password Changed !', CustomTextStyles.main22, 'Your password has been changed successfully', ImageConstant.round_done);
-        await Future.delayed(const Duration(seconds: 1));
-        NavigatorService.pushNamed(AppRoutes.loginScreen);
+        PopupUtil().forgorPopUp(context, 'Password Changed !', CustomTextStyles.main22, 'Your password has been changed successfully', ImageConstant.round_done, page);
+        // await Future.delayed(const Duration(seconds: 1));
+        // NavigatorService.pushNamed(AppRoutes.loginScreen);
       } else {
         CommonWidget().snackBar(context, appTheme.red, response['message']);
       }

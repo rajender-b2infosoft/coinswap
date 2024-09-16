@@ -125,11 +125,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                 const SizedBox(height: 20,),
                                 _buildInput(_focusNodeEmail, authProvider.emailController, 'Enter Email', 'Please enter email', TextInputType.emailAddress,false),
                                 const SizedBox(height: 20,),
-                                _buildInput(_focusNodePass, authProvider.passwordController, 'Password', 'Password', TextInputType.text,true),
+                                _buildInputPass(_focusNodePass, authProvider.passwordController, 'Password', 'Password', TextInputType.text),
                                 const SizedBox(height: 20,),
                                 InkWell(
                                   onTap: (){
-                                    NavigatorService.pushNamed(AppRoutes.forgotPassword);
+                                    NavigatorService.pushNamed(AppRoutes.forgotPassword, argument: {'page': 'login'});
                                   },
                                   child: Center(
                                       child: Text('Forgot Password ?', style: CustomTextStyles.gray11,)
@@ -280,6 +280,57 @@ class _LoginScreenState extends State<LoginScreen> {
               width: 1,
               color: hasFocus || hasValue ? Colors.blue : const Color(0XFF838383).withOpacity(0.1),
             ),
+          ),
+        ),
+        validator: (value) => checkEmpty(value, error),
+      ),
+    );
+  }
+
+  Widget _buildInputPass(node,TextEditingController controller, String label, String error, TextInputType type) {
+    final hasFocus = node.hasFocus;
+    final hasValue = controller.text.isNotEmpty;
+    return Container(
+      // height: 50,
+      child: TextFormField(
+        focusNode: node,
+        controller: controller,
+        obscureText: authProvider.obscureText,
+        style: CustomTextStyles.blue17,
+        decoration: InputDecoration(
+          contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 13),
+          fillColor: hasFocus || hasValue ? Colors.white : appTheme.f6f6f6,
+          filled: true,
+          labelText: label,
+          labelStyle: TextStyle(
+              color: hasFocus || hasValue ? appTheme.blueDark : Colors.grey,
+              fontSize: 16,
+              fontWeight: FontWeight.normal
+          ),
+          border: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: hasFocus || hasValue ? appTheme.blueDark : const Color(0XFFF6F6F6),
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: hasFocus || hasValue ? appTheme.blueDark : Colors.grey,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              width: 1,
+              color: hasFocus || hasValue ? Colors.blue : const Color(0XFF838383).withOpacity(0.1),
+            ),
+          ),
+          suffixIcon: IconButton(
+            icon: Icon(
+              authProvider.obscureText ? Icons.visibility : Icons.visibility_off,
+              color: Colors.grey,
+            ),
+            onPressed: (){
+              authProvider.setObscureText();
+            },
           ),
         ),
         validator: (value) => checkEmpty(value, error),

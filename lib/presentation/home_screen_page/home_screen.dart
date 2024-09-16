@@ -1,13 +1,23 @@
+import 'dart:async';
+
+import 'package:crypto_app/theme/theme_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:crypto_app/presentation/home_screen_page/provider/home_screen_provider.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/constants.dart';
 import '../../core/utils/popup_util.dart';
+import '../../routes/routeaprovider.dart';
 import '../../services/WebSocketService.dart';
 import '../../services/socketService.dart';
 import '../auth/provider/auth_provider.dart';
+import 'package:coinbase_wallet_sdk/coinbase_wallet_sdk.dart';
+import 'package:flutter_web_auth/flutter_web_auth.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert'; // For json decoding
+import 'package:uni_links/uni_links.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,7 +33,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late HomeScreenProvider homeProvider;
+  // late RouteNameProvider routeProvider;
   late AuthProvider authProvider;
   var count = 0;
   final _secureStorage = const FlutterSecureStorage();
@@ -31,20 +43,139 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   late SocketIOClient _webSocketClient;
   final WebSocketService _webSocketService = WebSocketService();
 
+
+  final _linkStream = StreamController<String>();
+  var routeName = 'home_screen';
+  String walletAddress = '';
+  String accessToken = '';
+  // Coinbase OAuth2 credentials
+  final clientId = '34ba3164-2d6b-46d8-a1e5-59fa7937f45b';
+  final clientSecret = 'IPG3MPbrzocGjy9~oX~yrbFVu6';
+  // final redirectUri = 'coinswap://callback';
+  // final redirectUri = 'https://coinswap.co.in:3000/callback';
+  final redirectUri = 'https://coinswap.co.in:3000/auth/coinbase-callback';
+  final coinbaseAuthorizeUrl = 'https://www.coinbase.com/oauth/authorize';
+  final coinbaseTokenUrl = 'https://api.coinbase.com/oauth/token';
+
+  // Step 1: Initiate Coinbase OAuth2 Flow
+  Future<void> loginWithCoinbase() async {
+    final authorizationUrl =
+        '$coinbaseAuthorizeUrl?response_type=code&client_id=$clientId&redirect_uri=$redirectUri&scope=wallet:user:read';
+    try {
+      // Open the browser and start the OAuth2 flow
+      final result = await FlutterWebAuth.authenticate(
+        url: authorizationUrl,
+        callbackUrlScheme: 'coinbase-callback', // Custom URI scheme
+      );
+      // Extract the authorization code from the result
+      final code = Uri.parse(result).queryParameters['code'];
+
+      // if (code != null) {
+      //   // Step 2: Exchange code for access token
+      //   await exchangeCodeForAccessToken(code);
+      // }
+    } catch (e) {
+      print("Error during Coinbase authentication: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error during Coinbase authentication')),
+      );
+    }
+  }
+
+  // Step 2: Exchange Authorization Code for Access Token
+  Future<void> exchangeCodeForAccessToken(String code) async {
+    try {
+      final response = await http.post(
+        Uri.parse(coinbaseTokenUrl),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {
+          'grant_type': 'authorization_code',
+          'code': code,
+          'client_id': clientId,
+          'client_secret': clientSecret,
+          'redirect_uri': redirectUri,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          accessToken = data['access_token'];
+          walletAddress = "Connected to Coinbase Wallet";
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Successfully connected to Coinbase Wallet')),
+        );
+      } else {
+        print("Failed to retrieve access token");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to retrieve access token')),
+        );
+      }
+    } catch (e) {
+      print("Error exchanging code for token: $e");
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    // _webSocketClient = WebSocketClient();
+    _initUniLinks();
     _webSocketClient = SocketIOClient();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // homeProvider = Provider.of<HomeScreenProvider>(context, listen: false);
+      routeName = Provider.of<RouteNameProvider>(context, listen: false).routeName;
       WidgetsBinding.instance?.addObserver(this);
       _connectWebSocket();
-
     });
-    // _connectWebSocket();
   }
 
+  Future<void> fetchAccountInfo() async {
+    final url = 'https://api.coinbase.com/v2/accounts'; // Coinbase API endpoint for accounts
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer TM7cyOCsKHGvVsNPYqx4pDNb53-Rt-S0-HQigJNHpSQ.HR1u6VJPUMNeP126c5h1nJpK3VdM-v933wDIvowZX8A',
+        'CB-VERSION': '2024-08-08',
+        // 'Authorization': 'Bearer $accessToken',
+      },
+    );
+
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      print("Account Information: $data");
+      // You can update the UI with account information here
+    } else {
+      print("Failed to fetch account information");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to fetch account information')),
+      );
+    }
+  }
+
+  Future<void> _initUniLinks() async {
+    try {
+      final initialLink = await getInitialLink();
+      if (initialLink != null) {
+        _handleDeepLink(initialLink);
+      }
+    } catch (e) {
+      print('Failed to get initial link: $e');
+    }
+
+    linkStream.listen((String? link) {
+      if (link != null) {
+        _handleDeepLink(link);
+      }
+    });
+  }
+
+  void _handleDeepLink(String link) {
+    // Process the link (e.g., extract parameters)
+    print('Received deep link:::::::::::::::::::::::: $link');
+    // Navigate or update state based on the deep link
+  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -53,10 +184,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-
-
   void _connectWebSocket() async {
-
     try{
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('accessToken');
@@ -82,28 +210,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-
     // WidgetsBinding.instance?.removeObserver(this);
     // _webSocketService.disconnect();
+    _linkStream.close();
     super.dispose();
   }
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   storeValue();
-  // }
-  //
-  // Future<void> storeValue() async {
-  //   await _secureStorage.write(key: 'address', value: '0x14862e4fb263aa9ae3d73f6ca4e62c410c937495');
-  //   await _secureStorage.write(key: 'privateKey', value: '0xd5c197409f72b16cf787fa8cbb57a1fa000b1d003c4d17722c2ae3f347a16fe8');
-  // }
 
   @override
   Widget build(BuildContext context) {
     homeProvider = Provider.of<HomeScreenProvider>(context, listen: true);
     authProvider = Provider.of<AuthProvider>(context, listen: true);
-
-
 
     return WillPopScope(
       onWillPop: () async {
@@ -112,6 +228,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         return shouldPop;
       },
       child: Scaffold(
+        key: _scaffoldKey,
         resizeToAvoidBottomInset: false,
         backgroundColor: appTheme.main,
         extendBodyBehindAppBar: true,
@@ -140,7 +257,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             decoration: BoxDecoration(
                                 color: (homeProvider.userStatus.toString() == 'Under Review')
                                     ? appTheme.colorEA96
-                                    : (homeProvider.userStatus.toString() == 'Active')
+                                    : (homeProvider.userStatus.toString() == 'Active' || homeProvider.userStatus.toString() == 'active')
                                     ? appTheme.green
                                     : appTheme.colorE132,
                                 borderRadius: BorderRadius.circular(10)
@@ -170,9 +287,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     padding: const EdgeInsets.only(right: 20.0),
                     child: InkWell(
                       onTap: (){
-                        // NavigatorService.pushNamed(AppRoutes.conversionScreen);
-                       // _webSocketClient.dispose();
-                        authProvider.logout();
+                        _scaffoldKey.currentState?.openDrawer();
                       },
                       child: CustomImageView(
                         imagePath: ImageConstant.navbar,
@@ -194,15 +309,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     padding: const EdgeInsets.only(left: 15.0, right: 15),
                     child: Row(
                       children: [
-                        Text(
-                          'Wallet',
-                          style: CustomTextStyles.white23,
+                        InkWell(
+                          onTap:(){
+                            fetchAccountInfo();
+                           },
+                          child: Text(
+                            'Wallet',
+                            style: CustomTextStyles.white23,
+                          ),
                         ),
                         const SizedBox(
                           width: 10,
                         ),
                         InkWell(
                           onTap: (){
+                            // Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
                             // print('pressed:::::::::::::');
                             //   NavigatorService.pushNamed(AppRoutes.walletPage);
                           },
@@ -215,6 +336,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       ],
                     ),
                   ),
+
+                  // walletAddress.isNotEmpty
+                  //     ? Text('Connected: $walletAddress')
+                  //     : const Text('Not connected', style: TextStyle(color: Colors.white)),
+                  // const SizedBox(height: 20),
+                  // Container(
+                  //   color: Colors.green,
+                  //   child: ElevatedButton(
+                  //     onPressed: loginWithCoinbase,
+                  //     child: const Text('Connect Coinbase Wallet', style: TextStyle(color: Colors.white),),
+                  //   ),
+                  // ),
+
                   const SizedBox(height: 8),
                   // Stack(
                   //   clipBehavior: Clip.none,
@@ -236,7 +370,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   Padding(
                     padding: const EdgeInsets.only(left: 15.0, right: 15),
                     child: Text(
-                      '\$34,333',
+                      '\$00.00',
                       style: CustomTextStyles.white30,
                       // style: CustomTextStyles.white18,
                     ),
@@ -363,6 +497,153 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ),
           ],
         ),
+        drawer: Container(
+          alignment: Alignment.topLeft,
+          width: 270,
+          decoration: const BoxDecoration(
+            color: Colors.transparent
+          ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              SizedBox(
+                width: 250,
+                child: Drawer(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 20.0),
+                    child: ListView(
+                      padding: EdgeInsets.zero,
+                      children: <Widget>[
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: <Widget>[
+                              Container(
+                                height: 60,
+                                width: 60,
+                                padding: const EdgeInsets.all(2),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: appTheme.main,
+                                ),
+                                child: ClipOval(
+                                  child: Image.network((homeProvider.selfie!=null)?Constants.imgUrl +homeProvider.selfie.toString(): ImageConstant.iconUser,
+                                    width: 75, // Set the desired width
+                                    height: 75, // Set the desired height
+                                    fit: BoxFit.cover, // Adjust how the image should fit within its box
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(
+                                    '${homeProvider.name}',
+                                    style: TextStyle(
+                                      color: appTheme.color0071D0,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      fontFamily: "Poppins"
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${homeProvider.email}',
+                                    style: TextStyle(
+                                      color: appTheme.color9898,
+                                      fontSize: 11,
+                                        fontWeight: FontWeight.w500,
+                                        fontFamily: "Poppins"
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 10,),
+                        Divider(
+                          color: appTheme.color0071D0,
+                          height: 20,
+                          thickness: 2,
+                          indent: 0,
+                          endIndent: 50,
+                        ),
+                        const SizedBox(height: 20,),
+                        drawerItem('Dashboard',ImageConstant.iconDashboard, AppRoutes.homeScreen),
+                        drawerItem('Transactions', ImageConstant.iconTransaction, AppRoutes.transactionScreen),
+                        drawerItem('Profile',ImageConstant.iconUser, AppRoutes.profileScreen),
+                        drawerItem('Mpin', ImageConstant.iconMpin, AppRoutes.mpinScreen),
+                        drawerItem('Wallet', ImageConstant.iconMpin, AppRoutes.walletScreen),
+                        drawerItem('Setting', ImageConstant.iconMpin, AppRoutes.settingScreen),
+                        drawerItem('Logout', ImageConstant.iconLogout, AppRoutes.loginScreen),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                right: -10,
+                top: 55,
+                child: Center(
+                  child: InkWell(
+                    onTap: (){
+                      NavigatorService.goBack();
+                    },
+                    child: Container(
+                      height: 30,
+                      width: 30,
+                      decoration: BoxDecoration(
+                        color: appTheme.main,
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 8.0),
+                        child: Icon(Icons.arrow_back_ios, color: appTheme.white, size: 18,),
+                      ),
+                    ),
+                  ),
+                ),),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget drawerItem(name, img, redirect){
+    return Padding(
+      padding: const EdgeInsets.only(right: 50.0),
+      child: Container(
+        decoration: BoxDecoration(
+            color: (homeProvider.isClicked==name)?appTheme.main:Colors.transparent,
+            borderRadius: const BorderRadius.only(
+              bottomRight: Radius.circular(50),
+              topRight: Radius.circular(50),
+            )
+        ),
+        child: ListTile(
+          splashColor: Colors.transparent,
+          leading: CustomImageView(
+            imagePath: img,
+            height: 25,
+            width: 25,
+            color: (homeProvider.isClicked==name)?appTheme.white:appTheme.gray7272,
+          ),
+          title: Text(name, style: (homeProvider.isClicked==name)?CustomTextStyles.sideBarWhite:CustomTextStyles.sideBarGray,),
+          onTap: () {
+            homeProvider.setIsClicked(name);
+            if(name == 'Logout'){
+              authProvider.logout();
+            }else if(name == 'Transactions'){
+              NavigatorService.pushNamed(redirect, argument: {'toAddress': ''});
+            }else {
+              NavigatorService.pushNamed(redirect);
+            }
+          },
+        ),
       ),
     );
   }
@@ -370,7 +651,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   _button(text, redirect){
     return  InkWell(
       onTap: (){
-        if(homeProvider.userStatus.toString() == 'Active'){
+
+        if(homeProvider.userStatus.toString() == 'Active' || homeProvider.userStatus.toString() == 'active'){
           if(text == 'Send'){
             NavigatorService.pushNamed(redirect, argument: {'toAddress': ''});
           }else{
@@ -390,7 +672,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         // padding: const EdgeInsets.only(left: 15,right: 15,),
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(5),
-            color: (homeProvider.userStatus.toString() == 'Active') ? const Color(0XFF3E91DC) : const Color(0XFF6485A3),
+            color: (homeProvider.userStatus.toString() == 'Active' || homeProvider.userStatus.toString() == 'active') ? const Color(0XFF3E91DC) : const Color(0XFF6485A3),
         ),
         child: Center(child: Text(text, style: CustomTextStyles.white17,)),
       ),

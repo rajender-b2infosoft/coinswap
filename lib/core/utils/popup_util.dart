@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../routes/app_routes.dart';
 import '../../theme/custom_text_style.dart';
 import '../../theme/theme_helper.dart';
 import '../../widgets/custom_image_view.dart';
 import '../../widgets/custom_outlined_button.dart';
+import 'navigation_service.dart';
 
 class PopupUtil {
   void popUp(BuildContext context, String title, titleStyle, String message) {
@@ -24,8 +26,8 @@ class PopupUtil {
                 decoration: BoxDecoration(
                     color: (title == 'Under Review')
                         ? appTheme.colorEA96
-                        : (title == 'Active')
-                            ? appTheme.green
+                        : (title == 'Active' || title == 'active')
+                            ? appTheme.darkGreen
                             : appTheme.colorE132,
                     borderRadius: const BorderRadius.only(
                       bottomLeft: Radius.circular(20),
@@ -86,6 +88,68 @@ class PopupUtil {
       },
     );
   }
+
+  void forgorPopUp(BuildContext context, String title, TextStyle titleStyle, String message, String img, page) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0), // Adjust the radius here
+          ),
+          title: Column(
+            children: [
+              CustomImageView(
+                imagePath: img,
+                height: 80,
+                width: 80,
+              ),
+              SizedBox(height: 10,),
+              Text(title, style: titleStyle),
+            ],
+          ),
+          content: Padding(
+            padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+            child: Text(
+              message,
+              textAlign: TextAlign.center, // Center the text
+              style: CustomTextStyles.gray7272_17,
+            ),
+          ),
+          actions: <Widget>[
+            Center(
+              child: Container(
+                height: 50,
+                width: 150,
+                // padding: EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: appTheme.main,
+                  borderRadius: BorderRadius.circular(50)
+                ),
+                child: TextButton(
+                  onPressed: () {
+                    if(page == 'profile'){
+                      NavigatorService.pushNamed(AppRoutes.profileScreen);
+                    }else{
+                      NavigatorService.pushNamed(AppRoutes.loginScreen);
+                    }
+                  },
+                  child: Text(
+                    'Okay',
+                    style: TextStyle(
+                      color: appTheme.white
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   Future<bool> onBackPressed(BuildContext context) async {
     return await showDialog(

@@ -47,6 +47,10 @@ class Data {
   final DateTime? createdAt;
   final dynamic updatedAt;
   final dynamic deletedAt;
+  final dynamic document_type;
+  final dynamic file;
+  final dynamic mpin;
+  final dynamic mpin_active;
 
   Data({
     this.userId,
@@ -63,6 +67,10 @@ class Data {
     this.createdAt,
     this.updatedAt,
     this.deletedAt,
+    this.document_type,
+    this.file,
+    this.mpin,
+    this.mpin_active,
   });
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
@@ -80,6 +88,10 @@ class Data {
     createdAt: json["created_at"] == null ? null : DateTime.parse(json["created_at"]),
     updatedAt: json["updated_at"],
     deletedAt: json["deleted_at"],
+    document_type: json["document_type"],
+    file: json["file"],
+    mpin: json["mpin"],
+    mpin_active: json["mpin_active"],
   );
 
   Map<String, dynamic> toJson() => {
@@ -97,5 +109,9 @@ class Data {
     "created_at": createdAt?.toIso8601String(),
     "updated_at": updatedAt,
     "deleted_at": deletedAt,
+    "document_type": document_type,
+    "file": file,
+    "mpin": mpin,
+    "mpin_active": mpin_active,
   };
 }

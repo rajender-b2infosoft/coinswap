@@ -26,6 +26,20 @@ class TransactionProvider extends ChangeNotifier{
   String _selectedCurrency = 'Ethereum';
   String get selectedCurrency => _selectedCurrency;
 
+  String _chooseCurrency = 'ETH';
+  String get chooseCurrency => _chooseCurrency;
+  setChooseCurrency(val){
+    _chooseCurrency=val;
+    notifyListeners();
+  }
+
+  String _conversionCurrency = 'BTC';
+  String get conversionCurrency => _conversionCurrency;
+  setConversionCurrency(val){
+    _conversionCurrency=val;
+    notifyListeners();
+  }
+
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
@@ -85,11 +99,11 @@ class TransactionProvider extends ChangeNotifier{
     notifyListeners();
   }
 
-  final Map<String, String> assign_plans = {
-    'ETH': 'ETH',
-    'Bit': 'Bit',
-    'USDT': 'USDT'
-  };
+  // final Map<String, String> assign_plans = {
+  //   'ETH': 'ETH',
+  //   'Bit': 'Bit',
+  //   'USDT': 'USDT'
+  // };
 
   void onNumberPress(String number) {
     _amountController.text = _amountController.text + number;
@@ -129,11 +143,13 @@ class TransactionProvider extends ChangeNotifier{
     notifyListeners();
   }
 
-  Future sendETH(context, toAddress,privateKey,amountInEth) async {
+  // Future sendETH(context, toAddress,privateKey,amountInEth) async {
+  Future sendETH(context, toAddress,type,amountInEth) async {
     _isLoading = true;
     notifyListeners();
     try{
-      final response = await apiService.sendAmount(toAddress,privateKey,amountInEth);
+      // final response = await apiService.sendAmount(toAddress,privateKey,amountInEth);
+      final response = await apiService.sendAmount(toAddress,type,amountInEth);
 
       if (response != null && response['status'] != 'error') {
         CommonWidget().snackBar(context, appTheme.green, response['message']);

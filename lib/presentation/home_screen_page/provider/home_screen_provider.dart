@@ -13,6 +13,13 @@ class HomeScreenProvider extends ChangeNotifier {
   HomeScreenModel registerModel = HomeScreenModel();
   late SocketIOClient _webSocketClient;
 
+  String? _isClicked = 'Dashboard';
+  String? get isClicked => _isClicked;
+  setIsClicked(val){
+    _isClicked = val;
+    notifyListeners();
+  }
+
   bool _isDisposed = false;
 
   String? _userStatus = '';
@@ -46,7 +53,23 @@ class HomeScreenProvider extends ChangeNotifier {
   Map<String, String> _colors = {};
   Map<String, String> _percentages = {};
 
+
+  String? _name = '';
+  String? get name => _name;
+  String? _email = '';
+  String? get email => _email;
+  String? _selfie = '';
+  String? get selfie => _selfie;
+
+  getUserInfo()async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _name = prefs.getString('userName');
+    _email = prefs.getString('email');
+    _selfie = prefs.getString('profileImage');
+  }
+
   HomeScreenProvider() {
+    getUserInfo();
     _fetchPrices();
     _startPeriodicUpdates();
 

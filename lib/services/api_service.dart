@@ -39,7 +39,7 @@ class ApiService {
 
       print("+++++++++++++response++++++++1212++++++${response}");
 
-      print("+++++++++++++response++++++++++++++${response.body}");
+      print("+++++++++++++response.body++++++++++++++${response.body}");
 
       // Decode the response body
       final responseBody = json.decode(response.body);
@@ -56,6 +56,9 @@ class ApiService {
           }
           // Return or handle the error messages
           return {'status': 'error', 'message': errorMessages[0]};
+        } else if(responseBody['status'] == 'failure') {
+          // Handle other errors
+          return {'status': 'error', 'message': responseBody['message']};
         } else if(responseBody['status'] == 'bad_request') {
           // Handle other errors
           return {'status': 'error', 'message': responseBody['message']};
@@ -163,12 +166,102 @@ class ApiService {
     }
   }
 
-  Future sendAmount(toAddress,privateKey,amountInEth) async {
+  Future setMpinMobile(pin) async {
     try {
       dynamic data = jsonEncode(<dynamic, dynamic>{
-        'toAddress': toAddress,
-        'privateKey': privateKey,
-        'amountInEth': amountInEth
+        // 'mpin': pin,
+        'mpin': encryptData(pin, encryptKey, iv),
+        'type': 'set_pin',
+      });
+      final response = await post('api/set-Mpin', data);
+      return response;
+    } catch (e) {
+      print("Error(Function setMpinMobile):$e");
+      return e.toString();
+    }
+  }
+
+  Future getMpinData() async {
+    try {
+      final response = await get('api/get-Mpin');
+      return response;
+    } catch (e) {
+      print("Error(Function getMpinStatus):$e");
+      return e.toString();
+    }
+  }
+
+  Future setMpinStatus(status) async {
+    try {
+      dynamic data = jsonEncode(<dynamic, dynamic>{
+        'status': status,
+        'type': 'active_pin',
+      });
+      final response = await post('api/set-Mpin', data);
+      return response;
+    } catch (e) {
+      print("Error(Function setMpinStatus):$e");
+      return e.toString();
+    }
+  }
+
+  Future getTransactions(type, status, date) async {
+    try {
+      final response = await get('api/transactions?type=$type&status=$status&date=$date');
+      return response;
+    } catch (e) {
+      print("Error(Function getTransactions):$e");
+      return e.toString();
+    }
+  }
+
+  Future getUserProfile() async {
+    try {
+      final response = await get('api/user-profile');
+      return response;
+    } catch (e) {
+      print("Error(Function getUserProfile):$e");
+      return e.toString();
+    }
+  }
+
+  Future setNotificationStatus(notification) async {
+    try {
+      dynamic data = jsonEncode(<dynamic, dynamic>{
+        'notification': notification,
+        'type': 'notification',
+      });
+      final response = await post('api/user-setting', data);
+      return response;
+    } catch (e) {
+      print("Error(Function setMpinStatus):$e");
+      return e.toString();
+    }
+  }
+
+  Future getSettingsData() async {
+    try {
+      final response = await get('api/user-setting');
+      return response;
+    } catch (e) {
+      print("Error(Function getSettingsData):$e");
+      return e.toString();
+    }
+  }
+
+  Future sendAmount(toAddress,type,amountInEth) async {
+    try {
+      // dynamic data = jsonEncode(<dynamic, dynamic>{
+      //   'toAddress': toAddress,
+      //   'privateKey': privateKey,
+      //   'amountInEth': amountInEth
+      // });
+
+      dynamic data = jsonEncode(<dynamic, dynamic>{
+        'destinationAddressId': toAddress,
+        'assetType': type,
+        'amount': amountInEth,
+        "gasless": true
       });
       final response = await post('api/sendETH', data);
       return response;
@@ -240,16 +333,21 @@ class ApiService {
       request.fields['document_type'] = type;
       request.fields['status'] = 'pending';
 
+
       if (file != null) {
         final mimeType = lookupMimeType(file.path);
         request.files.add(
           await http.MultipartFile.fromPath('file', file.path, contentType: MediaType.parse(mimeType!)),
         );
       }
+
       // Send the request
       final streamedResponse  = await request.send();
+
+
       // Convert the streamed response into a regular HTTP response
       final response = await http.Response.fromStream(streamedResponse);
+
 
       if (response.statusCode == 200) {
         return json.decode(response.body);

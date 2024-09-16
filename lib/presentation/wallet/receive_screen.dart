@@ -200,21 +200,21 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                               vertical: 4, // Reduce vertical padding
                             ),
                           ),
-                          items: transactionProvider.assign_plans.entries
-                              .map((MapEntry<String, String> entry) {
+                          // items: transactionProvider.assign_plans.entries
+                          // .map((MapEntry<String, String> entry) {
+                          items: <String>['ETH', 'BIT', 'USDT']
+                              .map<DropdownMenuItem<String>>((String value) {
                             return DropdownMenuItem<String>(
-                              value: entry.key,
+                              value: value,
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   Image.asset(
-                                    (transactionProvider
-                                        .depositCurrency ==
+                                    (value ==
                                         'ETH')
                                         ? '${ImageConstant.eth}'
-                                        : (transactionProvider
-                                        .depositCurrency ==
-                                        'Bit')
+                                        : (value ==
+                                        'BIT')
                                         ? '${ImageConstant.bit}'
                                         : '${ImageConstant.t}',
                                     width: 25,
@@ -227,7 +227,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                                       CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          '${entry.key}',
+                                          '$value',
                                           style: TextStyle(
                                             fontSize: 12,
                                             fontFamily: 'Poppins',

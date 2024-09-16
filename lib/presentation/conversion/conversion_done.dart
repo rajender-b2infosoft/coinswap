@@ -78,10 +78,10 @@ class _ConversionDoneState extends State<ConversionDone> {
           ),
         ),
         const SizedBox(height: 20,),
-        Center(child: Text('Well done!', style: CustomTextStyles.main28,)),
+        Center(child: Text('Success !', style: CustomTextStyles.main28,)),
         const SizedBox(height: 10,),
         Padding(
-          padding: const EdgeInsets.only(left: 30.0, right: 30),
+          padding: const EdgeInsets.only(left: 45.0, right: 45),
           child: Text('9812.2312 (USDT) has been added to your wallet.',
             textAlign: TextAlign.center,
             style: CustomTextStyles.gray14,),

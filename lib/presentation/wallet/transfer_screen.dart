@@ -151,6 +151,13 @@ class _TransferScreenState extends State<TransferScreen> {
         text: transactionProvider.isLoading ? '' : "Confirm",  // Empty text if loading
         onPressed: () async {
 
+          // print('.................... ${transactionProvider.selectedCurrency}');
+
+          if(transactionProvider.selectedCurrency == 'Bitcoin'){
+            CommonWidget.showToastView('Bitcoin not enabled yet, please select ETH OR USDT', appTheme.red);
+            return;
+          }
+
           if (!transactionProvider.isLoading) {
             transactionProvider.setLoding(true);
 
@@ -165,12 +172,19 @@ class _TransferScreenState extends State<TransferScreen> {
               var toAddress = transactionProvider.addressController.text;
               var amount = transactionProvider.amountController.text;
               // var privateKey = '0x5db75d21a84510c5aad7f7c431cd1c45acd6ce9b94ba9a824b74351f85920c18';
+
+              var type = (transactionProvider.selectedCurrency == 'Ethereum')?"eth":"usdt";
+
               await Provider.of<TransactionProvider>(context, listen: false)
-                  .sendETH(context,toAddress,privateKey,amount);
+                  .sendETH(context,toAddress,type,amount);
+
+              // await Provider.of<TransactionProvider>(context, listen: false)
+              //     .sendETH(context,toAddress,privateKey,amount);
               transactionProvider.setLoding(false);
             }
 
           }
+
         },
         // text: "Request OTP",
         // onPressed: () async {
@@ -528,8 +542,7 @@ class _TransferScreenState extends State<TransferScreen> {
                                 color: Color(0xff727272),
                               ),
                             ),
-                            Text(
-                              transactionProvider.ethBalance,
+                            Text((value=='Ethereum' || value=='USDT')?'${transactionProvider.ethBalance}  (ethereum-mainnet)':'${transactionProvider.ethBalance}',
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontFamily: 'Poppins',

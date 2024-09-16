@@ -37,5 +37,16 @@ class ImageConstant {
   static String navbar = '$imagePath/navbar.png';
   static String roundTick = '$imagePath/roundTick.png';
   static String clear = '$imagePath/Clear.png';
+  static String sun = '$imagePath/sun.png';
+  static String moon = '$imagePath/moon.png';
+  static String bellWhite = '$imagePath/bellWhite.png';
+  static String theme = '$imagePath/theme.png';
+  static String filter = '$imagePath/filter.png';
+
+  static String iconDashboard = '$imagePath/iconDashboard.png';
+  static String iconTransaction = '$imagePath/iconTransaction.png';
+  static String iconUser = '$imagePath/iconUser.png';
+  static String iconMpin = '$imagePath/iconMpin.png';
+  static String iconLogout = '$imagePath/iconLogout.png';
 
 }

@@ -73,7 +73,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     authProvider = Provider.of<AuthProvider>(context);
     return SafeArea(
       child: Scaffold(
-        resizeToAvoidBottomInset: false,
+        // resizeToAvoidBottomInset: false,
         backgroundColor: appTheme.main,
         body: ConstrainedBox(
           constraints: BoxConstraints(
@@ -144,6 +144,42 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     _buildEmailInput(_focusNodeEmail, authProvider.emailController, 'Enter Email', 'Please enter email', TextInputType.emailAddress),
                                     const SizedBox(height: 20,),
                                     _buildInputPass(_focusNodePass, authProvider.passwordController, 'Password', 'Please enter Password', TextInputType.text),
+                                    const SizedBox(height: 10,),
+                                    Text(
+                                      'Password must be at least 8 characters long, include:',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w400,
+                                        color: authProvider.isLengthValid  ? appTheme.green : appTheme.gray,),
+                                    ),
+                                    Text(
+                                      '• One number',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w400,
+                                        color: authProvider.hasNumber ? appTheme.green : appTheme.gray,
+                                      ),
+                                    ),
+                                    Text(
+                                      '• One uppercase letter',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w400,
+                                        color: authProvider.hasUppercase  ? appTheme.green : appTheme.gray,
+                                      ),
+                                    ),
+                                    Text(
+                                      '• One special character',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w400,
+                                        color: authProvider.hasSpecialCharacter  ? appTheme.green : appTheme.gray,
+                                      ),
+                                    ),
                                     const SizedBox(height: 10,),
                                   ],
                                 ),
@@ -403,6 +439,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         focusNode: node,
         controller: controller,
         obscureText: authProvider.obscureText,
+        onChanged: (value) {
+          Provider.of<AuthProvider>(context, listen: false).updatePassword(value);
+        },
         style: CustomTextStyles.blue17,
         decoration: InputDecoration(
           contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 13),

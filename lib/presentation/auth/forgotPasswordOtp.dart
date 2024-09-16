@@ -10,7 +10,8 @@ import '../../widgets/custom_elevated_button.dart';
 
 class ForgotPasswordOtp extends StatefulWidget {
   final String email;
-  const ForgotPasswordOtp({super.key, required this.email});
+  final String page;
+  const ForgotPasswordOtp({super.key, required this.email, required this.page});
 
   @override
   State<ForgotPasswordOtp> createState() => _ForgotPasswordOtpState();
@@ -18,7 +19,7 @@ class ForgotPasswordOtp extends StatefulWidget {
     final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     return ChangeNotifierProvider(
       create: (context) => ForgotPasswordProvider(),
-      child: ForgotPasswordOtp(email: args['email']),
+      child: ForgotPasswordOtp(email: args['email'], page: args['page']),
     );
   }
 }
@@ -97,7 +98,7 @@ class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
       _isTimerActive = true;
       startTimer();
     });
-    await provider.forgotPassword(context, widget.email, 'otp');
+    await provider.forgotPassword(context, widget.email, 'otp', widget.page);
   }
 
   @override
@@ -163,12 +164,72 @@ class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Text('Check your email address',style: CustomTextStyles.pageTitleMain25,),
+                              Text('Enter the OTP',style: CustomTextStyles.pageTitleMain25,),
                               const SizedBox(height: 8,),
-                              Text('Enter the OTP sent to ${widget.email}',
-                                textAlign: TextAlign.center,
-                                style: CustomTextStyles.gray12,
-                              ),
+                              // Row(
+                              //   mainAxisAlignment: MainAxisAlignment.center,
+                              //   children: [
+                                  Text('Check your email address ',
+                                    textAlign: TextAlign.center,
+                                    style: CustomTextStyles.gray12,
+                                  ),
+                              InkWell(
+                                onTap: (){
+                                  NavigatorService.goBack();
+                                },
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Container(
+                                          height: 22,
+                                          width: 22,
+                                          decoration: BoxDecoration(
+                                            color: appTheme.main,
+                                            borderRadius: BorderRadius.circular(50),
+                                          ),
+                                            child: Icon(Icons.edit, size: 15, color: appTheme.white,)),
+                                        Text(' ${widget.email}',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: appTheme.gray,
+                                            fontSize: 13,
+                                            fontFamily: 'Poppins',
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              //   ],
+                              // ),
+
+                              // const SizedBox(height: 10),
+                              // Padding(
+                              //   padding: const EdgeInsets.only(left: 40),
+                              //   child: InkWell(
+                              //     onTap: (){
+                              //       NavigatorService.goBack();
+                              //     },
+                              //     child: Row(
+                              //       children: [
+                              //         Center(
+                              //           child: Container(
+                              //             padding: EdgeInsets.all(2),
+                              //               decoration: BoxDecoration(
+                              //                   color: appTheme.main,
+                              //                   borderRadius: BorderRadius.circular(50)
+                              //               ),
+                              //               child: Icon(Icons.edit, size: 10, color: appTheme.white,)),
+                              //         ),
+                              //         SizedBox(width: 3,),
+                              //         Text('Edit Email',
+                              //           textAlign: TextAlign.center,
+                              //           style: CustomTextStyles.main13,
+                              //         ),
+                              //       ],
+                              //     ),
+                              //   ),
+                              // ),
                               const SizedBox(height: 40),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -198,7 +259,11 @@ class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
                                     onTap: () {
                                       _resendOtp();
                                     },
-                                    child: const Text('Resend OTP')
+                                    child: Text('Resend OTP',
+                                      style: TextStyle(
+                                        color: appTheme.gray7272
+                                      ),
+                                    )
                                 ),
                               const SizedBox(height: 40,),
                               _proceedButton(context),
@@ -356,7 +421,7 @@ class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
           CommonWidget().snackBar(context, appTheme.red, 'Please Enter valid otp');
         }else{
             Provider.of<ForgotPasswordProvider>(context, listen: false)
-                .verifyForgotPasswordOtp(context, widget.email, otp, 'verify');
+                .verifyForgotPasswordOtp(context, widget.email, otp, 'verify', widget.page);
         }
       },
     );

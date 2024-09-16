@@ -7,14 +7,16 @@ import '../../core/utils/validation_functions.dart';
 import '../../widgets/custom_elevated_button.dart';
 
 class ForgotPassword extends StatefulWidget {
-  const ForgotPassword({super.key});
+  final String page;
+  const ForgotPassword({super.key, required this.page});
 
   @override
   State<ForgotPassword> createState() => _ForgotPasswordState();
   static Widget builder(BuildContext context) {
+    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     return ChangeNotifierProvider(
       create: (context) => ForgotPasswordProvider(),
-      child: const ForgotPassword(),
+      child: ForgotPassword(page: args['page']),
     );
   }
 }
@@ -51,6 +53,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
     provider = Provider.of<ForgotPasswordProvider>(context);
     final hasFocus = _focusNodeEmail.hasFocus;
     final hasValue = provider.emailController.text.isNotEmpty;
+    // provider.emailController = provider.emailController.text;
 
     return SafeArea(
       child: Scaffold(
@@ -114,7 +117,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Forgot password ?',style: CustomTextStyles.pageTitleMain,),
+                                Text((widget.page == 'profile')?'Reset password':'Forgot password ?',style: CustomTextStyles.pageTitleMain,),
                                 const SizedBox(height: 20,),
                                 SizedBox(
                                   // height: 50,
@@ -122,6 +125,9 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                                     focusNode: _focusNodeEmail,
                                     controller: provider.emailController,
                                     style: CustomTextStyles.blue17,
+                                    onChanged: (value) {
+                                      provider.updateEmail(value);
+                                    },
                                     decoration: InputDecoration(
                                       contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 13),
                                       fillColor: hasFocus || hasValue ? Colors.white : appTheme.f6f6f6,
@@ -207,9 +213,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
             String lowercasedEmail = email.toLowerCase();
             if (_formKey.currentState!.validate()) {
               provider.setLoding(true);
-              print('...............11.........${provider.isLoading}');
-              await Provider.of<ForgotPasswordProvider>(context, listen: false).forgotPassword(context, lowercasedEmail, 'otp');
-              print('.................22.......${provider.isLoading}');
+              await Provider.of<ForgotPasswordProvider>(context, listen: false).forgotPassword(context, lowercasedEmail, 'otp', widget.page);
               provider.setLoding(false);
             } else {
               provider.setLoding(false);

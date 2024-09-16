@@ -4,6 +4,7 @@ import 'package:crypto_app/presentation/wallet/provider/transaction_provider.dar
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 
@@ -28,6 +29,16 @@ class _ScannerScreenState extends State<ScannerScreen> {
   void initState() {
     super.initState();
     transactionProvider = Provider.of<TransactionProvider>(context, listen: false);
+    _requestCameraPermission();
+  }
+
+  void _requestCameraPermission() async {
+    final status = await Permission.camera.request();
+    if (status.isDenied) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Camera permission is required')),
+      );
+    }
   }
 
   // @override
@@ -172,6 +183,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
         //   getScannerData(result);
         // });
         if (scanData.code != null) {
+          print('QR Code scanned: ${scanData.code}');
           setState(() {
             result = scanData;
           });

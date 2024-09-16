@@ -14,11 +14,17 @@ import '../presentation/conversion/conversion_done.dart';
 import '../presentation/home_screen_page/home_screen.dart';
 import '../presentation/get_started/get_started.dart';
 import '../presentation/home_screen_page/wallet_page.dart';
+import '../presentation/mpin/generateMpin.dart';
+import '../presentation/mpin/mpin.dart';
+import '../presentation/profile/profile.dart';
+import '../presentation/settings/setting.dart';
 import '../presentation/splaash_screen/splash_screen.dart';
+import '../presentation/transactions/transaction.dart';
 import '../presentation/wallet/qr_view.dart';
 import '../presentation/wallet/receive_screen.dart';
 import '../presentation/wallet/success_screen.dart';
 import '../presentation/wallet/transfer_screen.dart';
+import '../presentation/wallet/wallet.dart';
 
 class AppRoutes{
   static const String splashScreen = '/splash_screen';
@@ -36,6 +42,12 @@ class AppRoutes{
   static const String forgotPassword = '/forgotPassword';
   static const String forgotpasswordotp = '/forgotpasswordotp';
   static const String forgotPasswordChange = '/forgotPasswordChange';
+  static const String profileScreen = '/profileScreen';
+  static const String mpinScreen = '/mpinScreen';
+  static const String generateMpin = '/generateMpin';
+  static const String settingScreen = '/settingScreen';
+  static const String transactionScreen = '/transactionScreen';
+  static const String walletScreen = '/walletScreen';
 
   static const String loginScreen = '/login_screen';
   static const String registerScreen = '/register_screen';
@@ -60,6 +72,12 @@ class AppRoutes{
     forgotPassword: ForgotPassword.builder,
     forgotpasswordotp: ForgotPasswordOtp.builder,
     forgotPasswordChange: ForgotPasswordChange.builder,
+    profileScreen: ProfileScreen.builder,
+    mpinScreen: MpinScreen.builder,
+    generateMpin: GenerateMpin.builder,
+    settingScreen: SettingScreen.builder,
+    transactionScreen: TransactionScreen.builder,
+    walletScreen: WalletScreen.builder,
 
     loginScreen: LoginScreen.builder,
     registerScreen: RegisterScreen.builder,

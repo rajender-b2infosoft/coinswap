@@ -99,8 +99,8 @@ class _GetStartedScreenState extends State<GetStartedScreen> {
                             ),
                             const SizedBox(height: 30,),
                             _buildVerificationStep(ImageConstant.password, 'Verify Email',true,1),
-                            _buildVerificationStep(ImageConstant.passport, 'Verify ID',true,2),
-                            _buildVerificationStep(ImageConstant.userWithRounded, 'Take Selfie',false,3),
+                            _buildVerificationStep(ImageConstant.userWithRounded, 'Take Selfie',true,2),
+                            _buildVerificationStep(ImageConstant.passport, 'Verify ID',false,3),
                               const SizedBox(height: 40,),
                             _proceedButton(context),
                           ],
@@ -162,9 +162,10 @@ class _GetStartedScreenState extends State<GetStartedScreen> {
               CustomImageView(
                 imagePath: img,
                 fit: BoxFit.fitWidth,
-                width: (index==1)?74:50,
+                width: (index==1)?74:45,
                 // height: 45,
               ),
+              (title=='Take Selfie')? SizedBox(height: 5,):SizedBox(height: 0,),
               (require)?CustomPaint(
                 size: const Size(2, 50),
                 painter: DottedBorderPainter(),
@@ -178,7 +179,7 @@ class _GetStartedScreenState extends State<GetStartedScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              (title=='Verify ID')? SizedBox(height: 10,):(title=='Take Selfie')?SizedBox(height: 15,):SizedBox(height: 3,),
+              (title=='Verify ID')? SizedBox(height: 5,):(title=='Take Selfie')?SizedBox(height: 10,):SizedBox(height: 3,),
               Text(title,
                 style: CustomTextStyles.gray17,
               ),

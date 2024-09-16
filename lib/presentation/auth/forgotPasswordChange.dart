@@ -8,7 +8,8 @@ import '../../widgets/custom_elevated_button.dart';
 
 class ForgotPasswordChange extends StatefulWidget {
   final String email;
-  const ForgotPasswordChange({super.key, required this.email});
+  final String page;
+  const ForgotPasswordChange({super.key, required this.email, required this.page});
 
   @override
   State<ForgotPasswordChange> createState() => _ForgotPasswordChangeState();
@@ -16,7 +17,7 @@ class ForgotPasswordChange extends StatefulWidget {
     final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     return ChangeNotifierProvider(
       create: (context) => ForgotPasswordProvider(),
-      child: ForgotPasswordChange(email: args['email']),
+      child: ForgotPasswordChange(email: args['email'], page: args['page']),
     );
   }
 }
@@ -129,6 +130,7 @@ class _ForgotPasswordChangeState extends State<ForgotPasswordChange> {
                                   child: TextFormField(
                                     focusNode: _focusNodeNewPassword,
                                     controller: provider.newController,
+                                    obscureText: provider.obscureTextNew,
                                     style: CustomTextStyles.blue17,
                                     decoration: InputDecoration(
                                       contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 13),
@@ -156,6 +158,15 @@ class _ForgotPasswordChangeState extends State<ForgotPasswordChange> {
                                           color: hasFocusNew || hasValueNew ? Colors.blue : const Color(0XFF838383).withOpacity(0.1),
                                         ),
                                       ),
+                                      suffixIcon: IconButton(
+                                        icon: Icon(
+                                          provider.obscureTextNew ? Icons.visibility : Icons.visibility_off,
+                                          color: Colors.grey,
+                                        ),
+                                        onPressed: (){
+                                          provider.setObscureText('new');
+                                        },
+                                      ),
                                     ),
                                     validator: (value) => checkEmpty(value, 'Please enter new password'),
                                   ),
@@ -165,7 +176,11 @@ class _ForgotPasswordChangeState extends State<ForgotPasswordChange> {
                                   child: TextFormField(
                                     focusNode: _focusNodeConfirmPassword,
                                     controller: provider.confController,
+                                    obscureText: provider.obscureText,
                                     style: CustomTextStyles.blue17,
+                                    onChanged: (value) {
+                                      Provider.of<ForgotPasswordProvider>(context, listen: false).updatePassword(value);
+                                    },
                                     decoration: InputDecoration(
                                       contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 13),
                                       fillColor: hasFocusConf || hasValueConf ? Colors.white : appTheme.f6f6f6,
@@ -192,9 +207,68 @@ class _ForgotPasswordChangeState extends State<ForgotPasswordChange> {
                                           color: hasFocusConf || hasValueConf ? Colors.blue : const Color(0XFF838383).withOpacity(0.1),
                                         ),
                                       ),
+                                      suffixIcon: IconButton(
+                                        icon: Icon(
+                                          provider.obscureText ? Icons.visibility : Icons.visibility_off,
+                                          color: Colors.grey,
+                                        ),
+                                        onPressed: (){
+                                          provider.setObscureText('confirm');
+                                        },
+                                      ),
                                     ),
                                     validator: (value) => checkEmpty(value, 'Please re enter new password'),
                                   ),
+                                ),
+                                const SizedBox(height: 10,),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Password must be at least 8 characters long, include:',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w400,
+                                        color: provider.isLengthValid  ? appTheme.green : appTheme.gray,),
+                                    ),
+                                    Text(
+                                      '• One number',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w400,
+                                        color: provider.hasNumber ? appTheme.green : appTheme.gray,
+                                      ),
+                                    ),
+                                    Text(
+                                      '• One uppercase letter',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w400,
+                                        color: provider.hasUppercase  ? appTheme.green : appTheme.gray,
+                                      ),
+                                    ),
+                                    Text(
+                                      '• One special character',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w400,
+                                        color: provider.hasSpecialCharacter  ? appTheme.green : appTheme.gray,
+                                      ),
+                                    ),
+                                    Text(
+                                      '• Passwords match',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: provider.isPasswordBeingTyped
+                                            ? (provider.doPasswordsMatch ? appTheme.green : appTheme.red)
+                                            : appTheme.gray,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                                 const SizedBox(height: 30,),
                                 _proceedButton(context),
@@ -260,7 +334,7 @@ class _ForgotPasswordChangeState extends State<ForgotPasswordChange> {
               }else{
                 provider.setLoding(true);
                 await Provider.of<ForgotPasswordProvider>(context, listen: false).
-                changePassword(context, widget.email, 'change_password', newPass, confPass);
+                changePassword(context, widget.email, 'change_password', newPass, confPass, widget.page);
                 provider.setLoding(false);
               }
             } else {

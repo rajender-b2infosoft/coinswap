@@ -50,8 +50,8 @@ class CryptoWebSocketService {
     return _channel.stream.map((data) {
       final decodedData = jsonDecode(data) as Map<String, dynamic>;
 
-      final productId = decodedData['product_id'] as String;
-      final price = double.tryParse(decodedData['price'] as String ?? '');
+      final productId = decodedData['product_id'].toString();
+      final price = double.tryParse(decodedData['price'].toString() ?? '');
 
       double percentageChange = 0.0;
       if (decodedData['percentage_change'] != null) {

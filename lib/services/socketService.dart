@@ -44,7 +44,7 @@ class SocketIOClient {
   // Setup socket event listeners
   void _setupSocketListeners(context, HomeScreenProvider provider) {
     _socket!.on('connect', (_) {
-      print('Connected to Socket.IO server...................');
+      print('Connected to Socket.IO server...................1111');
     });
 
     _socket!.on('disconnect', (_) {

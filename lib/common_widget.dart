@@ -31,7 +31,7 @@ class CommonWidget {
             duration: Duration(seconds: 3),
             content: Text(msg,
               overflow: TextOverflow.ellipsis,
-              maxLines: 1,
+              maxLines: 2,
               style: TextStyle(
                   color: appTheme.white,
                   fontFamily: 'Raleway',

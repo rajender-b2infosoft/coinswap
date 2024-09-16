@@ -32,6 +32,27 @@ class AuthProvider with ChangeNotifier {
     _initializeEncryptionService();
   }
 
+  String _password = '';
+  bool _hasUppercase = false;
+  bool _hasNumber = false;
+  bool _hasSpecialCharacter = false;
+  bool _isLengthValid = false;
+
+  String get password => _password;
+  bool get hasUppercase => _hasUppercase;
+  bool get hasNumber => _hasNumber;
+  bool get hasSpecialCharacter => _hasSpecialCharacter;
+  bool get isLengthValid => _isLengthValid;
+
+  void updatePassword(String newPassword) {
+    _password = newPassword;
+    _hasUppercase = newPassword.contains(RegExp(r'[A-Z]'));
+    _hasNumber = newPassword.contains(RegExp(r'[0-9]'));
+    _hasSpecialCharacter = newPassword.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
+    _isLengthValid = newPassword.length >= 8;
+    notifyListeners();
+  }
+
   Future<void> _initializeEncryptionService() async {
     try {
       await _encryptionService.initialize();
@@ -75,8 +96,6 @@ class AuthProvider with ChangeNotifier {
     try{
       final response = await apiService.verifyLoginOtp(email, password, otp);
 
-      print('............response..................$response');
-
       if(response['status'] == 'success'){
         LoginModel loginData = LoginModel.fromJson(response);
 
@@ -93,8 +112,11 @@ class AuthProvider with ChangeNotifier {
         await prefs.setString('userName', decryptUsername);
         await prefs.setString('email', decryptEmail);
 
-        print('::::::::::::::::::loginData.data:::::::::::::::::::::::++++');
-        print(loginData.data!.status!);
+        await prefs.setString('mpin', (loginData.data?.mpin.toString()==null)?'':loginData.data!.mpin.toString());
+        await prefs.setString('mpin_active', loginData.data!.mpin_active.toString());
+
+
+        await prefs.setString('profileImage', (loginData.data?.file.toString()==null)?'':loginData.data!.file.toString());
 
         var status = (loginData.data!.status! == 'under_review')?'Under Review':(loginData.data!.status! == 'inactive')?'Inactive':(loginData.data!.status! == 'active')?'Active':'Suspended';
 
@@ -102,7 +124,6 @@ class AuthProvider with ChangeNotifier {
         // await prefs.setString('status', loginData.data!.status!);
         await prefs.setInt('user_id', loginData.data!.userId!);
 
-        print('result===nnneeewwww=>>>>>1212121${loginData.data!.role}');
 
         // Navigate to the next screen or perform actions based on role
         if (loginData.data!.role == 'user') {
@@ -114,9 +135,6 @@ class AuthProvider with ChangeNotifier {
           NavigatorService.pushNamed(AppRoutes.loginScreen);
         }
       }else{
-        print('result====>>>>>');
-        print('result====>>>>>1212121');
-
         CommonWidget.showToastView(response['message'], appTheme.gray8989);
       }
     }catch(e){
@@ -132,12 +150,9 @@ class AuthProvider with ChangeNotifier {
     try{
       final response = await apiService.userLogin(email, password);
 
-      print('${response['message']}+++++++++++++++++++++++++++++++++++++${response}');
-
       if (response != null && response['status'] == 'success') {
 
         CommonWidget().snackBar(context, appTheme.green, response['message']);
-        print(response);
         // Future.delayed(Duration(seconds: 2), () {
           NavigatorService.pushNamed(AppRoutes.verifyOtp,
               argument: {
@@ -199,6 +214,7 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
   Future resendRequestOtp(context, RequestOtp requestOtp) async {
     _isLoading = true;
     notifyListeners();
@@ -222,18 +238,14 @@ class AuthProvider with ChangeNotifier {
     var data = requestOtp.toJson();
     try{
       final response = await apiService.verifyOtp(data, otp);
-
       if(response['status'] == 'success'){
 
         LoginModel loginData = LoginModel.fromJson(response);
         CommonWidget.showToastView(response['message'], appTheme.gray8989);
-
         HtmlUnescape unescape = HtmlUnescape();
         String decodedData = unescape.convert(loginData.data!.email!.replaceAll('&#x2F;', '/'));
-
         var decryptUsername = apiService.decryptData(loginData.data!.username!, apiService.encryptKey, apiService.iv);
         var decryptEmail = apiService.decryptData(decodedData, apiService.encryptKey, apiService.iv);
-
         // Save login details to shared preferences
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('accessToken', loginData.data!.token!);
@@ -245,7 +257,9 @@ class AuthProvider with ChangeNotifier {
         await prefs.setString('status', 'Under Review');
         await prefs.setInt('user_id', loginData.data!.userId!);
 
-        NavigatorService.pushNamed(AppRoutes.verifyIdentity);
+
+        // NavigatorService.pushNamed(AppRoutes.verifyIdentity);
+        NavigatorService.pushNamed(AppRoutes.uploadSelfie);
        _webSocketClient.connectSocket(loginData.data!.token!,loginData.data!.userId!.toString(), context, homeProvider);
       }else{
         CommonWidget.showToastView(response['message'], appTheme.gray8989);
@@ -262,6 +276,7 @@ class AuthProvider with ChangeNotifier {
   Future<void> getUserInfoByID(id) async{
     try{
       final response = await apiService.getUserInfoByID(id);
+
       if(response['status'] == 'success'){
         List<dynamic> documents = response['data'];
         // Check if 'aadhar', 'passport', and 'selfie' document types exist
@@ -269,12 +284,12 @@ class AuthProvider with ChangeNotifier {
         bool hasPassport = documents.any((doc) => doc['document_type'] == 'passport');
         bool hasSelfie = documents.any((doc) => doc['document_type'] == 'selfie');
         // Redirect based on the conditions
-        if (!hasAadhar && !hasPassport) {
-          // If neither 'aadhar' nor 'passport' is uploaded, redirect to the document upload page
-          NavigatorService.pushNamed(AppRoutes.verifyIdentity);
-        } else if (!hasSelfie) {
+        if (!hasSelfie) {
           // If 'selfie' is not uploaded, redirect to the selfie upload page
           NavigatorService.pushNamed(AppRoutes.uploadSelfie);
+        } else if (!hasAadhar && !hasPassport) {
+          // If neither 'aadhar' nor 'passport' is uploaded, redirect to the document upload page
+          NavigatorService.pushNamed(AppRoutes.verifyIdentity);
         } else {
           // If all required documents are uploaded, redirect to the home screen
           NavigatorService.pushNamed(AppRoutes.homeScreen);
@@ -294,6 +309,7 @@ class AuthProvider with ChangeNotifier {
   //Function for logout remove all data from shared preferences
   void logout() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    // await prefs.remove('themeData');
     prefs.clear();
     notifyListeners();
     NavigatorService.pushNamedAndRemoveUntil(AppRoutes.loginScreen);

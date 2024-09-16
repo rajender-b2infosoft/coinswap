@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:crypto_app/presentation/auth/provider/auth_provider.dart';
+import 'package:crypto_app/theme/theme_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../common_widget.dart';
@@ -184,11 +185,42 @@ class _VerifyOtpState extends State<VerifyOtp> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Text('Verify your email address',style: CustomTextStyles.pageTitleMain,),
+                              Text((widget.type == 'login')?'Enter the OTP':'Verify your email address',style: CustomTextStyles.pageTitleMain,),
                               const SizedBox(height: 8,),
-                              Text('Enter the OTP sent to ${widget.username}',
-                                textAlign: TextAlign.center,
-                                style: CustomTextStyles.gray12,
+                              (widget.type == 'login')?Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text('Check your email address',
+                                    textAlign: TextAlign.center,
+                                    style: CustomTextStyles.gray12,
+                                  ),
+                                  Text(' ${widget.username}',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: appTheme.gray,
+                                      fontSize: 13,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ],
+                              ):Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text('Enter the OTP sent to ',
+                                    textAlign: TextAlign.center,
+                                    style: CustomTextStyles.gray12,
+                                  ),
+                                    Text(' ${widget.username}',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: appTheme.gray,
+                                        fontSize: 13,
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                ],
                               ),
                               const SizedBox(height: 40),
                               Row(
@@ -219,7 +251,9 @@ class _VerifyOtpState extends State<VerifyOtp> {
                                   onTap: () {
                                     _resendOtp();
                                   },
-                                    child: const Text('Resend OTP')
+                                    child: Text('Resend OTP', style: TextStyle(
+                                      color: appTheme.gray7272
+                                    ),)
                                 ),
                               // if (_isTimerActive)
                               // Stack(
@@ -414,7 +448,7 @@ class _VerifyOtpState extends State<VerifyOtp> {
       onPressed: () {
         String otp = _controllers.map((controller) => controller.text).join();
           if(otp.length < 4){
-            CommonWidget().snackBar(context, appTheme.red, 'Please Enter valid otp');
+            CommonWidget().snackBar(context, appTheme.red, 'Please Enter valid OTP');
           }else{
             if(widget.type == 'login'){
               Provider.of<AuthProvider>(context, listen: false)

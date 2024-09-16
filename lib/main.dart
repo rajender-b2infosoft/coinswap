@@ -2,7 +2,12 @@ import 'package:crypto_app/presentation/auth/provider/forgotPassword.dart';
 import 'package:crypto_app/presentation/auth/provider/selfieProvider.dart';
 import 'package:crypto_app/presentation/auth/upload_selfie.dart';
 import 'package:crypto_app/presentation/home_screen_page/provider/wallet_provider.dart';
+import 'package:crypto_app/presentation/mpin/provider/mpin.dart';
+import 'package:crypto_app/presentation/profile/provider/profile.dart';
+import 'package:crypto_app/presentation/transactions/provider/transaction.dart';
+import 'package:crypto_app/presentation/wallet/provider/transaction_provider.dart';
 import 'package:crypto_app/routes/app_routes.dart';
+import 'package:crypto_app/routes/routeaprovider.dart';
 import 'package:crypto_app/services/socketService.dart';
 import 'package:crypto_app/services/webSocketClient.dart';
 import 'package:crypto_app/theme/provider/theme_provider.dart';
@@ -100,16 +105,49 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
             ),
             ChangeNotifierProvider<ForgotPasswordProvider>(
               create: (context)=>ForgotPasswordProvider(),
+            ),
+            ChangeNotifierProvider<RouteNameProvider>(
+              create: (context)=>RouteNameProvider(),
+            ),
+            ChangeNotifierProvider<MpinProvider>(
+              create: (context)=>MpinProvider(),
+            ),
+            ChangeNotifierProvider<ProfileProvider>(
+              create: (context)=>ProfileProvider(),
+            ),
+            ChangeNotifierProvider<TransactionProvider>(
+              create: (context)=>TransactionProvider(),
+            ),
+            ChangeNotifierProvider<TransactionScreenProvider>(
+              create: (context)=>TransactionScreenProvider(),
             )
-
           ],
+
           child: Consumer<ThemeProvider>(
             builder: (context, provider, child){
+              final themeProvider = Provider.of<ThemeProvider>(context);
+              final isDarkMode = provider.themeType == 'darkCode';
+              final routeNameProvider = Provider.of<RouteNameProvider>(context, listen: false);
+
               return MaterialApp(
                 title: 'CoinSwap',
                 debugShowCheckedModeBanner: false,
-                theme: theme,
+                // theme: theme,
+                theme: ThemeHelper().themeData(), // Light theme
+                darkTheme: ThemeHelper().themeData(), // Dark theme
+                // themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
+                themeMode: themeProvider.currentThemeMode,
                 navigatorKey: NavigatorService.navigatorKey,
+                // navigatorObservers: [RouteObserver()],
+                navigatorObservers: [
+                  RouteObserver(
+                    onRouteChanged: (routeName) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        routeNameProvider.routeName = routeName;
+                      });
+                    },
+                  ),
+                ],
                 localizationsDelegates: const [
                   AppLocalizationDelegate(),
                   GlobalMaterialLocalizations.delegate,
@@ -127,3 +165,27 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
     );
   }
 }
+
+
+class RouteObserver extends NavigatorObserver {
+  final ValueChanged<String> onRouteChanged;
+
+  RouteObserver({required this.onRouteChanged});
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    final routeName = route.settings.name ?? '';
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      onRouteChanged(routeName);
+    });
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    final routeName = previousRoute?.settings.name ?? '';
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      onRouteChanged(routeName);
+    });
+  }
+}
+

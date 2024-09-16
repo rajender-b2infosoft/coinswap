@@ -368,7 +368,12 @@ class _VerifyIdentityState extends State<VerifyIdentity> {
               value: value,
               groupValue: selfieProvider.groupValue,
               onChanged: (val){
-                selfieProvider.setGroupValue(value);
+                // selfieProvider.setGroupValue(value);
+                if(selfieProvider.images.length>0 && selfieProvider.groupValue != value){
+                  CommonWidget.showToastView('If you want to upload $value image first remove image.', appTheme.gray8989);
+                }else{
+                  selfieProvider.setGroupValue(value);
+                }
               },
             fillColor: MaterialStateProperty.resolveWith<Color>((states) {
               if (states.contains(MaterialState.selected)) {
@@ -435,7 +440,8 @@ class _VerifyIdentityState extends State<VerifyIdentity> {
                   _showCameraBottomSheet();
                 }
                 if(selfieProvider.images.length >= 2){
-                  NavigatorService.pushNamed(AppRoutes.uploadSelfie);
+                  // NavigatorService.pushNamed(AppRoutes.uploadSelfie);
+                  NavigatorService.pushNamed(AppRoutes.registerSuccessScreen);
                 }
               },
               child: Container(
@@ -449,8 +455,10 @@ class _VerifyIdentityState extends State<VerifyIdentity> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    // (selfieProvider.images.length >= 2)?image('proceed'):image('cloud'),
+                    // Text((selfieProvider.images.length >= 2)?'Capture Selfie':'Upload',style: CustomTextStyles.white18,)
                     (selfieProvider.images.length >= 2)?image('proceed'):image('cloud'),
-                    Text((selfieProvider.images.length >= 2)?'Capture Selfie':'Upload',style: CustomTextStyles.white18,)
+                    Text((selfieProvider.images.length >= 2)?'Proceed':'Upload',style: CustomTextStyles.white18,)
                   ],
                 ),
               ),
