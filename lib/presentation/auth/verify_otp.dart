@@ -255,38 +255,6 @@ class _VerifyOtpState extends State<VerifyOtp> {
                                       color: appTheme.gray7272
                                     ),)
                                 ),
-                              // if (_isTimerActive)
-                              // Stack(
-                              //   alignment: Alignment.center,
-                              //   children: [
-                              //     SizedBox(
-                              //       height: 50,
-                              //       width: 50,
-                              //       child: CircularProgressIndicator(
-                              //         value: _isTimerActive ? _progress :null,
-                              //         backgroundColor: const Color(0XFFFFFFFF),
-                              //         strokeWidth: 5.0, // Adjust stroke width as needed
-                              //         valueColor: const AlwaysStoppedAnimation<Color>(
-                              //           Colors.blue, // Replace with your desired color or a Color from your gradient
-                              //         ),
-                              //       ),
-                              //     ),
-                              //     Text('$_start',
-                              //       style: TextStyle(
-                              //         color: appTheme.main,
-                              //         fontWeight: FontWeight.w400,
-                              //         fontSize: 14, // Adjust font size as needed
-                              //       ),
-                              //     ),
-                              //   ],
-                              // ),
-                              // if (!_isTimerActive) // Display resend button when timer is done
-                              //   InkWell(
-                              //     onTap: () {
-                              //       _resendOtp();
-                              //     },
-                              //       child: const Text('Resend OTP')
-                              //   ),
                               const SizedBox(height: 40,),
                               _proceedButton(context),
                             ],

@@ -1,20 +1,20 @@
-class Transaction {
+class RecentTransactionModel {
   String status;
   String message;
   List<TransactionData> data;
 
-  Transaction({
+  RecentTransactionModel({
     required this.status,
     required this.message,
     required this.data,
   });
 
-  factory Transaction.fromJson(Map<String, dynamic> json) {
-    return Transaction(
+  factory RecentTransactionModel.fromJson(Map<String, dynamic> json) {
+    return RecentTransactionModel(
       status: json['status'],
       message: json['message'],
       data: List<TransactionData>.from(
-          json['data'].map((item) => TransactionData.fromJson(item))
+        json['data'].map((transaction) => TransactionData.fromJson(transaction)),
       ),
     );
   }
@@ -23,7 +23,7 @@ class Transaction {
     return {
       'status': status,
       'message': message,
-      'data': data.map((item) => item.toJson()).toList(),
+      'data': data.map((transaction) => transaction.toJson()).toList(),
     };
   }
 }
@@ -42,6 +42,7 @@ class TransactionData {
   String? cryptoType;
   String? network;
   String? amount;
+  String? commissionAmount;
   String? status;
   String? createdAt;
   String? updatedAt;
@@ -61,6 +62,7 @@ class TransactionData {
     this.cryptoType,
     this.network,
     this.amount,
+    this.commissionAmount,
     this.status,
     this.createdAt,
     this.updatedAt,
@@ -75,13 +77,14 @@ class TransactionData {
       senderWalletAddress: json['sender_wallet_address'],
       receiverWalletAddress: json['receiver_wallet_address'],
       transactionType: json['transaction_type'],
-      requestId: json['requestId'],
-      transactionRequestId: json['transactionRequestId'],
+      requestId: json['requestId'] ?? '',
+      transactionRequestId: json['transactionRequestId'] ?? '',
       note: json['note'],
       feePriority: json['feePriority'],
       cryptoType: json['crypto_type'],
       network: json['network'],
       amount: json['amount'],
+      commissionAmount: json['commission_amount'],
       status: json['status'],
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
@@ -104,6 +107,7 @@ class TransactionData {
       'crypto_type': cryptoType,
       'network': network,
       'amount': amount,
+      'commission_amount': commissionAmount,
       'status': status,
       'created_at': createdAt,
       'updated_at': updatedAt,

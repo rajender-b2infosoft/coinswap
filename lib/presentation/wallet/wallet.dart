@@ -2,7 +2,6 @@ import 'package:crypto_app/presentation/wallet/provider/wallet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/app_export.dart';
-import '../home_screen_page/provider/wallet_provider.dart';
 import '../profile/models/profile.dart';
 
 class WalletScreen extends StatefulWidget {
@@ -217,24 +216,24 @@ class _WalletScreenState extends State<WalletScreen> {
                         ),
                       ),
                     ),
-                    ListTile(
-                      title: Text(
-                        "Private Key",
-                        style: CustomTextStyles.main16,
-                      ),
-                      subtitle: Text(privateKey,
-                        overflow: TextOverflow.ellipsis,style: CustomTextStyles.gray7272_15,),
-                      trailing: Padding(
-                        padding: const EdgeInsets.only(top: 20.0),
-                        child: IconButton(
-                          icon: Icon(Icons.copy, size: 20 , color: appTheme.gray7272,),
-                          onPressed: () {
-                            Clipboard.setData(ClipboardData(
-                                text: privateKey.toString()));
-                          },
-                        ),
-                      ),
-                    ),
+                    // ListTile(
+                    //   title: Text(
+                    //     "Private Key",
+                    //     style: CustomTextStyles.main16,
+                    //   ),
+                    //   subtitle: Text(privateKey,
+                    //     overflow: TextOverflow.ellipsis,style: CustomTextStyles.gray7272_15,),
+                    //   trailing: Padding(
+                    //     padding: const EdgeInsets.only(top: 20.0),
+                    //     child: IconButton(
+                    //       icon: Icon(Icons.copy, size: 20 , color: appTheme.gray7272,),
+                    //       onPressed: () {
+                    //         Clipboard.setData(ClipboardData(
+                    //             text: privateKey.toString()));
+                    //       },
+                    //     ),
+                    //   ),
+                    // ),
                   ],
                 ),
               ),

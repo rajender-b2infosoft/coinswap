@@ -1,24 +1,65 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../core/app_export.dart';
 import '../presentation/home_screen_page/provider/home_screen_provider.dart';
+import 'api_service.dart';
 
 class SocketIOClient {
   IO.Socket? _socket;
   final _secureStorage = const FlutterSecureStorage();
+  final apiService = ApiService();
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+  late WebSocketChannel _channel;
+
+  SocketIOClient(this.flutterLocalNotificationsPlugin);
+
+  Future<void> initializeNotifications() async {
+    // Initialize the WebSocket connection
+    _channel = WebSocketChannel.connect(Uri.parse('ws://your_websocket_url'));
+
+    // Listen for incoming messages
+    _channel.stream.listen((message) {
+      var data = json.decode(message);
+      _showNotification(data['title'], data['body']);
+    }, onError: (error) {
+      // Handle error if necessary
+      print('WebSocket error: $error');
+    }, onDone: () {
+      // Handle closure of the WebSocket connection
+      print('WebSocket connection closed');
+    });
+  }
+
+  Future<void> _showNotification(String title, String body) async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+    AndroidNotificationDetails(
+      'your_channel_id', // Channel ID
+      'your_channel_name', // Channel name
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+
+    const NotificationDetails platformChannelSpecifics =
+    NotificationDetails(android: androidPlatformChannelSpecifics);
+
+    await flutterLocalNotificationsPlugin.show(
+      0, // Notification ID
+      title,
+      body,
+      platformChannelSpecifics,
+    );
+  }
 
   // Connect to the Socket.IO server
   void connectSocket(String token, String userId, BuildContext context, HomeScreenProvider provider) {
-    // const String serverUrl = 'http://192.168.1.24:8000';
-
-  //  _socket!.dispose();
     const String serverUrl = 'https://coinswap.co.in:8000';
-
     // Configure the Socket.IO client with reconnection options
     _socket = IO.io(serverUrl, <String, dynamic>{
       'transports': ['websocket'],
@@ -33,10 +74,8 @@ class SocketIOClient {
       'reconnectionDelayMax': 10000,    // Maximum delay between reconnection attempts (milliseconds)
       'timeout': 5000                   // Connection timeout (milliseconds)
     });
-
     // Setup event listeners
     _setupSocketListeners(context, provider);
-
     // Connect the socket
     _socket!.connect();
   }
@@ -84,12 +123,26 @@ class SocketIOClient {
       //     .setUserStatus(data['result']['status']);
     });
 
-    _socket!.on('status_changed', (data) {
-      print('status_changed:::::::::::::::::: ${data['result']['status']}');
+    _socket!.on('status_changed', (data) async {
+      print('status_changed:::::::::::::::::: ${data}');
+
       final status = data['result']['status'];
+
+      print('status_changed:::::::::::::::::: ${data['result']['status']}');
+
       var userStatus = (status == 'under_review')?'Under Review':(status == 'inactive')?'Inactive':(status == 'active')?'Active':'Suspended';
       Provider.of<HomeScreenProvider>(context, listen: false).setUserStatus(userStatus);
+
+      if(status == 'active'){
+        Provider.of<HomeScreenProvider>(context, listen: false).getUserWalets();
+      }
       // NavigatorService.pushNamedAndRemoveUntil(AppRoutes.homeScreen);
+    });
+
+    _socket!.on('vaultody_webhook', (data) async {
+      print('vaultody_webhook:::::::::::::::::: ${data}');
+
+      _showNotification('', data['message'].toString());
     });
   }
 
@@ -119,13 +172,6 @@ class SocketIOClient {
       Future.delayed(Duration(seconds: 5), _handleReconnection);
     }
   }
-
-  // void _handleReconnection() {
-  //   if (_socket != null && !_socket!.connected) {
-  //     print('Attempting manual reconnection........try to reconnect............');
-  //     _socket!.connect();
-  //   }
-  // }
 
   // Disconnect from the Socket.IO server
   void disconnect() {

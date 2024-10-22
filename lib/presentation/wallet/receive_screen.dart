@@ -32,9 +32,18 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   }
 
   Future<void> getValue() async {
-    transactionProvider.setAddress(await _secureStorage.read(key: 'address'));
-    transactionProvider
-        .setPrivateKey(await _secureStorage.read(key: 'privateKey'));
+    var selectedCurrency = transactionProvider.depositCurrency;
+    if(selectedCurrency == 'USDT'){
+      transactionProvider.setAddress(await _secureStorage.read(key: 'tron'));
+    }else if(selectedCurrency == 'BTC'){
+      transactionProvider.setAddress(await _secureStorage.read(key: 'bitcoin'));
+    }else if(selectedCurrency == 'ETH'){
+      transactionProvider.setAddress(await _secureStorage.read(key: 'ethereum'));
+    }
+
+    // transactionProvider.setAddress(await _secureStorage.read(key: 'address'));
+    // transactionProvider
+    //     .setPrivateKey(await _secureStorage.read(key: 'privateKey'));
   }
 
   @override
@@ -202,7 +211,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                           ),
                           // items: transactionProvider.assign_plans.entries
                           // .map((MapEntry<String, String> entry) {
-                          items: <String>['ETH', 'BIT', 'USDT']
+                          items: <String>['ETH', 'BTC', 'USDT']
                               .map<DropdownMenuItem<String>>((String value) {
                             return DropdownMenuItem<String>(
                               value: value,
@@ -214,7 +223,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                                         'ETH')
                                         ? '${ImageConstant.eth}'
                                         : (value ==
-                                        'BIT')
+                                        'BTC')
                                         ? '${ImageConstant.bit}'
                                         : '${ImageConstant.t}',
                                     width: 25,
@@ -232,7 +241,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                                             fontSize: 12,
                                             fontFamily: 'Poppins',
                                             fontWeight: FontWeight.w400,
-                                              color: appTheme.green
+                                              color: (value=='ETH')?appTheme.color7CA:(value=='BTC')?appTheme.orange:appTheme.green
                                           ),
                                         ),
                                       ],
@@ -244,6 +253,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                           }).toList(),
                           onChanged: (String? newValue) {
                             transactionProvider.setdepositCurrency(newValue);
+                            transactionProvider.setUserAddress(newValue);
                           },
                         ),
                       ),
@@ -261,6 +271,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   }
 
   Widget _buildInfoCard() {
+    var blockchainNetwork = (transactionProvider.depositCurrency == 'ETH')?"(ERC-20)":(transactionProvider.depositCurrency == 'USDT')?"(TRC-20)":"";
     return Padding(
       padding: const EdgeInsets.only(top: 20.0),
       child: Container(
@@ -278,7 +289,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
               style: CustomTextStyles.main14,
             ),
             Text(
-              '${transactionProvider.depositCurrency} Classic',
+              '${transactionProvider.depositCurrency} $blockchainNetwork',
               style: CustomTextStyles.gray7272_17,
             ),
             const SizedBox(
@@ -292,8 +303,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
               children: [
                 SizedBox(
                   width: 250,
-                  child: Text(
-                    transactionProvider.address.toString(),
+                  child: Text(transactionProvider.address.toString(),
                     overflow: TextOverflow.ellipsis,
                     style: CustomTextStyles.gray7272_17,
                   ),

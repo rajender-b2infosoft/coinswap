@@ -65,7 +65,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       if (jsonString['toAddress'] != null && jsonString['toAddress'].isNotEmpty) {
         Provider.of<TransactionProvider>(context, listen: false).setAddressController(jsonString['toAddress']);
         await Future.delayed(const Duration(seconds: 2));
-        NavigatorService.pushNamed(AppRoutes.transferScreen, argument: {'toAddress': jsonString['toAddress']});
+        NavigatorService.pushNamed(AppRoutes.transferScreen, argument: {'toAddress': jsonString['toAddress'], 'cryptoType': 'Ethereum', 'amount': ''});
       } else {
         showErrorToast("Invalid QR Code. Address is empty.");
       }
@@ -183,7 +183,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
         //   getScannerData(result);
         // });
         if (scanData.code != null) {
-          print('QR Code scanned: ${scanData.code}');
           setState(() {
             result = scanData;
           });

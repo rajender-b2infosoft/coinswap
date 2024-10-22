@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/app_export.dart';
+import '../../main.dart';
 import '../../services/socketService.dart';
 import '../auth/provider/auth_provider.dart';
 import '../home_screen_page/provider/home_screen_provider.dart';
@@ -21,8 +22,10 @@ class SplashScreen extends StatefulWidget {
 }
 
 class SplashScreenState extends State<SplashScreen> with WidgetsBindingObserver{
+  final SocketIOClient _webSocketClient = SocketIOClient(flutterLocalNotificationsPlugin); // Pass the instance here
 
-  final SocketIOClient _webSocketClient = SocketIOClient();
+  // final SocketIOClient _webSocketClient = SocketIOClient();
+  late SplashProvider splashProvider;
   late HomeScreenProvider homeProvider;
   late AuthProvider authProvider;
 
@@ -32,6 +35,8 @@ class SplashScreenState extends State<SplashScreen> with WidgetsBindingObserver{
     _checkAuth();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       authProvider = Provider.of<AuthProvider>(context, listen: false);
+      splashProvider = Provider.of<SplashProvider>(context, listen: false);
+      splashProvider.initialize();
     });
 
     WidgetsBinding.instance.addObserver(this);

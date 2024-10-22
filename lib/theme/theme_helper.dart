@@ -213,6 +213,7 @@ class LightCodeColors {
   Color get color2D9224 => const Color(0XFF2D9224);
   Color get color747474 => const Color(0XFF747474);
   Color get colorFFB8B8 => const Color(0XFFFFB8B8);
+  Color get color2E92ED => const Color(0XFF2E92ED);
 
 }
 

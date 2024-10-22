@@ -1,25 +1,33 @@
 import 'package:crypto_app/presentation/mpin/provider/mpin.dart';
+import 'package:crypto_app/presentation/wallet/provider/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../common_widget.dart';
 import '../../core/app_export.dart';
 import '../../widgets/custom_elevated_button.dart';
 
-class GenerateMpin extends StatefulWidget {
-  const GenerateMpin({super.key});
+class WalletPin extends StatefulWidget {
+  final String toAddress;
+  final String cryptoType;
+  final String amount;
+  final String note;
+  final String fromAddress;
+  const WalletPin({super.key, required this.toAddress, required this.cryptoType, required this.amount, required this.note, required this.fromAddress});
 
   @override
-  State<GenerateMpin> createState() => _GenerateMpinState();
+  State<WalletPin> createState() => _WalletPinState();
   static Widget builder(BuildContext context) {
+    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     return ChangeNotifierProvider(
       create: (context) => MpinProvider(),
-      child: const GenerateMpin(),
+      child: WalletPin(toAddress: args['toAddress'], cryptoType: args['cryptoType'], amount: args['amount'], note: args['note'], fromAddress: args['fromAddress']),
     );
   }
 }
 
-class _GenerateMpinState extends State<GenerateMpin> {
+class _WalletPinState extends State<WalletPin> {
   late MpinProvider provider;
+  late TransactionProvider transactionProvider;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -31,6 +39,8 @@ class _GenerateMpinState extends State<GenerateMpin> {
   @override
   Widget build(BuildContext context) {
     provider = Provider.of<MpinProvider>(context);
+    transactionProvider = Provider.of<TransactionProvider>(context);
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: appTheme.main,
@@ -47,7 +57,7 @@ class _GenerateMpinState extends State<GenerateMpin> {
               color: appTheme.white,
             )),
         title: Text(
-          'Generate new pin',
+          'Verify m-pin',
           style: CustomTextStyles.headlineMediumRegular,
         ),
       ),
@@ -68,30 +78,27 @@ class _GenerateMpinState extends State<GenerateMpin> {
               key: _formKey,
               child: Consumer<MpinProvider>(
                   builder: (context, provider, child) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Enter your Mpin',
-                        style: CustomTextStyles.pageTitleMain,
-                      ),
-                      const SizedBox(height: 5,),
-                      Text((!provider.isConfirmed)?'Enter a 4 digit number':'Re-enter your number', style: CustomTextStyles.gray12,),
-                      const SizedBox(height: 50,),
-                      (!provider.isConfirmed)?Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: List.generate(provider.otpLength, (index) => _buildOtpField(index, provider)),
-                      ):Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: List.generate(provider.reotpLength, (index) => _buildReEnterOtpField(index, provider)),
-                      ),
-                      const SizedBox(height: 50,),
-                      keyboard(),
-                      const SizedBox(height: 50,),
-                      _confirmButton()
-                    ],
-                  );
-                }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Enter your Mpin',
+                          style: CustomTextStyles.pageTitleMain,
+                        ),
+                        const SizedBox(height: 5,),
+                        Text('Enter a 4 digit number', style: CustomTextStyles.gray12,),
+                        const SizedBox(height: 50,),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: List.generate(provider.otpLength, (index) => _buildOtpField(index, provider)),
+                        ),
+                        const SizedBox(height: 50,),
+                        keyboard(),
+                        const SizedBox(height: 50,),
+                        _confirmButton()
+                      ],
+                    );
+                  }
               ),
             ),
           ),
@@ -261,80 +268,10 @@ class _GenerateMpinState extends State<GenerateMpin> {
     );
   }
 
-  Widget _buildReEnterOtpField(int index, MpinProvider provider) {
-    final hasFocus = provider.reenterFocusNodes[index].hasFocus;
-    final hasValue = provider.reenterControllers[index].text.isNotEmpty;
-    return SizedBox(
-      width: 55,
-      height: 60,
-      child: RawKeyboardListener(
-        focusNode: FocusNode(),  // FocusNode for the RawKeyboardListener
-        onKey: (RawKeyEvent event) {
-          if (event is RawKeyDownEvent && event.logicalKey == LogicalKeyboardKey.backspace) {
-            if (provider.reenterControllers[index].text.isNotEmpty) {
-              provider.reenterControllers[index].clear();
-            } else if (index > 0) {
-              FocusScope.of(context).requestFocus(provider.reenterFocusNodes[index - 1]);
-              provider.reenterControllers[index - 1].clear();  // Clear text in the previous field
-              provider.reenterControllers[index - 1].selection = TextSelection.fromPosition(
-                const TextPosition(offset: 0),
-              );
-            }
-          }
-        },
-        child: TextField(
-          controller: provider.reenterControllers[index],
-          focusNode: provider.reenterFocusNodes[index],
-          keyboardType: TextInputType.none,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          maxLength: 1,
-          textAlign: TextAlign.center,
-          textInputAction: index < provider.reotpLength - 1 ? TextInputAction.next : TextInputAction.done,
-          decoration: InputDecoration(
-            counterText: '',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.h),
-              borderSide: BorderSide(
-                color: hasFocus || hasValue ? appTheme.main : appTheme.gray,
-                width: 2,
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.h),
-              borderSide: BorderSide(
-                color: hasFocus || hasValue ? appTheme.main : appTheme.gray,
-                width: 1,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.h),
-              borderSide: BorderSide(
-                color: hasFocus || hasValue ? appTheme.main : appTheme.gray,
-                width: 1,
-              ),
-            ),
-          ),
-          onChanged: (value) {
-            if (value.isNotEmpty) {
-              // Move to the next field if input is not empty and it's not the last field
-              if (index < provider.reotpLength - 1) {
-                FocusScope.of(context).requestFocus(provider.reenterFocusNodes[index + 1]);
-              }
-            }
-          },
-          onEditingComplete: () {
-            // Hide keyboard when the last field is completed
-            if (index == provider.reotpLength - 1) {
-              FocusScope.of(context).unfocus();
-            }
-          },
-        ),
-      ),
-    );
-  }
-
   _confirmButton() {
-    return Center(
+    return (transactionProvider.isLoading)
+        ? CommonWidget().customAnimation(context, 50.0, 250.0)
+        : Center(
       child: CustomElevatedButton(
         buttonStyle: ElevatedButton.styleFrom(
             backgroundColor: appTheme.main,
@@ -346,30 +283,14 @@ class _GenerateMpinState extends State<GenerateMpin> {
         buttonTextStyle: CustomTextStyles.white18,
         height: 50,
         width: 250,
-        text: (!provider.isConfirmed)?"Confirm":'Proceed',  // Empty text if loading
+        text: 'Proceed',
         onPressed: () async {
           final enteredOtp = provider.getEnteredOtp();
-          final reenteredOtp = provider.getReenteredOtp();
-
-          if(!provider.isConfirmed){
-            if(enteredOtp.length !< 4) {
-              CommonWidget.showToastView('Please Enter valid pin', appTheme.red);
-            }else if(enteredOtp.length == 4){
-              provider.setIsConfirmed(true);
-            }
-          }else{
-            if(reenteredOtp.length !< 4) {
-              CommonWidget.showToastView('Please Enter valid re-enter pin', appTheme.red);
-            }else if(reenteredOtp.length == 4){
-              final isOtpMAtch = provider.isOtpMatching();
-              if(!isOtpMAtch){
-                CommonWidget.showToastView('Pin does not match', appTheme.red);
-              }else{
-                provider.setMpin(context, reenteredOtp);
-              }
-            }
+          if(enteredOtp.length !< 4) {
+            CommonWidget.showToastView('Please Enter valid pin', appTheme.red);
+          }else if(enteredOtp.length == 4){
+            transactionProvider.checkMpin(context, enteredOtp, widget.toAddress, widget.cryptoType, widget.amount, widget.note, widget.fromAddress);
           }
-
         },
       ),
     );

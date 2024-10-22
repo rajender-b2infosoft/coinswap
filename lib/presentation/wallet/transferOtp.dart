@@ -1,31 +1,35 @@
 import 'dart:async';
 import 'dart:math';
-
-import 'package:crypto_app/presentation/auth/provider/forgotPassword.dart';
+import 'package:crypto_app/presentation/wallet/provider/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../common_widget.dart';
 import '../../core/app_export.dart';
 import '../../widgets/custom_elevated_button.dart';
 
-class ForgotPasswordOtp extends StatefulWidget {
+class TransferOtp extends StatefulWidget {
   final String email;
   final String page;
-  const ForgotPasswordOtp({super.key, required this.email, required this.page});
+  final String walletAddress;
+  final String cryptoType;
+  final String cryptoAmount;
+  final String note;
+  final String fromAddress;
+  const TransferOtp({super.key, required this.email, required this.page, required this.walletAddress, required this.cryptoType, required this.cryptoAmount, required this.note, required this.fromAddress});
 
   @override
-  State<ForgotPasswordOtp> createState() => _ForgotPasswordOtpState();
+  State<TransferOtp> createState() => _TransferOtpState();
   static Widget builder(BuildContext context) {
     final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     return ChangeNotifierProvider(
-      create: (context) => ForgotPasswordProvider(),
-      child: ForgotPasswordOtp(email: args['email'], page: args['page']),
+      create: (context) => TransactionProvider(),
+      child: TransferOtp(email: args['email'], page: args['page'], walletAddress: args['walletAddress'], cryptoType: args['cryptoType'], cryptoAmount: args['cryptoAmount'], note: args['note'], fromAddress: args['fromAddress']),
     );
   }
 }
 
-class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
-  late ForgotPasswordProvider provider;
+class _TransferOtpState extends State<TransferOtp> {
+  late TransactionProvider provider;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   int _otpLength = 4;
   late List<TextEditingController> _controllers;
@@ -38,7 +42,7 @@ class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
   @override
   void initState() {
     super.initState();
-    provider = Provider.of<ForgotPasswordProvider>(context, listen: false);
+    provider = Provider.of<TransactionProvider>(context, listen: false);
 
     _controllers = List.generate(_otpLength, (index) => TextEditingController());
     _focusNodes = List.generate(_otpLength, (index) => FocusNode());
@@ -60,7 +64,7 @@ class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    provider = Provider.of<ForgotPasswordProvider>(context, listen: false);
+    provider = Provider.of<TransactionProvider>(context, listen: false);
   }
 
   @override
@@ -98,7 +102,8 @@ class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
       _isTimerActive = true;
       startTimer();
     });
-    await provider.forgotPassword(context, widget.email, 'otp', widget.page);
+    // await provider.sendOtp(context, widget.email, 'otp', widget.page);
+    await provider.sendOtp(context, widget.email, 'otp', widget.page, widget.walletAddress, widget.cryptoType, widget.cryptoAmount, widget.note, widget.fromAddress);
   }
 
   @override
@@ -170,68 +175,24 @@ class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
                               // Row(
                               //   mainAxisAlignment: MainAxisAlignment.center,
                               //   children: [
-                                  Text('Check your email address ',
+                              Text('Check your email address ',
+                                textAlign: TextAlign.center,
+                                style: CustomTextStyles.gray12,
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(' ${widget.email}',
                                     textAlign: TextAlign.center,
-                                    style: CustomTextStyles.gray12,
-                                  ),
-                              InkWell(
-                                onTap: (){
-                                  NavigatorService.goBack();
-                                },
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        if (widget.page.trim() != 'mpin')
-                                        Container(
-                                          height: 22,
-                                          width: 22,
-                                          decoration: BoxDecoration(
-                                            color: appTheme.main,
-                                            borderRadius: BorderRadius.circular(50),
-                                          ),
-                                            child: Icon(Icons.edit, size: 15, color: appTheme.white,)),
-                                        Text(' ${widget.email}',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            color: appTheme.gray,
-                                            fontSize: 13,
-                                            fontFamily: 'Poppins',
-                                            fontWeight: FontWeight.w800,
-                                          ),
-                                        ),
-                                      ],
+                                    style: TextStyle(
+                                      color: appTheme.gray,
+                                      fontSize: 13,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w800,
                                     ),
                                   ),
-                              //   ],
-                              // ),
-
-                              // const SizedBox(height: 10),
-                              // Padding(
-                              //   padding: const EdgeInsets.only(left: 40),
-                              //   child: InkWell(
-                              //     onTap: (){
-                              //       NavigatorService.goBack();
-                              //     },
-                              //     child: Row(
-                              //       children: [
-                              //         Center(
-                              //           child: Container(
-                              //             padding: EdgeInsets.all(2),
-                              //               decoration: BoxDecoration(
-                              //                   color: appTheme.main,
-                              //                   borderRadius: BorderRadius.circular(50)
-                              //               ),
-                              //               child: Icon(Icons.edit, size: 10, color: appTheme.white,)),
-                              //         ),
-                              //         SizedBox(width: 3,),
-                              //         Text('Edit Email',
-                              //           textAlign: TextAlign.center,
-                              //           style: CustomTextStyles.main13,
-                              //         ),
-                              //       ],
-                              //     ),
-                              //   ),
-                              // ),
+                                ],
+                              ),
                               const SizedBox(height: 40),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -263,7 +224,7 @@ class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
                                     },
                                     child: Text('Resend OTP',
                                       style: TextStyle(
-                                        color: appTheme.gray7272
+                                          color: appTheme.gray7272
                                       ),
                                     )
                                 ),
@@ -405,7 +366,9 @@ class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
   }
 
   Widget _proceedButton(BuildContext context) {
-    return CustomElevatedButton(
+    return (provider.isLoading)
+        ? CommonWidget().customAnimation(context, 50.0, 250.0)
+        :CustomElevatedButton(
       buttonStyle: ElevatedButton.styleFrom(
           backgroundColor: appTheme.main,
           shape: RoundedRectangleBorder(
@@ -418,13 +381,12 @@ class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
       width: 250,
       text: "Proceed",
       onPressed: () {
-
         String otp = _controllers.map((controller) => controller.text).join();
         if(otp.length < 4){
           CommonWidget().snackBar(context, appTheme.red, 'Please Enter valid otp');
         }else{
-            Provider.of<ForgotPasswordProvider>(context, listen: false)
-                .verifyForgotPasswordOtp(context, widget.email, otp, 'verify', widget.page);
+          Provider.of<TransactionProvider>(context, listen: false)
+              .verifyOtp(context, widget.email, otp, 'verify', widget.walletAddress, widget.cryptoType, widget.cryptoAmount, widget.note, widget.fromAddress);
         }
       },
     );

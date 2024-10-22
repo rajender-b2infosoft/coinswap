@@ -2,6 +2,7 @@ import 'package:crypto_app/presentation/auth/provider/auth_provider.dart';
 import 'package:crypto_app/presentation/auth/provider/forgotPassword.dart';
 import 'package:flutter/material.dart';
 
+import '../../common_widget.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/validation_functions.dart';
 import '../../widgets/custom_elevated_button.dart';
@@ -183,18 +184,21 @@ class _ForgotPasswordState extends State<ForgotPassword> {
     );
   }
   _proceedButton(BuildContext context) {
-    return (provider.isLoading)?Center(
-      child: Container(
-        height: 50,
-        width: 250,
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(50),
-            color: appTheme.main
-        ),
-        child: provider.isLoading ? const Center(
-            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5,)) : null,
-      ),
-    ):Center(
+    return
+    //   (provider.isLoading)?Center(
+    //   child: Container(
+    //     height: 50,
+    //     width: 250,
+    //     decoration: BoxDecoration(
+    //         borderRadius: BorderRadius.circular(50),
+    //         color: appTheme.main
+    //     ),
+    //     child: provider.isLoading ? const Center(
+    //         child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5,)) : null,
+    //   ),
+    // ):
+    (provider.isLoading)?Center(child: CommonWidget().customAnimation(context, 50.0, 250.0)):
+    Center(
       child: CustomElevatedButton(
         buttonStyle: ElevatedButton.styleFrom(
             backgroundColor: appTheme.main,

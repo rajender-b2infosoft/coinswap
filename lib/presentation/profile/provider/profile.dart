@@ -47,9 +47,6 @@ class ProfileProvider extends ChangeNotifier{
     notifyListeners();
     try{
       final response = await apiService.getUserProfile();
-
-      print('.....................................$response');
-
       //check response
       if (response != null && response['status'] == 'success') {
         _profileData = UserProfileResponse.fromJson(response);

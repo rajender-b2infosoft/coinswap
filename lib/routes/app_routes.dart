@@ -20,11 +20,14 @@ import '../presentation/profile/profile.dart';
 import '../presentation/settings/setting.dart';
 import '../presentation/splaash_screen/splash_screen.dart';
 import '../presentation/transactions/transaction.dart';
+import '../presentation/wallet/approval.dart';
 import '../presentation/wallet/qr_view.dart';
 import '../presentation/wallet/receive_screen.dart';
 import '../presentation/wallet/success_screen.dart';
+import '../presentation/wallet/transferOtp.dart';
 import '../presentation/wallet/transfer_screen.dart';
 import '../presentation/wallet/wallet.dart';
+import '../presentation/wallet/wallet_pin.dart';
 
 class AppRoutes{
   static const String splashScreen = '/splash_screen';
@@ -48,6 +51,9 @@ class AppRoutes{
   static const String settingScreen = '/settingScreen';
   static const String transactionScreen = '/transactionScreen';
   static const String walletScreen = '/walletScreen';
+  static const String transferOtp = '/transferOtp';
+  static const String walletPin = '/walletPin';
+  static const String approvalScreen = '/approvalScreen';
 
   static const String loginScreen = '/login_screen';
   static const String registerScreen = '/register_screen';
@@ -78,6 +84,9 @@ class AppRoutes{
     settingScreen: SettingScreen.builder,
     transactionScreen: TransactionScreen.builder,
     walletScreen: WalletScreen.builder,
+    transferOtp: TransferOtp.builder,
+    walletPin: WalletPin.builder,
+    approvalScreen: ApprovalScreen.builder,
 
     loginScreen: LoginScreen.builder,
     registerScreen: RegisterScreen.builder,

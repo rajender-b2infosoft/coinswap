@@ -289,18 +289,9 @@ class _ForgotPasswordChangeState extends State<ForgotPasswordChange> {
   }
 
   _proceedButton(BuildContext context) {
-    return (provider.isLoading)?Center(
-      child: Container(
-        height: 50,
-        width: 250,
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(50),
-            color: appTheme.main
-        ),
-        child: provider.isLoading ? const Center(
-            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5,)) : null,
-      ),
-    ):Center(
+    return
+    (provider.isLoading)?Center(child: CommonWidget().customAnimation(context, 50.0, 250.0)):
+    Center(
       child: CustomElevatedButton(
         buttonStyle: ElevatedButton.styleFrom(
             backgroundColor: appTheme.main,

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/utils/constants.dart';
@@ -15,6 +16,7 @@ class ApiService {
   String access_token = "";
   var encryptKey = '8404f6267a57b05c45195c6b889b487dc13c451ca67d9eb5e6e0fd1f8817b75b';
   final iv = '1234567890abcdef1234567890abcdef';
+
 
   //Create common function for post request endpoint name and body data need
   Future<Map<String, dynamic>?> post(String endpoint, data) async {
@@ -181,6 +183,20 @@ class ApiService {
     }
   }
 
+
+  Future verifyMpin(pin) async {
+    try {
+      dynamic data = jsonEncode(<dynamic, dynamic>{
+        'pin': encryptData(pin, encryptKey, iv),
+      });
+      final response = await post('api/check-mpin', data);
+      return response;
+    } catch (e) {
+      print("Error(Function setMpinMobile):$e");
+      return e.toString();
+    }
+  }
+
   Future getMpinData() async {
     try {
       final response = await get('api/get-Mpin');
@@ -215,6 +231,16 @@ class ApiService {
     }
   }
 
+  Future getRecentTransactions() async {
+    try {
+      final response = await get('api/recent-transactions-list');
+      return response;
+    } catch (e) {
+      print("Error(Function getRecentTransactions):$e");
+      return e.toString();
+    }
+  }
+
   Future getUserProfile() async {
     try {
       final response = await get('api/user-profile');
@@ -225,11 +251,11 @@ class ApiService {
     }
   }
 
-  Future setNotificationStatus(notification) async {
+  Future setSettings(status, type) async {
     try {
       dynamic data = jsonEncode(<dynamic, dynamic>{
-        'notification': notification,
-        'type': 'notification',
+        'status': status,
+        'type': type,
       });
       final response = await post('api/user-setting', data);
       return response;
@@ -245,6 +271,16 @@ class ApiService {
       return response;
     } catch (e) {
       print("Error(Function getSettingsData):$e");
+      return e.toString();
+    }
+  }
+
+  Future getCommissionSettings() async {
+    try {
+      final response = await get('api/commission-setting');
+      return response;
+    } catch (e) {
+      print("Error(Function getCommissionSettings):$e");
       return e.toString();
     }
   }
@@ -504,6 +540,53 @@ class ApiService {
       return response;
     } catch (e) {
       print("Error(Function getUserInfoByID): $e");
+      return e.toString();
+    }
+  }
+
+  Future userWalletData() async {
+    try {
+      dynamic data = jsonEncode(<dynamic, dynamic>{});
+      final response = await post('api/wallet', data);
+      return response;
+    } catch (e) {
+      print("Error(Function userWalletData): $e");
+      return e.toString();
+    }
+  }
+
+  Future sendTransactioToAdmin(fromAddress, blockchain, network, amount, fee, note, toAddress, adminAddress, commissionAmount) async {
+    try {
+      dynamic data = jsonEncode(<dynamic, dynamic>{
+        "address": fromAddress,
+        "blockchain": blockchain,
+        "network": network,
+        "amount": amount,
+        "feePriority": fee,
+        "note": note,
+        "recipientAddress": toAddress,
+        "adminAddress": adminAddress,
+        "commissionAmount": commissionAmount
+      });
+      final response = await post('api/admin-approval', data);
+      return response;
+    } catch (e) {
+      print("Error(Function sendTransactioToAdmin):$e");
+      return e.toString();
+    }
+  }
+
+  Future verifyAddress(address, blockchain, network, userName) async {
+    try {
+      dynamic data = jsonEncode(<dynamic, dynamic>{
+        "address": address,
+        "blockchain": blockchain,
+        "network": network,
+      });
+      final response = await post('api/validate-address?network=$blockchain&context=$userName-$blockchain', data);
+      return response;
+    } catch (e) {
+      print("Error(Function verifyAddress):$e");
       return e.toString();
     }
   }

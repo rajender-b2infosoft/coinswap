@@ -1,7 +1,5 @@
 import 'package:crypto_app/presentation/transactions/provider/transaction.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import '../../core/app_export.dart';
 import '../../widgets/custom_elevated_button.dart';
@@ -66,7 +64,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
               'Transactions',
               style: CustomTextStyles.headlineMediumRegular,
             ),
-            if(provider.transactionData != null)
+            // if(provider.transactionData != null)
             Padding(
               padding: const EdgeInsets.only(right: 20.0),
               child: InkWell(
@@ -101,7 +99,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 20,),
-                if(provider.transactionData != null)
+                // if(provider.transactionData != null)
                 Padding(
                   padding: const EdgeInsets.only(left: 20.0, right: 20),
                   child: Consumer<TransactionScreenProvider>(
@@ -127,7 +125,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                               },
                               child: Container(
                                 width:140,
-                                  height: 50,
+                                  height: 45,
                                   decoration: BoxDecoration(
                                     color: (provider.isButton=='sent')?appTheme.main:Colors.transparent,
                                     borderRadius: BorderRadius.circular(10),
@@ -141,7 +139,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                               },
                               child: Container(
                                   width:140,
-                                  height: 50,
+                                  height: 45,
                                   decoration: BoxDecoration(
                                     color: (provider.isButton=='received')?appTheme.main:Colors.transparent,
                                     borderRadius: BorderRadius.circular(10),
@@ -156,9 +154,10 @@ class _TransactionScreenState extends State<TransactionScreen> {
                 ),
                 const SizedBox(height: 30,),
                 SizedBox(
-                  height: SizeUtils.height/1.3,
+                  height: SizeUtils.height/2,
                   child: Consumer<TransactionScreenProvider>(
                       builder: (context, provider, child) {
+
                         if (provider.isLoading) {
                           return Center(child: CircularProgressIndicator());
                         }
@@ -185,11 +184,11 @@ class _TransactionScreenState extends State<TransactionScreen> {
                           final tr = data[index];
                           var cryptoType = (tr.cryptoType=='bitcoin')?'BTC':(tr.cryptoType=='ethereum')?"ETH":"USDT";
                           var amount = (tr.transactionType=='dr')?'-${tr.amount}':'${tr.amount}';
-                          DateTime parsedDate = DateTime.parse(tr.createdAt);
+                          DateTime parsedDate = DateTime.parse(tr.createdAt.toString());
                           String formattedDate = DateFormat('dd-MMM-yyyy').format(parsedDate);
 
-                          return _buildActivityCard(tr.receiverWalletAddress, cryptoType, '\$${tr.amountUsd}',
-                              amount, formattedDate, tr.transactionType);
+                          return _buildActivityCard(tr.receiverWalletAddress.toString(), cryptoType, '\$${tr.amount}',
+                              amount, formattedDate, tr.transactionType, tr.note, tr.status);
                         }
                       );
                     }
@@ -366,12 +365,8 @@ class _TransactionScreenState extends State<TransactionScreen> {
           text: 'Apply',
           onPressed: () async {
             var type = (provider.isButton=='sent')?'dr':'cr';
-            provider.transactionsData(type,provider.status.toLowerCase(),_dateController.text);
             Navigator.pop(context);
-
-            print('??????????????????????????????????????');
-            print(_dateController.text);
-            print(provider.status);
+            provider.transactionsData(type,provider.status.toLowerCase(),_dateController.text);
 
           },
         );
@@ -429,89 +424,96 @@ class _TransactionScreenState extends State<TransactionScreen> {
   }
 
   Widget _buildActivityCard(String address, String currency, String amount,
-      String transactionId, String date, type) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10.0, right: 3, left: 3, top: 3),
-      child: Container(
-        decoration: BoxDecoration(
-            color: appTheme.white,
-            boxShadow: [
-              BoxShadow(
-                color: appTheme.color549FE3,
-                blurRadius: 1.0,
-              ),
-            ],
-            borderRadius: BorderRadius.circular(10)),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                  color: (type=='cr')?appTheme.colorBFFFBA:appTheme.colorFFB8B8,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(10),
-                    bottomLeft: Radius.circular(10),
-                  )),
-              child: CustomImageView(
-                fit: BoxFit.contain,
-                imagePath: (type=='cr')?ImageConstant.arrowBottom:ImageConstant.arrowTop,
-                width: 22,
-                height: 25,
-                color: (type=='cr')?appTheme.color2D9224:appTheme.red,
-              ),
-            ),
-            const SizedBox(
-              width: 15,
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: SizeUtils.width/2.3,
-                  child: Text(
-                    address,
-                    overflow: TextOverflow.ellipsis,
-                    style: CustomTextStyles.gray7272_13,
-                  ),
-                ),
-                Row(
-                  children: [
-                    Text('$currency',
-                      style: (currency=='USDT')?CustomTextStyles.green14:(currency=='ETH')?CustomTextStyles.color7CA_14:CustomTextStyles.orange14,
-                    ),
-                    SizedBox(
-                      width: SizeUtils.width/4,
-                      child: Text(' | $amount',
-                        overflow: TextOverflow.ellipsis,
-                        style: CustomTextStyles.grayA0A0_12,
-                      ),
-                    ),
-                  ],
+      String transactionId, String date, type, note, status) {
+
+    return InkWell(
+      onTap: (){
+        NavigatorService.pushNamed(AppRoutes.approvalScreen,
+            argument: {'blockchain': currency,'status': status, 'address': address, 'amount': amount, 'fee': 'slow', 'note': note, 'date': date});
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 10.0, right: 3, left: 3, top: 3),
+        child: Container(
+          decoration: BoxDecoration(
+              color: appTheme.white,
+              boxShadow: [
+                BoxShadow(
+                  color: appTheme.color549FE3,
+                  blurRadius: 1.0,
                 ),
               ],
-            ),
-            const Spacer(),
-            Padding(
-              padding: const EdgeInsets.only(right: 15.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              borderRadius: BorderRadius.circular(10)),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                    color: (type=='cr')?appTheme.colorBFFFBA:appTheme.colorFFB8B8,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(10),
+                      bottomLeft: Radius.circular(10),
+                    )),
+                child: CustomImageView(
+                  fit: BoxFit.contain,
+                  imagePath: (type=='cr')?ImageConstant.arrowBottom:ImageConstant.arrowTop,
+                  width: 22,
+                  height: 25,
+                  color: (type=='cr')?appTheme.color2D9224:appTheme.red,
+                ),
+              ),
+              const SizedBox(
+                width: 15,
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: SizeUtils.width/5,
+                  SizedBox(
+                    width: SizeUtils.width/2.3,
                     child: Text(
-                      transactionId,
+                      address,
                       overflow: TextOverflow.ellipsis,
-                      style: CustomTextStyles.gray7272_12,
+                      style: CustomTextStyles.gray7272_13,
                     ),
                   ),
-                  Text(
-                    date,
-                    style: CustomTextStyles.grayA0A0_12,
+                  Row(
+                    children: [
+                      Text('$currency',
+                        style: (currency=='USDT')?CustomTextStyles.green14:(currency=='ETH')?CustomTextStyles.color7CA_14:CustomTextStyles.orange14,
+                      ),
+                      SizedBox(
+                        width: SizeUtils.width/4,
+                        child: Text(' | $amount',
+                          overflow: TextOverflow.ellipsis,
+                          style: CustomTextStyles.grayA0A0_12,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            )
-          ],
+              const Spacer(),
+              Padding(
+                padding: const EdgeInsets.only(right: 15.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Container(
+                      width: SizeUtils.width/5,
+                      child: Text(
+                        transactionId,
+                        overflow: TextOverflow.ellipsis,
+                        style: CustomTextStyles.gray7272_12,
+                      ),
+                    ),
+                    Text(
+                      date,
+                      style: CustomTextStyles.grayA0A0_12,
+                    ),
+                  ],
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );

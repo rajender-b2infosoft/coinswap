@@ -2,6 +2,7 @@ import 'package:crypto_app/presentation/settings/provider/setting.dart';
 import 'package:crypto_app/theme/theme_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../common_widget.dart';
 import '../../core/app_export.dart';
 import '../../widgets/custom_elevated_button.dart';
 import 'package:flutter_switch/flutter_switch.dart';
@@ -108,7 +109,7 @@ class _SettingScreenState extends State<SettingScreen> {
                     activeColor: appTheme.lightGreen,
                     onToggle: (val){
                       provider.toggleSwitch();
-                      provider.setNotification(context, val);
+                      provider.setSettingsData(context, val, 'notification');
                     },
                   )
                 ],
@@ -215,7 +216,63 @@ class _SettingScreenState extends State<SettingScreen> {
                       child: Icon(
                         Icons.arrow_forward_ios_rounded, color: appTheme.grayA0A0, weight: 600,))
                 ],
-              )
+              ),
+
+              const SizedBox(
+                height: 25,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                          padding: const EdgeInsets.all(5),
+                          height: 40,
+                          width: 40,
+                          decoration: BoxDecoration(
+                            color: appTheme.main,
+                            borderRadius: BorderRadius.circular(50),
+                          ),
+                          child: CustomImageView(
+                            imagePath: ImageConstant.padlock,
+                            height: 40,
+                          )),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      Text(
+                        "Default Security",
+                        style: CustomTextStyles.gray7272_18,
+                      ),
+                    ],
+                  ),
+                  FlutterSwitch(
+                    width: 70,
+                    height: 30,
+                    valueFontSize: 10.0,
+                    activeTextColor: appTheme.white,
+                    inactiveTextColor: appTheme.white,
+                    // inactiveTextColor: appTheme.gray7272,
+                    showOnOff: true,
+                    toggleSize: 25.0,
+                    value: provider.isMpin,
+                    activeText: "Mpin",
+                    inactiveText: "OTP",
+                    // inactiveColor: appTheme.colorEFEFEF,
+                    inactiveColor: appTheme.main,
+                    activeColor: appTheme.main,
+                    onToggle: (val){
+                      if(provider.isPin != ''){
+                        provider.mpinToggle();
+                        provider.setSettingsData(context, val, 'default_security');
+                      }else{
+                        CommonWidget.showToastView("Please generate m-pin first", appTheme.gray8989);
+                      }
+                    },
+                  )
+                ],
+              ),
             ],
           )),
         ),

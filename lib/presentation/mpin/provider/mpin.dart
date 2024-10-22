@@ -2,11 +2,8 @@ import 'package:crypto_app/core/app_export.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../common_widget.dart';
-import '../../../core/utils/image_constant.dart';
 import '../../../core/utils/popup_util.dart';
 import '../../../services/api_service.dart';
-import '../../../theme/custom_text_style.dart';
-import '../../../theme/theme_helper.dart';
 
 
 class MpinProvider extends ChangeNotifier{
@@ -108,7 +105,6 @@ class MpinProvider extends ChangeNotifier{
     }
   }
 
-
   Future setMpinStatus(context, status) async{
     try{
       final response = await apiService.setMpinStatus(status);
@@ -122,6 +118,25 @@ class MpinProvider extends ChangeNotifier{
     }catch(e){
       print(e);
     }finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future forgotPassword(context, email, type, page) async {
+    _isLoading = true;
+    notifyListeners();
+    try{
+      final response = await apiService.forgot_password(email, type);
+      if (response != null && response['status'] == 'success') {
+        NavigatorService.pushNamed(AppRoutes.forgotpasswordotp, argument: {'email': email, 'page': page});
+        CommonWidget().snackBar(context, appTheme.green, response['message']);
+      } else {
+        CommonWidget().snackBar(context, appTheme.red, response['message']);
+      }
+    }catch (e) {
+      print(e);
+    } finally {
       _isLoading = false;
       notifyListeners();
     }

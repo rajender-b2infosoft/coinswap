@@ -18,9 +18,6 @@ class MoralisApiService {
           'X-API-Key': apiKey,
         },
       );
-      //
-      // print('Token Price Response Status::::::::::::: ${response.statusCode}');
-      // print('Token Price Response Body::::::::::::::: ${response.body}');
 
       if (response.statusCode == 200) {
         return json.decode(response.body);

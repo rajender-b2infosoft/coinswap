@@ -465,6 +465,18 @@ class CustomTextStyles {
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w400,
   );
+  static get main10=> theme.textTheme.titleMedium!.copyWith(
+    color: appTheme.main,
+    fontSize: 10,
+    fontFamily: 'Poppins',
+    fontWeight: FontWeight.w400,
+  );
+  static get main16color2E92ED=> theme.textTheme.titleMedium!.copyWith(
+    color: appTheme.color2E92ED,
+    fontSize: 16,
+    fontFamily: 'Poppins',
+    fontWeight: FontWeight.w400,
+  );
   static get main19=> theme.textTheme.titleMedium!.copyWith(
     color: appTheme.main,
     fontSize: 19,

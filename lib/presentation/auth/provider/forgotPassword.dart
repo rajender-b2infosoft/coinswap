@@ -109,7 +109,16 @@ class ForgotPasswordProvider with ChangeNotifier {
     try{
       final response = await apiService.verifyForgotPassword(email, otp, type);
       if (response != null && response['status'] == 'success') {
-        NavigatorService.pushNamedAndRemoveUntil(AppRoutes.forgotPasswordChange, argument: {'email': email, 'page': page});
+
+        if(page.trim() != 'mpin'){
+          NavigatorService.pushNamedAndRemoveUntil(AppRoutes.forgotPasswordChange, argument: {'email': email, 'page': page});
+        }else if(page.trim() == 'mpin'){
+          NavigatorService.pushNamedAndRemoveUntil(AppRoutes.generateMpin);
+        }
+        // else{
+        //   print('++++++++++++++++else++++++++++++++++++');
+        //   // NavigatorService.pushNamedAndRemoveUntil(AppRoutes.forgotPasswordChange, argument: {'email': email, 'page': page});
+        // }
         CommonWidget().snackBar(context, appTheme.green, response['message']);
       } else {
         CommonWidget().snackBar(context, appTheme.red, response['message']);

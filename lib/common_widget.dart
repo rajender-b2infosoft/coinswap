@@ -1,4 +1,5 @@
 import 'package:crypto_app/theme/theme_helper.dart';
+import 'package:crypto_app/widgets/animation.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -87,6 +88,22 @@ class CommonWidget {
         backgroundColor: color,
         textColor: Colors.white,
         fontSize: 16.0
+    );
+  }
+
+
+  Widget customAnimation(BuildContext context, height, width) {
+    return Container(
+        height: height,
+        width: width,
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(50),
+            color: appTheme.main
+        ),
+        child: Container(
+          // transform: Matrix4.translationValues(0.0, -20.0, 0.0),
+            child: RotatingIcon()
+        )
     );
   }
 

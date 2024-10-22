@@ -40,8 +40,15 @@ class ImageConstant {
   static String sun = '$imagePath/sun.png';
   static String moon = '$imagePath/moon.png';
   static String bellWhite = '$imagePath/bellWhite.png';
+  static String padlock = '$imagePath/padlock.png';
   static String theme = '$imagePath/theme.png';
   static String filter = '$imagePath/filter.png';
+  static String setting = '$imagePath/setting.png';
+  static String WalletIcon = '$imagePath/WalletIcon.png';
+  static String approval = '$imagePath/Approval.png';
+  static String Request = '$imagePath/Request.png';
+  static String Failure = '$imagePath/Failure.png';
+  static String success_green = '$imagePath/success_green.png';
 
   static String iconDashboard = '$imagePath/iconDashboard.png';
   static String iconTransaction = '$imagePath/iconTransaction.png';

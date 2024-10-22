@@ -1,19 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:html_unescape/html_unescape.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 import '../../../common_widget.dart';
-import '../../../core/utils/constants.dart';
 import '../../../core/utils/navigation_service.dart';
+import '../../../main.dart';
 import '../../../routes/app_routes.dart';
 import '../../../services/encryption_service.dart';
 import '../../../services/socketService.dart';
-import '../../../services/webSocketClient.dart';
 import '../../../theme/theme_helper.dart';
 import '../../home_screen_page/provider/home_screen_provider.dart';
 import '../models/login_screen_model.dart';
 import '../models/request_otp.dart';
-import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../services/api_service.dart';
 
@@ -26,7 +22,10 @@ class AuthProvider with ChangeNotifier {
   late LoginModel _loginModel;
   LoginModel? get loginModel => _loginModel;
   // final WebSocketClient _webSocketClient = WebSocketClient();
-  final SocketIOClient _webSocketClient = SocketIOClient();
+
+  final SocketIOClient _webSocketClient = SocketIOClient(flutterLocalNotificationsPlugin); // Pass the instance here
+
+  // final SocketIOClient _webSocketClient = SocketIOClient();
 
   AuthProvider() {
     _initializeEncryptionService();

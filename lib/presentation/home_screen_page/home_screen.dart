@@ -1,23 +1,25 @@
 import 'dart:async';
-
-import 'package:crypto_app/theme/theme_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:crypto_app/presentation/home_screen_page/provider/home_screen_provider.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/constants.dart';
 import '../../core/utils/popup_util.dart';
+import '../../main.dart';
 import '../../routes/routeaprovider.dart';
 import '../../services/WebSocketService.dart';
 import '../../services/socketService.dart';
 import '../auth/provider/auth_provider.dart';
-import 'package:coinbase_wallet_sdk/coinbase_wallet_sdk.dart';
 import 'package:flutter_web_auth/flutter_web_auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert'; // For json decoding
-import 'package:uni_links/uni_links.dart';
+// import 'package:uni_links/uni_links.dart';
+
+import '../transactions/models/transaction.dart';
+import '../wallet/provider/wallet.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -121,9 +123,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    _initUniLinks();
-    _webSocketClient = SocketIOClient();
+    // _initUniLinks();
+
+     _webSocketClient = SocketIOClient(flutterLocalNotificationsPlugin); // Pass the instance here
+
+    // _webSocketClient = SocketIOClient();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+
+      homeProvider = Provider.of<HomeScreenProvider>(context, listen: false);
+      homeProvider.userWalletData();
+
+      //Get user recent transaction
+      homeProvider.recentTransactionsData();
+
       routeName = Provider.of<RouteNameProvider>(context, listen: false).routeName;
       WidgetsBinding.instance?.addObserver(this);
       _connectWebSocket();
@@ -154,22 +166,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _initUniLinks() async {
-    try {
-      final initialLink = await getInitialLink();
-      if (initialLink != null) {
-        _handleDeepLink(initialLink);
-      }
-    } catch (e) {
-      print('Failed to get initial link: $e');
-    }
-
-    linkStream.listen((String? link) {
-      if (link != null) {
-        _handleDeepLink(link);
-      }
-    });
-  }
+  // Future<void> _initUniLinks() async {
+  //   try {
+  //     final initialLink = await getInitialLink();
+  //     if (initialLink != null) {
+  //       _handleDeepLink(initialLink);
+  //     }
+  //   } catch (e) {
+  //     print('Failed to get initial link: $e');
+  //   }
+  //
+  //   linkStream.listen((String? link) {
+  //     if (link != null) {
+  //       _handleDeepLink(link);
+  //     }
+  //   });
+  // }
 
   void _handleDeepLink(String link) {
     // Process the link (e.g., extract parameters)
@@ -326,6 +338,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             // Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
                             // print('pressed:::::::::::::');
                             //   NavigatorService.pushNamed(AppRoutes.walletPage);
+                              NavigatorService.pushNamed(AppRoutes.walletScreen);
                           },
                           child: CustomImageView(
                             imagePath: ImageConstant.wallet,
@@ -421,7 +434,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             style: CustomTextStyles.gray7272_17,
                           ),
                           TextButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              NavigatorService.pushNamed(AppRoutes.transactionScreen);
+                            },
                             child: Text(
                               'View more',
                               style: CustomTextStyles.gray11,
@@ -484,12 +499,53 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         style: CustomTextStyles.gray7272_17,
                       ),
                       const SizedBox(height: 16),
-                      _buildActivityCard('1Lbcfr7sAHTD9CgdQo3', 'BTC', '\$3412',
-                          '-123421', '23-Apr-2024', Icons.arrow_downward),
-                      _buildActivityCard('413fr7sTH2313FCgdQo3', 'USDT', '\$3412',
-                          '-123421', '23-Apr-2024', Icons.arrow_upward),
-                      _buildActivityCard('1Lbcfr7sAHTD9CgdQo3', 'ETH', '\$3412',
-                          '-123421', '23-Apr-2024', Icons.arrow_downward),
+
+                      Container(
+                        height: SizeUtils.height/4,
+                        child: SingleChildScrollView(
+                          child: Container(
+                            height: SizeUtils.height/4,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 20.0),
+                              child: Consumer<HomeScreenProvider>(
+                                  builder: (context, provider, child) {
+                                    if (provider.isLoading) {
+                                      return Center(child: CircularProgressIndicator());
+                                    }
+                                    if (provider.recenTransactionData == null || provider.recenTransactionData!.data.isEmpty) {
+                                      return Center(
+                                          child: Padding(
+                                            padding: EdgeInsets.all(0.0),
+                                            child: Text('No transaction available', style: CustomTextStyles.gray7272_16),
+                                          ));
+                                    }
+                                    // Accessing transaction data
+                                    var data = provider.recenTransactionData!.data;
+
+                                  return ListView.builder(
+                                    padding: EdgeInsets.zero,
+                                    itemCount: data.length,
+                                    itemBuilder: (context, index) {
+
+                                      final tr = data[index];
+                                      var cryptoType = (tr.cryptoType=='bitcoin')?'BTC':(tr.cryptoType=='ethereum')?"ETH":"USDT";
+                                      var amount = (tr.transactionType=='dr')?'-${tr.amount}':'${tr.amount}';
+                                      DateTime parsedDate = DateTime.parse(tr.createdAt.toString());
+                                      String formattedDate = DateFormat('dd-MMM-yyyy').format(parsedDate);
+
+                                      return _buildActivityCard(tr.receiverWalletAddress.toString(), cryptoType, '\$${tr.amount}',
+                                          tr.status.toString(), formattedDate);
+
+                                      // return _buildActivityCard('1Lbcfr7sAHTD9CgdQo3', 'BTC', '\$3412',
+                                      //     '-123421', '23-Apr-2024', Icons.arrow_downward);
+                                    }
+                                  );
+                                }
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -576,8 +632,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         drawerItem('Transactions', ImageConstant.iconTransaction, AppRoutes.transactionScreen),
                         drawerItem('Profile',ImageConstant.iconUser, AppRoutes.profileScreen),
                         drawerItem('Mpin', ImageConstant.iconMpin, AppRoutes.mpinScreen),
-                        drawerItem('Wallet', ImageConstant.iconMpin, AppRoutes.walletScreen),
-                        drawerItem('Setting', ImageConstant.iconMpin, AppRoutes.settingScreen),
+                        drawerItem('Wallet', ImageConstant.WalletIcon, AppRoutes.walletScreen),
+                        drawerItem('Setting', ImageConstant.setting, AppRoutes.settingScreen),
                         drawerItem('Logout', ImageConstant.iconLogout, AppRoutes.loginScreen),
                       ],
                     ),
@@ -654,7 +710,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
         if(homeProvider.userStatus.toString() == 'Active' || homeProvider.userStatus.toString() == 'active'){
           if(text == 'Send'){
-            NavigatorService.pushNamed(redirect, argument: {'toAddress': ''});
+            NavigatorService.pushNamed(redirect, argument: {'toAddress': '','cryptoType': 'Ethereum','amount': ''});
           }else{
             NavigatorService.pushNamed(redirect);
           }
@@ -713,55 +769,61 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Widget _buildInfoCard(
       img, String currency, String amount, String change, Color changeColor, percentColor) {
-    return Container(
-      width: SizeUtils.width / 3.5,
-      padding: const EdgeInsets.fromLTRB(16, 5, 16, 5),
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          color: Colors.white,
-          border: Border.all(width: 0.8, color: appTheme.blueLight)
-      ),
-      child: Column(
-        children: [
-          CustomImageView(
-            imagePath: img,
-            width: 30,
-            height: 30,
-          ),
-          const SizedBox(height: 5,),
-          RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                    text: currency,
-                    // style: CustomTextStyles.size10_7272
-                  style: TextStyle(
-                    color: appTheme.gray7272,
-                    fontSize: 12,
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w400,
-                  )
-                ),
-                TextSpan(
-                  text: '/USDT',
-                  style: CustomTextStyles.gray8_7272,
-                ),
-              ],
+    return InkWell(
+      onTap: (){
+        var cryptoType = (currency=='BTC')?'Bitcoin':(currency=='ETH')?'Ethereum':'USDT';
+        NavigatorService.pushNamed(AppRoutes.transferScreen, argument: {'toAddress': '', 'cryptoType': cryptoType, 'amount': ''});
+      },
+      child: Container(
+        width: SizeUtils.width / 3.5,
+        padding: const EdgeInsets.fromLTRB(16, 5, 16, 5),
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: Colors.white,
+            border: Border.all(width: 0.8, color: appTheme.blueLight)
+        ),
+        child: Column(
+          children: [
+            CustomImageView(
+              imagePath: img,
+              width: 30,
+              height: 30,
             ),
-          ),
-          const SizedBox(height: 5,),
-          Text(
-            amount,
-            style: TextStyle(
-              color: changeColor,
-              fontSize: 13,
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.w400,
+            const SizedBox(height: 5,),
+            RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                      text: currency,
+                      // style: CustomTextStyles.size10_7272
+                    style: TextStyle(
+                      color: appTheme.gray7272,
+                      fontSize: 12,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w400,
+                    )
+                  ),
+                  TextSpan(
+                    text: '/USDT',
+                    style: CustomTextStyles.gray8_7272,
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 10,),
-          getChangeIcon(change),
-        ],
+            const SizedBox(height: 5,),
+            Text(
+              amount,
+              style: TextStyle(
+                color: changeColor,
+                fontSize: 13,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            const SizedBox(height: 10,),
+            getChangeIcon(change),
+          ],
+        ),
       ),
     );
   }
@@ -811,7 +873,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildActivityCard(String name, String currency, String amount,
-      String transactionId, String date, IconData icon) {
+      String status, String date) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10.0),
       child: Container(
@@ -842,9 +904,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  name,
-                  style: CustomTextStyles.gray7272_13,
+                Container(
+                  width: 150,
+                  child: Text(
+                    name,
+                    overflow: TextOverflow.ellipsis,
+                    style: CustomTextStyles.gray7272_13,
+                  ),
                 ),
                 RichText(
                   text: TextSpan(
@@ -869,7 +935,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    transactionId,
+                    status.toUpperCase(),
                     style: CustomTextStyles.gray7272_12,
                   ),
                   Text(

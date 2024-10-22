@@ -22,8 +22,19 @@ class SettingProvider extends ChangeNotifier{
   bool _isTheme = true;
   bool get isTheme => _isTheme;
 
+  bool _isMpin = false;
+  bool get isMpin => _isMpin;
+
+  String? _isPin = '';
+  String? get isPin => _isPin;
+
   void toggleSwitch(){
     _isNotification = !_isNotification;
+    notifyListeners();
+  }
+
+  void mpinToggle(){
+    _isMpin = !_isMpin;
     notifyListeners();
   }
 
@@ -37,9 +48,9 @@ class SettingProvider extends ChangeNotifier{
     super.dispose();
   }
 
-  Future setNotification(context, notification) async{
+  Future setSettingsData(context, status, type) async{
     try{
-      final response = await apiService.setNotificationStatus(notification);
+      final response = await apiService.setSettings(status, type);
       if (response != null && response['status'] == 'success') {
         CommonWidget.showToastView(response['message'], appTheme.gray8989);
       } else {
@@ -58,8 +69,11 @@ class SettingProvider extends ChangeNotifier{
     try{
       final response = await apiService.getSettingsData();
       if (response != null && response['status'] == 'success') {
-        var result = (response['data']['notification'] == 1)?true:false;
-        _isNotification = result;
+        _isNotification = (response['data']['notification'] == 1)?true:false;
+        _isMpin = (response['data']['default_security'] == 0)?false:true;
+        _isPin = response['data']['mpin'];
+        // _isNotification = result;
+        // _isMpin = result;
         CommonWidget.showToastView(response['message'], appTheme.gray8989);
       } else {
         CommonWidget().snackBar(context, appTheme.red, response['message']);

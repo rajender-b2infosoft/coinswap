@@ -1,17 +1,40 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../common_widget.dart';
+import '../../../core/utils/navigation_service.dart';
+import '../../../routes/app_routes.dart';
 import '../../../services/api_service.dart';
 import '../../../services/cryptoWebSocketServices.dart';
 import '../../../services/moralisApiService.dart';
 import '../../../services/socketService.dart';
+import '../../../theme/theme_helper.dart';
+import '../../profile/models/profile.dart';
+import '../../transactions/models/transaction.dart';
 import '../models/home_screen_model.dart';
+import '../models/recentTransaction.dart';
 
 class HomeScreenProvider extends ChangeNotifier {
   final apiService = ApiService();
   HomeScreenModel registerModel = HomeScreenModel();
   late SocketIOClient _webSocketClient;
+
+
+  RecentTransactionModel? _recenTransactionData;
+  RecentTransactionModel? get recenTransactionData => _recenTransactionData;
+
+  UserProfileResponse? _walletData;
+  UserProfileResponse? get walletData => _walletData;
+
+  final _secureStorage = const FlutterSecureStorage();
+
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
 
   String? _isClicked = 'Dashboard';
   String? get isClicked => _isClicked;
@@ -26,8 +49,6 @@ class HomeScreenProvider extends ChangeNotifier {
   String? get userStatus => _userStatus;
 
   setUserStatus(val)async{
-    print('////////////////////////////////////////--');
-    print(val);
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('status', val);
     _userStatus = val;
@@ -176,6 +197,79 @@ class HomeScreenProvider extends ChangeNotifier {
       _btcPrice = 0.0;
       // notifyListeners();
       _notifyIfNotDisposed();
+    }
+  }
+
+  Future<void> getUserWalets() async{
+    _isLoading = true;
+    notifyListeners();
+    try{
+      final response = await apiService.userWalletData();
+      // Check if the response status is 'success'
+      if (response?['status'] == 'success') {
+        List<dynamic> walletData = response?['data'];
+        for (var wallet in walletData) {
+          String walletAddress = wallet['wallet_address'];
+          String cryptoType = wallet['crypto_type'];
+          // Store wallet address in secure storage based on the crypto type
+          await _secureStorage.write(key: cryptoType, value: walletAddress);
+        }
+      } else {
+        print("Error: ${response?['message']}");
+      }
+    }catch(e){
+      print(e);
+    }finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> userWalletData() async {
+    _isLoading = true;
+    notifyListeners();
+    try{
+      final response = await apiService.getUserProfile();
+      //check response
+      if (response != null && response['status'] == 'success') {
+        _walletData = UserProfileResponse.fromJson(response);
+
+        // CommonWidget.showToastView('Wallets data fetched successfully', appTheme.gray8989);
+      }else {
+        CommonWidget.showToastView(response['message'], appTheme.gray8989);
+      }
+    }catch (e) {
+      print(e);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+
+  // Future<void> transactionsData(type, status, date) async {
+  Future<void> recentTransactionsData() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try{
+      final response = await apiService.getRecentTransactions();
+
+      //check response
+      if (response != null && response['status'] == 'success') {
+        _recenTransactionData = RecentTransactionModel.fromJson(response);
+        // CommonWidget.showToastView(response?['message'], appTheme.gray8989);
+        notifyListeners();
+      }else {
+        _errorMessage = response?['message'];
+        CommonWidget.showToastView(response?['message'], appTheme.gray8989);
+      }
+    }catch (e) {
+      _errorMessage = "An error occurred: $e";
+      print(e);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
