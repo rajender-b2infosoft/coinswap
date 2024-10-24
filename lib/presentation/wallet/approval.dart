@@ -152,8 +152,10 @@ class _ApprovalScreenState extends State<ApprovalScreen> {
                   _buildActivityCard(widget.address, widget.blockchain,widget.amount,
                       widget.fee, widget.date),
                   const SizedBox(height: 10),
+                  if(widget.note != '')
                   Text('Note', style: CustomTextStyles.gray7272_16,),
                   const SizedBox(height: 10),
+                  if(widget.note != '')
                   Container(
                     width: SizeUtils.width,
                     height: 50,

@@ -25,6 +25,10 @@ class _GenerateMpinState extends State<GenerateMpin> {
 
   @override
   void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      provider = Provider.of<MpinProvider>(context,listen: false);
+      FocusScope.of(context).requestFocus(provider.focusNodes[0]);
+    });
     super.initState();
   }
 

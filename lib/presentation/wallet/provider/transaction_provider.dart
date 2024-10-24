@@ -20,6 +20,9 @@ class TransactionProvider extends ChangeNotifier{
   Map<String, dynamic>? get userData => _userData;
 
 
+  double _commissionAmount = 0.0;
+  double get commissionAmount => _commissionAmount;
+
   CommissionSettingsResponse? _commissionSettingsData;
   CommissionSettingsResponse? get commissionSettingsData => _commissionSettingsData;
 
@@ -167,6 +170,10 @@ class TransactionProvider extends ChangeNotifier{
     final currentText = _amountController.text;
     if (currentText.isNotEmpty) {
       _amountController.text = currentText.substring(0, currentText.length - 1);
+
+      var blockchain = (_selectedCurrency=='Ethereum')?'eth':(_selectedCurrency=='USDT')?'usdt':'btc';
+      _commissionAmount  = getCommissionRateForAmount(double.parse(_amountController.text), blockchain)!;
+
       notifyListeners();
     }
   }
@@ -176,16 +183,23 @@ class TransactionProvider extends ChangeNotifier{
     if (_amountController.text.isEmpty || _amountController.text != '0') {
       _amountController.text += '0';
       _isTextEntered = _amountController.text.isNotEmpty;
+
+      var blockchain = (_selectedCurrency=='Ethereum')?'eth':(_selectedCurrency=='USDT')?'usdt':'btc';
+      _commissionAmount  = getCommissionRateForAmount(double.parse(_amountController.text), blockchain)!;
+
       notifyListeners();
     }
   }
 
   void onDotPress() {
     if (!_amountController.text.contains('.')) {
+      var blockchain = (_selectedCurrency=='Ethereum')?'eth':(_selectedCurrency=='USDT')?'usdt':'btc';
       if (_amountController.text.isEmpty) {
         _amountController.text = '0.';
+        _commissionAmount  = getCommissionRateForAmount(double.parse(_amountController.text), blockchain)!;
       } else {
         _amountController.text += '.';
+        _commissionAmount  = getCommissionRateForAmount(double.parse(_amountController.text), blockchain)!;
       }
       notifyListeners();
     }
@@ -193,6 +207,15 @@ class TransactionProvider extends ChangeNotifier{
 
   void appendAmountController(String number) {
     _amountController.text += number;
+    var blockchain = (_selectedCurrency=='Ethereum')?'eth':(_selectedCurrency=='USDT')?'usdt':'btc';
+
+
+    _commissionAmount  = getCommissionRateForAmount(double.parse(_amountController.text), blockchain)!;
+
+    print('::::::::::::::::::::::::::::');
+    print(_commissionAmount);
+    print(blockchain);
+
     notifyListeners();
   }
 
@@ -266,10 +289,6 @@ class TransactionProvider extends ChangeNotifier{
   Future getCommissionSetting(context) async{
     try{
       final response = await apiService.getCommissionSettings();
-
-      print('........................??????');
-      print(response);
-
       if (response != null && response['status'] == 'success') {
         _commissionSettingsData  = CommissionSettingsResponse.fromJson(response);
         CommonWidget.showToastView(response['message'], appTheme.gray8989);
@@ -527,6 +546,40 @@ class TransactionProvider extends ChangeNotifier{
       notifyListeners();
     }
   }
+
+  /// Function to get commission rate based on the input amount
+  double? getCommissionRateForAmount(double amount, String cryptoType) {
+    if (_commissionSettingsData == null || _commissionSettingsData!.data.isEmpty) {
+      return null; // Return null if data is not available
+    }
+
+    print('>>>>>>>>>>>>>>>>>>>>>>>>>>amount');
+    print(amount);
+    print(amount.runtimeType);
+    print(cryptoType);
+
+    // Loop through the list of commission settings
+    for (var setting in _commissionSettingsData!.data) {
+      // Check the crypto type
+      if (setting.cryptoType == cryptoType) {
+        if (cryptoType == 'btc' || cryptoType == 'eth') {
+          // For btc and eth, return the commission rate directly without range check
+          return setting.commissionRate;
+        } else if (cryptoType == 'usdt') {
+          if(amount <= 1000){
+            return 0.0;
+          }
+          // For usdt, check if the amount is within the range
+          if (amount >= setting.fromRange && amount < setting.toRange) {
+            return setting.commissionRate;
+          }
+        }
+      }
+    }
+
+    return null; // Return null if no matching range or crypto_type is found
+  }
+
 
   @override
   void dispose() {

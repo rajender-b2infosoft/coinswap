@@ -37,6 +37,7 @@ class ImageConstant {
   static String navbar = '$imagePath/navbar.png';
   static String roundTick = '$imagePath/roundTick.png';
   static String clear = '$imagePath/Clear.png';
+  static String close = '$imagePath/Close.png';
   static String sun = '$imagePath/sun.png';
   static String moon = '$imagePath/moon.png';
   static String bellWhite = '$imagePath/bellWhite.png';

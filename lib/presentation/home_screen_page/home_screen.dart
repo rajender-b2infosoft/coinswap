@@ -555,7 +555,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ),
         drawer: Container(
           alignment: Alignment.topLeft,
-          width: 270,
+          width: 300,
           decoration: const BoxDecoration(
             color: Colors.transparent
           ),
@@ -563,7 +563,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             clipBehavior: Clip.none,
             children: [
               SizedBox(
-                width: 250,
+                width: 290,
                 child: Drawer(
                   child: Padding(
                     padding: const EdgeInsets.only(top: 20.0),
@@ -571,9 +571,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       padding: EdgeInsets.zero,
                       children: <Widget>[
                         Container(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                          padding: const EdgeInsets.only(left: 16, top: 16, bottom: 16, right: 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
                               Container(
                                 height: 60,
@@ -591,7 +591,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 16),
+                              const SizedBox(height: 15),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
@@ -599,8 +599,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                     '${homeProvider.name}',
                                     style: TextStyle(
                                       color: appTheme.color0071D0,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
                                       fontFamily: "Poppins"
                                     ),
                                   ),
@@ -609,7 +609,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                     '${homeProvider.email}',
                                     style: TextStyle(
                                       color: appTheme.color9898,
-                                      fontSize: 11,
+                                      fontSize: 12,
                                         fontWeight: FontWeight.w500,
                                         fontFamily: "Poppins"
                                     ),

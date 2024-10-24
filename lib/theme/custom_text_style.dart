@@ -106,6 +106,12 @@ class CustomTextStyles {
     fontFamily: 'Poppins',
     fontWeight: FontWeight.w300,
   );
+  static get white14=> theme.textTheme.titleMedium!.copyWith(
+    color: appTheme.white,
+    fontSize: 14,
+    fontFamily: 'Poppins',
+    fontWeight: FontWeight.w300,
+  );
   static get gray7272_17=> theme.textTheme.titleMedium!.copyWith(
     color: appTheme.gray7272,
     fontFamily: 'Poppins',
@@ -177,6 +183,12 @@ class CustomTextStyles {
     fontFamily: 'Poppins',
     fontSize: 16,
     fontWeight: FontWeight.w400,
+  );
+  static get gray7272_16Bold=> theme.textTheme.titleMedium!.copyWith(
+    color: appTheme.gray7272,
+    fontFamily: 'Poppins',
+    fontSize: 16,
+    fontWeight: FontWeight.w500,
   );
   static get color9898_13=> theme.textTheme.titleMedium!.copyWith(
     color: appTheme.color9898,

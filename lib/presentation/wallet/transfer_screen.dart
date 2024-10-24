@@ -369,53 +369,241 @@ class _TransferScreenState extends State<TransferScreen> {
   }
 
   void _showTooltip(BuildContext context) {
-    showDialog(
+    var amount = (transactionProvider.amountController.text == '')?'0.0':transactionProvider.amountController.text;
+    var afterCommission = double.parse(amount)-transactionProvider.commissionAmount;
+    showDialog (
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          content: Container(
-            height: 200,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('USDT-Fees/Txn.', style: CustomTextStyles.main14,),
-                  Text('   -1000 - 5000 ( 1.5 \$ )', style: CustomTextStyles.gray13,),
-                  Text('   -5000 - 10k.   ( 2.5\$ )', style: CustomTextStyles.gray13,),
-                  Text('   -10k  - 25k ( 3.2\$)', style: CustomTextStyles.gray13,),
-                  Text('   -25k  - 100k ( 5\$ )', style: CustomTextStyles.gray13,),
-                  Text('BTC-Fees/Txn.', style: CustomTextStyles.main14,),
-                  Text('   -0.00029262 BTC', style: CustomTextStyles.gray13,),
-                  Text('ETH-Fees/Txn.', style: CustomTextStyles.main14,),
-                  Text('   -0.01 ETH', style: CustomTextStyles.gray13,),
-
-                ],
-              ),
+      builder: (BuildContext context) {
+        return Dialog (
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0), // Adjust the radius here
+          ),
+          backgroundColor: Colors.transparent,
+          child: Container (
+            color: Colors.transparent,
+            width: SizeUtils.width,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15.0),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 200,
+                        decoration: BoxDecoration(
+                            color: appTheme.main,
+                            borderRadius: const BorderRadius.only(
+                              bottomLeft: Radius.circular(20),
+                              bottomRight: Radius.circular(20),
+                            )),
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 10.0, bottom: 10),
+                          child: Text('Transaction summary',
+                            textAlign: TextAlign.center, // Center the text
+                            style: CustomTextStyles.white14,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Total Amount',
+                                  textAlign: TextAlign.center, // Center the text
+                                  style: CustomTextStyles.gray7272_14,
+                                ),
+                                Text((transactionProvider.amountController.text!='')?transactionProvider.amountController.text:'0.0',
+                                  textAlign: TextAlign.center, // Center the text
+                                  style: CustomTextStyles.gray7272_14,
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 10,),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Platform fee',
+                                  textAlign: TextAlign.center, // Center the text
+                                  style: CustomTextStyles.gray7272_14,
+                                ),
+                                Text(transactionProvider.commissionAmount.toString(),
+                                  textAlign: TextAlign.center, // Center the text
+                                  style: CustomTextStyles.orange14,
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 15,),
+                            CustomImageView(
+                              imagePath: ImageConstant.dotLine,
+                              width: SizeUtils.width-50,
+                            ),
+                            SizedBox(height: 15,),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Final Amount',
+                                  textAlign: TextAlign.center, // Center the text
+                                  style: CustomTextStyles.gray7272_16Bold,
+                                ),
+                                Text(afterCommission.toString(),
+                                  textAlign: TextAlign.center, // Center the text
+                                  style: CustomTextStyles.green14,
+                                ),
+                              ],
+                            ),
+                            Container(
+                                width: SizeUtils.width/2.5,
+                                child: Text('(Amount received by the receiver)', style: CustomTextStyles.gray12,))
+                          ],
+                        ),
+                      ),
+                      //  SizedBox(height: 20),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 20),
+                // Close button
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  child: CustomImageView(
+                    height: 50.v,
+                    width: 50.v,
+                    fit: BoxFit.fill,
+                    color: Colors.white,
+                    imagePath: ImageConstant.close,
+                  ),
+                ),
+              ],
             ),
           ),
-          actions: [
-            Center(
-              child: CustomElevatedButton(
-                buttonStyle: ElevatedButton.styleFrom(
-                    backgroundColor: appTheme.main,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(50.0)),
-                    elevation: 0),
-                buttonTextStyle: CustomTextStyles.white18,
-                height: 30,
-                width: 80,
-                text: "Ok",
-                // text: transactionProvider.isLoading ? '' : "Confirm",
-                onPressed: () async {
-                  Navigator.pop(context);
-                },
-              ),
-            )
-          ],
         );
       },
     );
+
+    // showDialog(
+    //   context: context,
+    //   builder: (BuildContext context) {
+    //     return AlertDialog(
+    //       shape: RoundedRectangleBorder(
+    //         borderRadius: BorderRadius.circular(20.0), // Adjust the radius here
+    //       ),
+    //       contentPadding: EdgeInsets.zero,
+    //       content: Stack(
+    //         children: [
+    //           Container(
+    //             width: SizeUtils.width,
+    //             child: Column(
+    //               mainAxisSize: MainAxisSize.min,
+    //               children: [
+    //                 Container(
+    //                   width: 200,
+    //                   padding: const EdgeInsets.only(left: 5, right: 5, top: 5, bottom: 10),
+    //                   decoration: BoxDecoration(
+    //                       color: appTheme.main,
+    //                       borderRadius: const BorderRadius.only(
+    //                         bottomLeft: Radius.circular(20),
+    //                         bottomRight: Radius.circular(20),
+    //                       )),
+    //                   child: Text('Transaction summary',
+    //                     textAlign: TextAlign.center, // Center the text
+    //                     style: CustomTextStyles.white14,
+    //                   ),
+    //                 ),
+    //                 Padding(
+    //                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+    //                   child: Column(
+    //                     crossAxisAlignment: CrossAxisAlignment.start,
+    //                     children: [
+    //                       Row(
+    //                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //                         children: [
+    //                           Text('Total Amount',
+    //                             textAlign: TextAlign.center, // Center the text
+    //                             style: CustomTextStyles.gray7272_14,
+    //                           ),
+    //                           Text((transactionProvider.amountController.text!='')?transactionProvider.amountController.text:'0.0',
+    //                             textAlign: TextAlign.center, // Center the text
+    //                             style: CustomTextStyles.gray7272_14,
+    //                           ),
+    //                         ],
+    //                       ),
+    //                       SizedBox(height: 10,),
+    //                       Row(
+    //                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //                         children: [
+    //                           Text('Platform fee',
+    //                             textAlign: TextAlign.center, // Center the text
+    //                             style: CustomTextStyles.gray7272_14,
+    //                           ),
+    //                           Text(transactionProvider.commissionAmount.toString(),
+    //                             textAlign: TextAlign.center, // Center the text
+    //                             style: CustomTextStyles.orange14,
+    //                           ),
+    //                         ],
+    //                       ),
+    //                       SizedBox(height: 15,),
+    //                       CustomImageView(
+    //                         imagePath: ImageConstant.dotLine,
+    //                         width: SizeUtils.width-50,
+    //                       ),
+    //                       SizedBox(height: 15,),
+    //                       Row(
+    //                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //                         children: [
+    //                           Text('Final Amount',
+    //                             textAlign: TextAlign.center, // Center the text
+    //                             style: CustomTextStyles.gray7272_16Bold,
+    //                           ),
+    //                           Text(afterCommission.toString(),
+    //                             textAlign: TextAlign.center, // Center the text
+    //                             style: CustomTextStyles.green14,
+    //                           ),
+    //                         ],
+    //                       ),
+    //                       Container(
+    //                         width: SizeUtils.width/2.5,
+    //                           child: Text('(Amount received by the receiver)', style: CustomTextStyles.gray12,))
+    //                     ],
+    //                   ),
+    //                 ),
+    //               ],
+    //             ),
+    //           ),
+    //           Positioned(
+    //             top: 200,
+    //             left: 0,
+    //             right: 0,
+    //             child: GestureDetector(
+    //               onTap: () {
+    //                 Navigator.pop(context);
+    //               },
+    //               child: CustomImageView(
+    //                 height: 50,
+    //                 width: 50,
+    //                 // fit: BoxFit.fill,
+    //                 color: Colors.red,
+    //                 imagePath: ImageConstant.clear,
+    //               ),
+    //             ),
+    //           )
+    //         ],
+    //       ),
+    //       actions: <Widget>[],
+    //     );
+    //   },
+    //);
   }
 
   Widget _buildInfoCard() {
@@ -511,6 +699,8 @@ class _TransferScreenState extends State<TransferScreen> {
 
                 transactionProvider.setCurrency(newValue);
                 transactionProvider.setUserAddress(blockchain);
+                ///for change pop rate
+                // transactionProvider.appendAmountController(transactionProvider.amountController.text);
 
               },
             ),
