@@ -49,7 +49,7 @@ class ImageConstant {
   static String approval = '$imagePath/Approval.png';
   static String Request = '$imagePath/Request.png';
   static String Failure = '$imagePath/Failure.png';
-  static String success_green = '$imagePath/success_green.png';
+  static String success_green = '$imagePath/success.png';
 
   static String iconDashboard = '$imagePath/iconDashboard.png';
   static String iconTransaction = '$imagePath/iconTransaction.png';

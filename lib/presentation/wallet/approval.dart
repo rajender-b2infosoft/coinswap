@@ -10,8 +10,10 @@ class ApprovalScreen extends StatefulWidget {
   final String fee;
   final String note;
   final String date;
+  final String page;
+
   const ApprovalScreen(
-      {super.key, required this.blockchain, required this.status, required this.address, required this.amount, required this.fee, required this.note, required this.date});
+      {super.key, required this.blockchain, required this.status, required this.address, required this.amount, required this.fee, required this.note, required this.date, required this.page});
 
   @override
   State<ApprovalScreen> createState() => _ApprovalScreenState();
@@ -21,7 +23,7 @@ class ApprovalScreen extends StatefulWidget {
     return ChangeNotifierProvider(
       create: (context) => TransactionProvider(),
       child: ApprovalScreen(
-          blockchain: args['blockchain'], status: args['status'], address: args['address'], amount: args['amount'], fee: args['fee'], note: args['note'], date: args['date']
+          blockchain: args['blockchain'], status: args['status'], address: args['address'], amount: args['amount'], fee: args['fee'], note: args['note'], date: args['date'], page: args['page']
       ),
     );
   }
@@ -42,11 +44,14 @@ class _ApprovalScreenState extends State<ApprovalScreen> {
   Widget build(BuildContext context) {
     transactionProvider = Provider.of<TransactionProvider>(context);
 
-    if(widget.status=='processed'){
+    print('lllllllllllllllllllllppp');
+    print(widget.status);
+
+    if(widget.status=='created'){
       img = ImageConstant.Request;
       statusText = 'Request processed';
       content = 'Transfer request processed on blockchain; payment status will be updated shortly';
-    }else if(widget.status=='success'){
+    }else if(widget.status=='completed'){
       img = ImageConstant.success_green;
       statusText = 'Transfer successfully';
       content = 'Trasnfer successful, You paid ${widget.amount} ${widget.blockchain} to rajnishSingh';
@@ -57,121 +62,128 @@ class _ApprovalScreenState extends State<ApprovalScreen> {
     }
     print(widget.status);
 
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      backgroundColor: appTheme.main,
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        automaticallyImplyLeading: false,
-        leading: InkWell(
-            onTap: () {
-              Navigator.pop(context);
-            },
-            child: Icon(
-              Icons.clear,
-              color: appTheme.white, size: 30,
-            )),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.only(top: 90.0),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          height: SizeUtils.height,
-          width: SizeUtils.width,
-          decoration: BoxDecoration(
-              color: appTheme.white,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(50),
-                topRight: Radius.circular(50),
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        backgroundColor: appTheme.main,
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          automaticallyImplyLeading: false,
+          leading: InkWell(
+              onTap: () {
+                if(widget.page== 'trx'){
+                  Navigator.pop(context);
+                }else{
+                  NavigatorService.pushNamed(AppRoutes.homeScreen);
+                }
+              },
+              child: Icon(
+                Icons.clear,
+                color: appTheme.white, size: 30,
               )),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 20.0, top: 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: CustomImageView(
-                      imagePath: img,
-                      width: 90,
-                      height: 90,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.only(top: 90.0),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            height: SizeUtils.height,
+            width: SizeUtils.width,
+            decoration: BoxDecoration(
+                color: appTheme.white,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(50),
+                  topRight: Radius.circular(50),
+                )),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 20.0, top: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: CustomImageView(
+                        imagePath: img,
+                        width: 90,
+                        height: 90,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Center(
-                      child: Text(statusText,
-                        style: TextStyle(
-                          color: (widget.status=='pending')?appTheme.main
-                              :(widget.status=='rejected')?appTheme.red
-                              :(widget.status=='processed')?appTheme.orange
-                              :appTheme.green,
-                          fontSize: 16,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w400,
-                        ),
-                      )
-                  ),
-                  const SizedBox(height: 10),
-                  Text(content,
-                    textAlign: TextAlign.center ,style: CustomTextStyles.gray13,),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        approvalStatus('1', 'pending'),
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 10.0),
-                          child: Container(
-                            height: 1,
-                            width: SizeUtils.width/5.5,
-                            decoration: BoxDecoration(
-                              color: (widget.status=='processed')?appTheme.main:appTheme.gray,
-                            ),
+                    const SizedBox(height: 10),
+                    Center(
+                        child: Text(statusText,
+                          style: TextStyle(
+                            color: (widget.status=='pending')?appTheme.main
+                                :(widget.status=='rejected')?appTheme.red
+                                :(widget.status=='created')?appTheme.orange
+                                :appTheme.green,
+                            fontSize: 16,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w400,
                           ),
-                        ),
-                        approvalStatus('2', 'processed'),
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 10.0),
-                          child: Container(
-                            height: 1,
-                            width: SizeUtils.width/5.5,
-                            decoration: BoxDecoration(
-                              color: (widget.status=='success')?appTheme.main:appTheme.gray,
-                            ),
-                          ),
-                        ),
-                        approvalStatus('3', 'success'),
-                      ],
+                        )
                     ),
-                  ),
-                  Text('Transfer Summary', style: CustomTextStyles.gray7272_16,),
-                  const SizedBox(height: 10),
-                  _buildActivityCard(widget.address, widget.blockchain,widget.amount,
-                      widget.fee, widget.date),
-                  const SizedBox(height: 10),
-                  if(widget.note != '')
-                  Text('Note', style: CustomTextStyles.gray7272_16,),
-                  const SizedBox(height: 10),
-                  if(widget.note != '')
-                  Container(
-                    width: SizeUtils.width,
-                    height: 50,
-                    padding: EdgeInsets.only(left: 10, top: 5, right: 10, bottom: 5),
-                    decoration: BoxDecoration(
-                      color: appTheme.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: appTheme.color549FE3,
-                          blurRadius: 1.0,
-                        ),
-                      ],
-                      borderRadius: BorderRadius.circular(10),),
-                    child: Text(widget.note, style: CustomTextStyles.gray7272_12,),
-                  )
-                ],
+                    const SizedBox(height: 10),
+                    Text(content,
+                      textAlign: TextAlign.center ,style: CustomTextStyles.gray13,),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          approvalStatus(),
+                          // Padding(
+                          //   padding: const EdgeInsets.only(bottom: 10.0),
+                          //   child: Container(
+                          //     height: 1,
+                          //     width: SizeUtils.width/5.5,
+                          //     decoration: BoxDecoration(
+                          //       color: (widget.status=='processed')?appTheme.main:appTheme.gray,
+                          //     ),
+                          //   ),
+                          // ),
+                          // approvalStatus('2', 'processed'),
+                          // Padding(
+                          //   padding: const EdgeInsets.only(bottom: 10.0),
+                          //   child: Container(
+                          //     height: 1,
+                          //     width: SizeUtils.width/5.5,
+                          //     decoration: BoxDecoration(
+                          //       color: (widget.status=='completed')?appTheme.main:appTheme.gray,
+                          //     ),
+                          //   ),
+                          // ),
+                          // approvalStatus('3', 'completed'),
+                        ],
+                      ),
+                    ),
+                    Text('Transfer Summary', style: CustomTextStyles.gray7272_16,),
+                    const SizedBox(height: 10),
+                    _buildActivityCard(widget.address, widget.blockchain,widget.amount,
+                        widget.fee, widget.date),
+                    const SizedBox(height: 10),
+                    if(widget.note != '')
+                    Text('Note', style: CustomTextStyles.gray7272_16,),
+                    const SizedBox(height: 10),
+                    if(widget.note != '')
+                    Container(
+                      width: SizeUtils.width,
+                      height: 50,
+                      padding: EdgeInsets.only(left: 10, top: 5, right: 10, bottom: 5),
+                      decoration: BoxDecoration(
+                        color: appTheme.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: appTheme.color549FE3,
+                            blurRadius: 1.0,
+                          ),
+                        ],
+                        borderRadius: BorderRadius.circular(10),),
+                      child: Text(widget.note, style: CustomTextStyles.gray7272_12,),
+                    )
+                  ],
+                ),
               ),
             ),
           ),
@@ -201,7 +213,7 @@ class _ApprovalScreenState extends State<ApprovalScreen> {
               padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
                   // color: appTheme.lightBlue,
-                  color: (widget.status=='success')?appTheme.colorBFFFBA
+                  color: (widget.status=='completed')?appTheme.colorBFFFBA
                       :(widget.status=='rejected')?appTheme.colorFFB8B8
                       :appTheme.lightBlue,
                   borderRadius: const BorderRadius.only(
@@ -213,7 +225,7 @@ class _ApprovalScreenState extends State<ApprovalScreen> {
                 imagePath: ImageConstant.arrowTop,
                 width: 22,
                 height: 25,
-                color: (widget.status=='success')?appTheme.green
+                color: (widget.status=='completed')?appTheme.green
                     :(widget.status=='rejected')?appTheme.red
                     :appTheme.main,
               ),
@@ -276,21 +288,77 @@ class _ApprovalScreenState extends State<ApprovalScreen> {
     return text[0].toUpperCase() + text.substring(1);
   }
 
-  Widget approvalStatus(text, status){
-    return Column(
+  Widget approvalStatus(){
+    return Row(
       children: [
-        Container(
-          height: 35,
-          width: 35,
-          decoration: BoxDecoration(
-            color: (status=='pending')?appTheme.main:Colors.transparent,
-            borderRadius: BorderRadius.circular(50),
-            border: Border.all(width: 1, color: (status=='pending')?appTheme.main:appTheme.gray)
-          ),
-          child: Center(
-              child: Text(text, style: (status=='pending')?CustomTextStyles.white17_400:CustomTextStyles.gray16,)),
+        Column(
+          children: [
+            Container(
+              height: 35,
+              width: 35,
+              decoration: BoxDecoration(
+                color: appTheme.main,
+                borderRadius: BorderRadius.circular(50),
+                border: Border.all(width: 1, color: appTheme.main)
+              ),
+              child: Center(
+                  child: Text('1', style: CustomTextStyles.white17_400)),
+            ),
+            Text(capitalizeFirstLetter('Approval'),style: CustomTextStyles.main8)
+          ],
         ),
-        Text(capitalizeFirstLetter(status),style: (status=='pending')?CustomTextStyles.main10:CustomTextStyles.gray10,)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10.0),
+          child: Container(
+            height: 1,
+            width: SizeUtils.width/5.5,
+            decoration: BoxDecoration(
+              color: (widget.status=='created')?appTheme.main:(widget.status=='completed')?appTheme.main:appTheme.gray,
+            ),
+          ),
+        ),
+        Column(
+          children: [
+            Container(
+              height: 35,
+              width: 35,
+              decoration: BoxDecoration(
+                  color: (widget.status=='created')?appTheme.main:(widget.status=='completed')?appTheme.main:Colors.transparent,
+                  borderRadius: BorderRadius.circular(50),
+                  border: Border.all(width: 1, color: (widget.status=='created')?appTheme.main:(widget.status=='completed')?appTheme.main:appTheme.gray)
+              ),
+              child: Center(
+                  child: Text('2', style: (widget.status=='created')?CustomTextStyles.white17_400:(widget.status=='completed')?CustomTextStyles.white17_400:CustomTextStyles.gray16,)),
+            ),
+            Text(capitalizeFirstLetter('Processed'),style: (widget.status=='created')?CustomTextStyles.main8:(widget.status=='completed')?CustomTextStyles.main8:CustomTextStyles.gray8_7272,)
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10.0),
+          child: Container(
+            height: 1,
+            width: SizeUtils.width/5.5,
+            decoration: BoxDecoration(
+              color: (widget.status=='completed')?appTheme.main:appTheme.gray,
+            ),
+          ),
+        ),
+        Column(
+          children: [
+            Container(
+              height: 35,
+              width: 35,
+              decoration: BoxDecoration(
+                  color: (widget.status=='completed')?appTheme.main:Colors.transparent,
+                  borderRadius: BorderRadius.circular(50),
+                  border: Border.all(width: 1, color: (widget.status=='completed')?appTheme.main:appTheme.gray)
+              ),
+              child: Center(
+                  child: Text('3', style: (widget.status=='completed')?CustomTextStyles.white17_400:CustomTextStyles.gray16,)),
+            ),
+            Text(capitalizeFirstLetter('Success'),style: (widget.status=='completed')?CustomTextStyles.main8:CustomTextStyles.gray8_7272,)
+          ],
+        ),
       ],
     );
   }

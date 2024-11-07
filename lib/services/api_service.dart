@@ -39,7 +39,7 @@ class ApiService {
       final response = await http.post(Uri.parse(Constants.baseUrl + endpoint),
           headers: headerData, body: data);
 
-      print("+++++++++++++response++++++++1212++++++${response}");
+      print("$endpoint +++++++++++++response++++++++1212++++++${response}");
 
       print("+++++++++++++response.body++++++++++++++${response.body}");
 
@@ -251,6 +251,26 @@ class ApiService {
     }
   }
 
+  Future getUserBalance(user_id) async {
+    try {
+      final response = await get('api/wallet-summary?userId=$user_id');
+      return response;
+    } catch (e) {
+      print("Error(Function getUserBalance):$e");
+      return e.toString();
+    }
+  }
+
+  Future livePrice() async {
+    try {
+      final response = await get('api/live-price');
+      return response;
+    } catch (e) {
+      print("Error(Function livePrice):$e");
+      return e.toString();
+    }
+  }
+
   Future setSettings(status, type) async {
     try {
       dynamic data = jsonEncode(<dynamic, dynamic>{
@@ -349,6 +369,11 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>?> uploadSelfie(File file, type) async {
+
+
+    print('$type >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>response $file');
+    print('$type >>>>>>>>>>>>>>>>>>>>path>>>>>>>>>>>response ${file.path}');
+
     try {
       var accessToken = await getAccessToken();
       final request = http.MultipartRequest(

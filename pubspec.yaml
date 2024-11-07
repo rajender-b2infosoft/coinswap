@@ -23,9 +23,9 @@ dependencies:
 #  convert: ^3.1.1
 #  crypto: ^3.0.3
   image_picker: ^1.1.2
-#  camera: ^0.11.0+1
+  camera: ^0.11.0+1
   permission_handler: ^11.3.1
-  web3dart: ^2.7.3
+#  web3dart: ^2.7.3
 #  flutter_secure_storage: ^4.2.1
   flutter_secure_storage: ^7.0.0
   dropdown_button2: ^2.3.9
@@ -36,12 +36,14 @@ dependencies:
   image: ^4.2.0
   path_provider: ^2.1.4
   path: ^1.9.0
-  face_camera: ^0.1.2
-  coinbase_wallet_sdk: ^1.0.9
-  flutter_web_auth: ^0.5.0
+#  face_camera: ^0.1.2
+#  coinbase_wallet_sdk: ^1.0.9
+#  flutter_web_auth: ^0.5.0
 #  uni_links: ^0.5.0
   flutter_switch: ^0.3.2
   flutter_local_notifications: ^17.2.3
+  google_ml_kit: ^0.7.3
+  fl_chart: ^0.69.0
 #  google_mlkit_face_detection: ^0.11.0
 #  google_ml_kit: ^0.18.0
 

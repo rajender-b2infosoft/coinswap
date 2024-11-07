@@ -2,11 +2,13 @@ import 'dart:io';
 import 'package:crypto_app/presentation/auth/provider/selfieProvider.dart';
 import 'package:crypto_app/theme/theme_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../common_widget.dart';
 import '../../core/app_export.dart';
+import '../../services/FaceDetectionService.dart';
 import '../../widgets/custom_elevated_button.dart';
-import 'package:face_camera/face_camera.dart';
+// import 'package:face_camera/face_camera.dart';
 
 class UploadSelfie extends StatefulWidget {
   const UploadSelfie({super.key});
@@ -24,61 +26,73 @@ class UploadSelfie extends StatefulWidget {
 class _UploadSelfieState extends State<UploadSelfie> {
   late SelfieProvider selfieProvider;
 
+  static const platform = MethodChannel('face_detection_channel');
+  bool isFaceCentered = false;
+  final FaceDetectionService faceDetectionService = FaceDetectionService();
+  String? filePath;
+  bool _isFaceDetected = false;
+
   @override
   void initState() {
     super.initState();
-    _requestPermissions();
-    // selfieProvider = Provider.of<SelfieProvider>(context, listen: false);
-    // selfieProvider.initializeCamera(context);
-    // Future.delayed(const Duration(seconds: 1), () {
-    //   // _openCameraBottomSheet();
-    //   selfieProvider.openCameraBottomSheet(context);
-    // });
+    _receiveFilePath();
+    // _requestPermissions();
   }
 
-  Future<void> _requestPermissions() async {
-    final status = await Permission.camera.request();
-    if (status.isGranted) {
-      // Initialize camera only after permissions are granted
-      selfieProvider = Provider.of<SelfieProvider>(context, listen: false);
-      // selfieProvider.initializeCamera(context);
-      // Future.delayed(const Duration(seconds: 1), () {
-      //   selfieProvider.openCameraBottomSheet(context);
-      // });
-    } else {
-      print('Camera permission not granted');
-      // Handle permission denial (e.g., show an alert to the user)
-    }
+  void _receiveFilePath() {
+    platform.setMethodCallHandler((call) async {
+      if (call.method == "satelliteData") {
+        setState(() {
+          filePath = call.arguments["filePath"];
+          checkFaceInImage();
+        });
+        print("File path received from Android: $filePath");
+      } else if (call.method == "error") {
+        print("Error received from Android: ${call.arguments}");
+      }
+    });
   }
 
-  Future<void> _captureSelfie() async {
-    final status = await Permission.camera.request();
-    if (status.isGranted) {
-      // Initialize camera only after permissions are granted
-      selfieProvider = Provider.of<SelfieProvider>(context, listen: false);
-      selfieProvider.initializeCamera(context);
-      Future.delayed(const Duration(seconds: 1), () {
-        selfieProvider.openCameraBottomSheet(context);
-      });
-    } else {
-      print('Camera permission not granted');
-      // Handle permission denial (e.g., show an alert to the user)
-    }
+  Future<void> checkFaceInImage() async {
+    if (filePath == null) return;
+    bool isFacePresent =
+        await faceDetectionService.detectFaceInImage(filePath!);
+    setState(() {
+      _isFaceDetected = isFacePresent;
+    });
   }
+
+  // Future<void> _requestPermissions() async {
+  //   final status = await Permission.camera.request();
+  //   if (status.isGranted) {
+  //     // Initialize camera only after permissions are granted
+  //     selfieProvider = Provider.of<SelfieProvider>(context, listen: false);
+  //   } else {
+  //     print('Camera permission not granted');
+  //     // Handle permission denial (e.g., show an alert to the user)
+  //   }
+  // }
+
+  // Future<void> _captureSelfie() async {
+  //   final status = await Permission.camera.request();
+  //   if (status.isGranted) {
+  //     // Initialize camera only after permissions are granted
+  //     selfieProvider = Provider.of<SelfieProvider>(context, listen: false);
+  //     selfieProvider.initializeCamera(context);
+  //     Future.delayed(const Duration(seconds: 1), () {
+  //       selfieProvider.openCameraBottomSheet(context);
+  //     });
+  //   } else {
+  //     print('Camera permission not granted');
+  //     // Handle permission denial (e.g., show an alert to the user)
+  //   }
+  // }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     selfieProvider = Provider.of<SelfieProvider>(context);
   }
-
-  // Future<void> _requestPermissions() async {
-  //   final status = await Permission.camera.request();
-  //   if (!status.isGranted) {
-  //     // Handle permission denial
-  //     print('Camera permission not granted');
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -142,41 +156,49 @@ class _UploadSelfieState extends State<UploadSelfie> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Text(
-                              'Upload your selfie',
+                              '${(filePath == null) ?'Upload your selfie':'Congratulations !'}',
                               style: CustomTextStyles.pageTitleMain,
                             ),
                             Padding(
                               padding: const EdgeInsets.fromLTRB(15, 8, 15, 20),
                               child: Center(
                                 child: Text(
-                                  '${(selfieProvider.capturedImage == null)?'The image should be clear and face fully visible':'Your image has been captured. Would you like to proceed or take another selfie?'}',
+                                  '${(filePath == null) ? 'The image should be clear and face fully visible' : 'Your image has been captured. Would you like to proceed or take another selfie?'}',
                                   textAlign: TextAlign.center,
                                   style: CustomTextStyles.gray12,
                                 ),
                               ),
                             ),
-                            if(selfieProvider.capturedImage == null)
-                            uploadSelfie(),
-                            const SizedBox(height: 50,),
-                            selfieProvider.capturedImage != null
+                            // if(selfieProvider.capturedImage == null)
+                            if (filePath == null) uploadSelfie(),
+                            // const SizedBox(
+                            //   height: 50,
+                            // ),
+                            // selfieProvider.capturedImage != null
+                            filePath != null
                                 ? Container(
-                                  decoration: BoxDecoration(
-                                    border: Border.all(width: 3, color: appTheme.main),
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
-                                  child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: Image.file(
-                                  selfieProvider.capturedImage!,
-                                  height: 200,
-                                  width: 200,
-                                  fit: BoxFit.cover,
-                                                                ),
-                                                              ),
-                                )
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                          width: 3, color: appTheme.main),
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: Image.file(
+                                        // selfieProvider.capturedImage!,
+                                        File(filePath!),
+                                        height: 200,
+                                        width: 200,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  )
                                 : Container(),
-                            const SizedBox(height: 50,),
-                            if(selfieProvider.capturedImage != null)
+                            if(filePath != null)
+                            const SizedBox(
+                              height: 50,
+                            ),
+                            if(filePath != null)
                               _proceedButton(),
                           ],
                         ),
@@ -192,7 +214,7 @@ class _UploadSelfieState extends State<UploadSelfie> {
     );
   }
 
-  Widget uploadSelfie(){
+  Widget uploadSelfie() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -206,28 +228,51 @@ class _UploadSelfieState extends State<UploadSelfie> {
             // height: 320,
           ),
         ),
-        const SizedBox(height: 50,),
-        _capyureButton(),
+        const SizedBox(
+          height: 50,
+        ),
+        _captureButton(),
       ],
     );
   }
 
-  Widget _capyureButton() {
+  captureEvent()async{
+    // Check and request camera permission
+    PermissionStatus status = await Permission.camera.status;
+    if (status.isDenied || status.isPermanentlyDenied) {
+      // Request permission if it hasn't been granted
+      status = await Permission.camera.request();
+    }
+
+    // If permission is granted, start face detection
+    if (status.isGranted) {
+      final info = await FaceDetectionService.getSatelliteInfo();
+      setState(() {
+        print("LINE85" + info.toString());
+      });
+    } else {
+      // Show an error message if permission is not granted
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Camera permission is required")),
+      );
+    }
+  }
+
+  Widget _captureButton() {
     return CustomElevatedButton(
       buttonStyle: ElevatedButton.styleFrom(
           backgroundColor: appTheme.main,
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(50.0),
-              side: BorderSide(color: appTheme.main)
-          ),
-          elevation: 0
-      ),
+              side: BorderSide(color: appTheme.main)),
+          elevation: 0),
       buttonTextStyle: CustomTextStyles.white21,
       height: 50,
       width: 200,
       text: "Capture",
       onPressed: () async {
-        _captureSelfie();
+        captureEvent();
+        // _captureSelfie();
       },
     );
   }
@@ -238,13 +283,14 @@ class _UploadSelfieState extends State<UploadSelfie> {
       children: [
         InkWell(
           onTap: (){
-            selfieProvider.resetCamera(context);
-            selfieProvider.initializeCamera(context);
-            selfieProvider.setisFaceCentered(false);
-            selfieProvider.setIsFaceGreen(false);
-            Future.delayed(const Duration(seconds: 1), () {
-              selfieProvider.openCameraBottomSheet(context);
-            });
+            // selfieProvider.resetCamera(context);
+            // selfieProvider.initializeCamera(context);
+            // selfieProvider.setisFaceCentered(false);
+            // selfieProvider.setIsFaceGreen(false);
+            // Future.delayed(const Duration(seconds: 1), () {
+            //   selfieProvider.openCameraBottomSheet(context);
+            // });
+            captureEvent();
           },
           child: Container(
               height: 50,
@@ -254,7 +300,8 @@ class _UploadSelfieState extends State<UploadSelfie> {
               borderRadius: BorderRadius.circular(50),
               border: Border.all(width: 1, color: appTheme.main),
             ),
-            child: Center(child: Text(selfieProvider.capturedImage != null ? "Take again" : "Capture"))
+            // child: Center(child: Text(selfieProvider.capturedImage != null ? "Take again" : "Capture"))
+            child: Center(child: Text(filePath != null ? "Take again" : "Capture"))
           ),
         ),
         // CustomElevatedButton(
@@ -308,12 +355,12 @@ class _UploadSelfieState extends State<UploadSelfie> {
             if (!selfieProvider.isLoading) {
               selfieProvider.setLoding(true);
 
-              if (selfieProvider.selfieImage != null) {
+              // if (selfieProvider.selfieImage != null) {
+              if (filePath != null) {
                 try {
-                  // selfieProvider.addDocument(_selfieImage, 'selfie');
-                  await Provider.of<SelfieProvider>(context, listen: false).addDocument(selfieProvider.selfieImage, 'selfie');
+                  // await Provider.of<SelfieProvider>(context, listen: false).addDocument(selfieProvider.selfieImage, 'selfie');
+                  await Provider.of<SelfieProvider>(context, listen: false).addDocument(File(filePath!), 'selfie');
                   selfieProvider.setLoding(false);
-                  // NavigatorService.pushNamed(AppRoutes.registerSuccessScreen);
                 } catch (e) {
                   CommonWidget.showToastView(
                       'Error capturing picture: $e', appTheme.red);
@@ -330,7 +377,6 @@ class _UploadSelfieState extends State<UploadSelfie> {
       ],
     );
   }
-
-  bool get _controllerInitialized => selfieProvider.controller != null;
+  //
+  // bool get _controllerInitialized => selfieProvider.controller != null;
 }
-

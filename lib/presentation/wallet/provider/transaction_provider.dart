@@ -20,6 +20,12 @@ class TransactionProvider extends ChangeNotifier{
   Map<String, dynamic>? get userData => _userData;
 
 
+  List<dynamic> walletData = [];
+  void setWalletData(List<dynamic> data) {
+    walletData = data;
+    notifyListeners();
+  }
+
   double _commissionAmount = 0.0;
   double get commissionAmount => _commissionAmount;
 
@@ -36,7 +42,7 @@ class TransactionProvider extends ChangeNotifier{
 
   TransactionProvider(){
     _addressController.addListener(() async {
-      var network = (_selectedCurrency == 'Ethereum')?"sepolia":(_selectedCurrency == 'USDT')?"nail":"testnet";
+      var network = (_selectedCurrency == 'Ethereum')?"mainnet":(_selectedCurrency == 'USDT')?"mainnet":"mainnet";
       var blockchain = (_selectedCurrency == 'Ethereum')?"ethereum":(_selectedCurrency == 'USDT')?"tron":"bitcoin";
       SharedPreferences prefs = await SharedPreferences.getInstance();
       var userName = prefs.getString('userName');
@@ -49,12 +55,6 @@ class TransactionProvider extends ChangeNotifier{
 
   setAddressController(String val)async{
     _addressController.text = val;
-    // var network = (_selectedCurrency == 'Ethereum')?"sepolia":(_selectedCurrency == 'USDT')?"nail":"testnet";
-    // var blockchain = (_selectedCurrency == 'Ethereum')?"ethereum":(_selectedCurrency == 'USDT')?"tron":"bitcoin";
-    // SharedPreferences prefs = await SharedPreferences.getInstance();
-    // var userName = prefs.getString('userName');
-    // //verifying address
-    // validateAddress(val, blockchain, network, userName);
     notifyListeners();
   }
 
@@ -64,7 +64,8 @@ class TransactionProvider extends ChangeNotifier{
   }
 
   dynamic _qrCodeData = '';
-  String _selectedCurrency = 'Ethereum';
+  // String _selectedCurrency = 'Ethereum';
+  String _selectedCurrency = 'USDT';
   String get selectedCurrency => _selectedCurrency;
 
   String _chooseCurrency = 'ETH';
@@ -103,6 +104,12 @@ class TransactionProvider extends ChangeNotifier{
 
   String _ethBalance = '0.00';
   String get ethBalance => _ethBalance;
+  String _btcBalance = '0';
+  String get btcBalance => _btcBalance;
+  String _usdtBalance = '0';
+  String get usdtBalance => _usdtBalance;
+
+
   setEthBalance(val){
     _ethBalance = val;
     notifyListeners();
@@ -132,7 +139,7 @@ class TransactionProvider extends ChangeNotifier{
       if(val == 'USDT'){
         _address = (await _secureStorage.read(key: 'tron'))!;
         notifyListeners();
-      }else if(val == 'BIT'){
+      }else if(val == 'BTC'){
         _address = (await _secureStorage.read(key: 'bitcoin'))!;
         notifyListeners();
       }else if(val == 'ETH'){
@@ -262,8 +269,8 @@ class TransactionProvider extends ChangeNotifier{
     }
   }
 
-  Future<void> scanQRCode() async {
-    final scannedData = NavigatorService.pushNamed(AppRoutes.qRView);
+  Future<void> scanQRCode(blockchain) async {
+    final scannedData = NavigatorService.pushNamed(AppRoutes.qRView, argument: {'blockchain': blockchain});
     if (scannedData != null) {
       _qrCodeData = scannedData;
     }
@@ -291,7 +298,7 @@ class TransactionProvider extends ChangeNotifier{
       final response = await apiService.getCommissionSettings();
       if (response != null && response['status'] == 'success') {
         _commissionSettingsData  = CommissionSettingsResponse.fromJson(response);
-        CommonWidget.showToastView(response['message'], appTheme.gray8989);
+        // CommonWidget.showToastView(response['message'], appTheme.gray8989);
       } else {
         CommonWidget().snackBar(context, appTheme.red, response['message']);
       }
@@ -337,7 +344,7 @@ class TransactionProvider extends ChangeNotifier{
         String formattedDate = DateFormat('dd-MMM-yyyy').format(now);
 
           var blockchain = (cryptoType == 'Ethereum')?"ethereum":(cryptoType == 'USDT')?"tron":"bitcoin";
-          var network = (cryptoType == 'Ethereum')?"sepolia":(cryptoType == 'USDT')?"nile":"testnet";
+          var network = (cryptoType == 'Ethereum')?"mainnet":(cryptoType == 'USDT')?"mainnet":"mainnet";
 
         var finalAmount = double.parse(amount);
         var ethCommission = 0.01;
@@ -348,7 +355,8 @@ class TransactionProvider extends ChangeNotifier{
 
         if(blockchain == 'ethereum'){
           commissionAmount = 0.01;
-          adminAddress = '0x50ad50e334f13d6bdda46ff7d800f2c1f3b3f64a';
+          // adminAddress = '0x50ad50e334f13d6bdda46ff7d800f2c1f3b3f64a';
+          adminAddress = '0x3b5d925d4e229fce9407371507f9f2b5c7eb6621';
           print('11111111111111111111111111111');
           // amountAfterCommission = finalAmount - ethCommission;
           // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amountAfterCommission, 'slow', note, address);
@@ -357,7 +365,8 @@ class TransactionProvider extends ChangeNotifier{
         }else if(blockchain == 'tron'){
           if(finalAmount >= 25000){
             commissionAmount = 5;
-            adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
+            // adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
+            adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
             print('22222222222222222222222222');
             // amountAfterCommission = finalAmount - 5;
             // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amountAfterCommission, 'slow', note, address);
@@ -365,7 +374,8 @@ class TransactionProvider extends ChangeNotifier{
             // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, 5, 'slow', note, 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw');
           }else if(finalAmount <= 25000 && finalAmount >= 10000){
             commissionAmount = 3.2;
-            adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
+            // adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
+            adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
             print('333333333333333333333333333');
             // amountAfterCommission = finalAmount - 3.2;
             // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amountAfterCommission, 'slow', note, address);
@@ -373,7 +383,8 @@ class TransactionProvider extends ChangeNotifier{
             // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, 3.2, 'slow', note, 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw');
           }else if(finalAmount <= 10000 && finalAmount >= 5000){
             commissionAmount = 2.5;
-            adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
+            // adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
+            adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
             print('444444444444444444444');
             // amountAfterCommission = finalAmount - 2.5;
             // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amountAfterCommission, 'slow', note, address);
@@ -381,7 +392,8 @@ class TransactionProvider extends ChangeNotifier{
             // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, 2.5, 'slow', note, 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw');
           }else if(finalAmount >= 1000 && finalAmount <= 5000){
             commissionAmount = 1.5;
-            adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
+            // adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
+            adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
             print('55555555555555555555');
             // amountAfterCommission = finalAmount - 1.5;
             // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amountAfterCommission, 'slow', note, address);
@@ -390,7 +402,8 @@ class TransactionProvider extends ChangeNotifier{
           }else{
             //we can use it for bitcoin
             commissionAmount = 0.0;
-            adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
+            // adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
+            adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
             print('666666666666666666666666');
             // amountAfterCommission = finalAmount;
             // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amountAfterCommission, 'slow', note, address);
@@ -399,7 +412,7 @@ class TransactionProvider extends ChangeNotifier{
 
         // await sendETH(context,address,type,amount);
         await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amount, 'slow', note, address, adminAddress, commissionAmount);
-        NavigatorService.pushNamed(AppRoutes.approvalScreen, argument: {'blockchain': blockchain,'status': 'pending', 'address': fromAddress, 'amount': amount, 'fee': 'slow', 'note': note, 'date': formattedDate});
+        NavigatorService.pushNamed(AppRoutes.approvalScreen, argument: {'blockchain': blockchain,'status': 'pending', 'address': fromAddress, 'amount': amount, 'fee': 'slow', 'note': note, 'date': formattedDate, 'page': 'home'});
 
         // NavigatorService.pushNamedAndRemoveUntil(AppRoutes.transferScreen, argument: {'toAddress': address, 'cryptoType': cryptoType, 'amount': amount});
       } else {
@@ -429,7 +442,7 @@ class TransactionProvider extends ChangeNotifier{
         String formattedDate = DateFormat('dd-MMM-yyyy').format(now);
 
         var blockchain = (cryptoType == 'Ethereum')?"ethereum":(cryptoType == 'USDT')?"tron":"bitcoin";
-        var network = (cryptoType == 'Ethereum')?"sepolia":(cryptoType == 'USDT')?"nile":"testnet";
+        var network = (cryptoType == 'Ethereum')?"mainnet":(cryptoType == 'USDT')?"mainnet":"mainnet";
 
         var finalAmount = double.parse(amount);
         var ethCommission = 0.01;
@@ -440,7 +453,8 @@ class TransactionProvider extends ChangeNotifier{
 
         if(blockchain == 'ethereum'){
           commissionAmount = 0.01;
-          adminAddress = '0x50ad50e334f13d6bdda46ff7d800f2c1f3b3f64a';
+          // adminAddress = '0x50ad50e334f13d6bdda46ff7d800f2c1f3b3f64a';
+          adminAddress = '0x3b5d925d4e229fce9407371507f9f2b5c7eb6621';
           print('11111111111111111111111111111');
           // amountAfterCommission = finalAmount - ethCommission;
           // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amountAfterCommission, 'slow', note, address);
@@ -449,7 +463,8 @@ class TransactionProvider extends ChangeNotifier{
         }else if(blockchain == 'tron'){
           if(finalAmount >= 25000){
             commissionAmount = 5;
-            adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
+            // adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
+            adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
             print('22222222222222222222222222');
             // amountAfterCommission = finalAmount - 5;
             // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amountAfterCommission, 'slow', note, address);
@@ -457,7 +472,8 @@ class TransactionProvider extends ChangeNotifier{
             // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, 5, 'slow', note, 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw');
           }else if(finalAmount <= 25000 && finalAmount >= 10000){
             commissionAmount = 3.2;
-            adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
+            // adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
+            adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
             print('333333333333333333333333333');
             // amountAfterCommission = finalAmount - 3.2;
             // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amountAfterCommission, 'slow', note, address);
@@ -465,7 +481,8 @@ class TransactionProvider extends ChangeNotifier{
             // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, 3.2, 'slow', note, 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw');
           }else if(finalAmount <= 10000 && finalAmount >= 5000){
             commissionAmount = 2.5;
-            adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
+            // adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
+            adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
             print('444444444444444444444');
             // amountAfterCommission = finalAmount - 2.5;
             // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amountAfterCommission, 'slow', note, address);
@@ -473,7 +490,8 @@ class TransactionProvider extends ChangeNotifier{
             // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, 2.5, 'slow', note, 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw');
           }else if(finalAmount >= 1000 && finalAmount <= 5000){
             commissionAmount = 1.5;
-            adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
+            // adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
+            adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
             print('55555555555555555555');
             // amountAfterCommission = finalAmount - 1.5;
             // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amountAfterCommission, 'slow', note, address);
@@ -482,7 +500,8 @@ class TransactionProvider extends ChangeNotifier{
           }else{
             //we can use it for bitcoin
             commissionAmount = 0.0;
-            adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
+            // adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
+            adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
             print('666666666666666666666666');
             // amountAfterCommission = finalAmount;
             // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amountAfterCommission, 'slow', note, address);
@@ -491,7 +510,7 @@ class TransactionProvider extends ChangeNotifier{
 
 
         await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amount, 'slow', note, address, adminAddress, commissionAmount);
-        NavigatorService.pushNamed(AppRoutes.approvalScreen, argument: {'blockchain': blockchain,'status': 'pending', 'address': fromAddress, 'amount': amount, 'fee': 'slow', 'note': note, 'date': formattedDate});
+        NavigatorService.pushNamed(AppRoutes.approvalScreen, argument: {'blockchain': blockchain,'status': 'pending', 'address': fromAddress, 'amount': amount, 'fee': 'slow', 'note': note, 'date': formattedDate, 'page': 'home'});
 
         // await sendETH(context,address,type,amount);
         // NavigatorService.pushNamedAndRemoveUntil(AppRoutes.transferScreen, argument: {'toAddress': address, 'cryptoType': cryptoType, 'amount': amount, 'note': note});
@@ -580,6 +599,81 @@ class TransactionProvider extends ChangeNotifier{
     return null; // Return null if no matching range or crypto_type is found
   }
 
+  Future<void> userWalletData() async {
+    _isLoading = true;
+    notifyListeners();
+    try{
+      final response = await apiService.getUserProfile();
+      //check response
+      if (response != null && response['status'] == 'success') {
+        //get wallet data and set in list
+        if(response['data'].length > 0){
+          setWalletData(response['data']);
+        }
+      }else {
+        CommonWidget.showToastView(response['message'], appTheme.gray8989);
+      }
+    }catch (e) {
+      print(e);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Check balance for a specific crypto_type
+  bool checkBalance(String cryptoType, double amountToSend) {
+    try {
+      cryptoType = (cryptoType=='usdt')?'tron':cryptoType;
+      final wallet = walletData.firstWhere(
+            (wallet) => wallet['crypto_type'] == cryptoType,
+      );
+      // double userBalance = double.parse(wallet['balance']);
+
+      // Check if `balance` is an int or double, then convert to double
+      double userBalance;
+      if (wallet['balance'] is int) {
+        userBalance = (wallet['balance'] as int).toDouble();
+      } else if (wallet['balance'] is String) {
+        userBalance = double.parse(wallet['balance']);
+      } else {
+        userBalance = wallet['balance']; // Already a double
+      }
+
+      return userBalance >= amountToSend;
+    } catch (e) {
+      print('---------------catch-----------userBalance$e');
+      // If no wallet found, return false
+      return false;
+    }
+  }
+
+  Future<void> userWalletConvertedBalance() async {
+    _isLoading = true;
+    notifyListeners();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int? userId = prefs.getInt('user_id');
+    try{
+      final response = await apiService.getUserBalance(userId);
+      //check response
+      if (response != null && response['status'] == 'success') {
+        //get user all 3 wallets total to display on home page
+        if(response['data'].length > 0){
+          //get user all 3 wallets total to display on home page
+          _ethBalance = response['data'][0]['eth'].toString();
+          _btcBalance = response['data'][0]['btc'].toString();
+          _usdtBalance = response['data'][0]['usdt'].toString();
+        }
+      }else {
+        CommonWidget.showToastView(response['message'], appTheme.gray8989);
+      }
+    }catch (e) {
+      print(e);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
   @override
   void dispose() {

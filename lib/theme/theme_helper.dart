@@ -214,6 +214,7 @@ class LightCodeColors {
   Color get color747474 => const Color(0XFF747474);
   Color get colorFFB8B8 => const Color(0XFFFFB8B8);
   Color get color2E92ED => const Color(0XFF2E92ED);
+  Color get black => const Color(0XFF000000);
 
 }
 

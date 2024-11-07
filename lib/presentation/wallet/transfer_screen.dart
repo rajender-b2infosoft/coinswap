@@ -49,23 +49,40 @@ class _TransferScreenState extends State<TransferScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       transactionProvider =
           Provider.of<TransactionProvider>(context, listen: false);
-      // transactionProvider.getEthBalance(
-      //     '0x5dfa1d664e0c7fef9cebbc7650950a244d96a210', '0x1');
+      //function for check wallet sufficient balance to make transaction
+      transactionProvider.userWalletData();
+      //function for get converted balance
+      transactionProvider.userWalletConvertedBalance();
       transactionProvider.getSettings(context);
       transactionProvider.getCommissionSetting(context);
       transactionProvider.addressController.text = widget.toAddress;
       transactionProvider.setCurrency(widget.cryptoType);
+      // transactionProvider.setCurrency('USDT');
       transactionProvider.amountController.text = widget.amount;
-      transactionProvider.setUserAddress('ETH');
+      transactionProvider.setUserAddress('USDT');
+
+      checkAddress();
+
     });
     _focusNodeAddress.addListener(() {
       setState(() {});
     });
   }
 
-  Future<void> getValue() async {
-    transactionProvider
-        .setEthBalance(await _secureStorage.read(key: 'ethBalance'));
+  // Future<void> getValue() async {
+  //   transactionProvider
+  //       .setEthBalance(await _secureStorage.read(key: 'ethBalance'));
+  // }
+
+  Future<void> checkAddress() async {
+    var network = (transactionProvider.selectedCurrency == 'Ethereum')?"mainnet":(transactionProvider.selectedCurrency == 'USDT')?"mainnet":"mainnet";
+    var blockchain = (transactionProvider.selectedCurrency == 'Ethereum')?"ethereum":(transactionProvider.selectedCurrency == 'USDT')?"tron":"bitcoin";
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var userName = prefs.getString('userName');
+
+    if(transactionProvider.addressController.text != ''){
+      transactionProvider.validateAddress(transactionProvider.addressController.text, blockchain, network, userName);
+    }
   }
 
   @override
@@ -85,57 +102,60 @@ class _TransferScreenState extends State<TransferScreen> {
   Widget build(BuildContext context) {
     transactionProvider = Provider.of<TransactionProvider>(context, listen: true);
 
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      backgroundColor: appTheme.main,
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        automaticallyImplyLeading: false,
-        leading: InkWell(
-            onTap: () {
-              NavigatorService.pushNamed(AppRoutes.homeScreen);
-            },
-            child: Icon(
-              Icons.arrow_back_ios,
-              color: appTheme.white,
-            )),
-        title: Text(
-          'Transfer ',
-          style: CustomTextStyles.headlineMediumRegular,
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.only(top: 90.0),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          height: SizeUtils.height,
-          decoration: BoxDecoration(
-              color: appTheme.white,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(50),
-                topRight: Radius.circular(50),
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        backgroundColor: appTheme.main,
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          automaticallyImplyLeading: false,
+          leading: InkWell(
+              onTap: () {
+                NavigatorService.pushNamed(AppRoutes.homeScreen);
+              },
+              child: Icon(
+                Icons.arrow_back_ios,
+                color: appTheme.white,
               )),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 20.0, top: 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Transfer to:',
-                    style: CustomTextStyles.gray7272_16,
-                  ),
-                  const SizedBox(height: 10),
-                  _buildInput(
-                      _focusNodeAddress,
-                      transactionProvider.addressController,
-                      'Enter Address',
-                      'Please enter address',
-                      TextInputType.text),
-                  const SizedBox(height: 10),
-                  _buildInfoCard(),
-                ],
+          title: Text(
+            'Transfer ',
+            style: CustomTextStyles.headlineMediumRegular,
+          ),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.only(top: 90.0),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            height: SizeUtils.height,
+            decoration: BoxDecoration(
+                color: appTheme.white,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(50),
+                  topRight: Radius.circular(50),
+                )),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 20.0, top: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Transfer to:',
+                      style: CustomTextStyles.gray7272_16,
+                    ),
+                    const SizedBox(height: 10),
+                    _buildInput(
+                        _focusNodeAddress,
+                        transactionProvider.addressController,
+                        'Enter Address',
+                        'Please enter address',
+                        TextInputType.text),
+                    const SizedBox(height: 10),
+                    _buildInfoCard(),
+                  ],
+                ),
               ),
             ),
           ),
@@ -185,15 +205,26 @@ class _TransferScreenState extends State<TransferScreen> {
                             'Please enter amount', appTheme.red);
                         transactionProvider.setLoding(false);
                       }
-                      // else if (!transactionProvider.isValidWallet) {
-                      //   CommonWidget.showToastView(
-                      //       'Please enter valid wallet address', appTheme.red);
-                      //   transactionProvider.setLoding(false);
-                      // }
+                      else if (!transactionProvider.isValidWallet) {
+                        CommonWidget.showToastView(
+                            'Please enter valid wallet address', appTheme.red);
+                        transactionProvider.setLoding(false);
+                      }
                       else {
                         var fromAddress = transactionProvider.address;
                         var toAddress = transactionProvider.addressController.text;
                         var amount = transactionProvider.amountController.text;
+
+                        //Check user balance exist or not to make payment
+                        double amountToSend = double.tryParse(transactionProvider.amountController.text) ?? 0;
+                        bool isBalanceSufficient = transactionProvider.checkBalance(transactionProvider.selectedCurrency.toLowerCase(), amountToSend);
+                        //Display error message if Insufficient balance
+                        if(!isBalanceSufficient){
+                          CommonWidget.showToastView('Insufficient balance!', appTheme.gray8989);
+                          transactionProvider.setLoding(false);
+                          return;
+                        }
+
                         //check minimum amount
                         if(double.parse(amount) > 0.02){
 
@@ -204,15 +235,6 @@ class _TransferScreenState extends State<TransferScreen> {
                           }else if(transactionProvider.selectedCurrency == 'ETH'){
                             fromAddress = (await _secureStorage.read(key: 'ethereum'))!;
                           }
-
-
-
-                          // print('LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL');
-                          // print(toAddress);
-                          // print(transactionProvider.selectedCurrency);
-                          // print(amount);
-                          // print(fromAddress);
-                          // print(transactionProvider.noteController.text);
 
                           var type =
                           (transactionProvider.selectedCurrency == 'Ethereum')
@@ -229,7 +251,7 @@ class _TransferScreenState extends State<TransferScreen> {
                             //1 means user proceed with m-pin
                             NavigatorService.pushNamed(AppRoutes.walletPin,
                                 argument: {'toAddress': toAddress, 'cryptoType': transactionProvider.selectedCurrency,
-                                  'amount': amount, "note": transactionProvider.noteController.text, 'fromAddress': fromAddress}
+                                  'amount': amount, "note": 'note type', 'fromAddress': fromAddress}
                             );
                           } else {
                             await transactionProvider.sendOtp(
@@ -240,7 +262,7 @@ class _TransferScreenState extends State<TransferScreen> {
                               toAddress,
                               transactionProvider.selectedCurrency,
                               amount,
-                              transactionProvider.noteController.text,
+                              'note not added',
                               fromAddress,
                             );
                             transactionProvider.setLoding(false);
@@ -308,7 +330,7 @@ class _TransferScreenState extends State<TransferScreen> {
           decoration: InputDecoration(
             suffixIcon: InkWell(
               onTap: () {
-                transactionProvider.scanQRCode();
+                transactionProvider.scanQRCode(transactionProvider.selectedCurrency);
               },
               child: CustomImageView(
                 imagePath: ImageConstant.scanner,
@@ -355,12 +377,16 @@ class _TransferScreenState extends State<TransferScreen> {
           validator: (value) => checkEmpty(value, error),
           onChanged: (value) async {
             transactionProvider.setqrCodeData(value);
-            var network = (transactionProvider.selectedCurrency == 'Ethereum')?"sepolia":(transactionProvider.selectedCurrency == 'USDT')?"nail":"testnet";
+            // var network = (transactionProvider.selectedCurrency == 'Ethereum')?"sepolia":(transactionProvider.selectedCurrency == 'USDT')?"nail":"testnet";
+            var network = (transactionProvider.selectedCurrency == 'Ethereum')?"mainnet":(transactionProvider.selectedCurrency == 'USDT')?"mainnet":"mainnet";
             var blockchain = (transactionProvider.selectedCurrency == 'Ethereum')?"ethereum":(transactionProvider.selectedCurrency == 'USDT')?"tron":"bitcoin";
             SharedPreferences prefs = await SharedPreferences.getInstance();
             var userName = prefs.getString('userName');
+
             //verifying address
-            if(value.length > 40){
+            if(value.length > 25){
+              print('.................................=');
+              print(value);
               transactionProvider.validateAddress(value, blockchain, network, userName);
             }
           },
@@ -645,7 +671,7 @@ class _TransferScreenState extends State<TransferScreen> {
                   vertical: 2, // Reduce vertical padding
                 ),
               ),
-              items: <String>['Ethereum', 'Bitcoin', 'USDT']
+              items: <String>['USDT', 'Ethereum', 'Bitcoin']
                   .map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
@@ -677,9 +703,9 @@ class _TransferScreenState extends State<TransferScreen> {
                               ),
                             ),
                             Text(
-                              (value == 'Ethereum' || value == 'USDT')
-                                  ? '${transactionProvider.ethBalance}  (ethereum-mainnet)'
-                                  : '${transactionProvider.ethBalance}',
+                              (value == 'Ethereum')
+                                  ? '${transactionProvider.ethBalance}  (ERC-20)': (value == 'USDT')?'${transactionProvider.usdtBalance}  (TRC-20)'
+                                  : '${transactionProvider.btcBalance}',
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontFamily: 'Poppins',
@@ -694,13 +720,23 @@ class _TransferScreenState extends State<TransferScreen> {
                   ),
                 );
               }).toList(),
-              onChanged: (String? newValue) {
+              onChanged: (String? newValue) async {
                 var blockchain = (newValue == 'Ethereum')?'ETH':(newValue == 'Bitcoin')?'BIT':'USDT';
 
                 transactionProvider.setCurrency(newValue);
                 transactionProvider.setUserAddress(blockchain);
                 ///for change pop rate
                 // transactionProvider.appendAmountController(transactionProvider.amountController.text);
+
+                SharedPreferences prefs = await SharedPreferences.getInstance();
+                var userName = prefs.getString('userName');
+
+                var bloc = (blockchain=='USDT')?'tron':(blockchain=='ETH')?'ethereum':'bitcoin';
+                var net = (blockchain=='USDT')?'mainnet':(blockchain=='ETH')?'mainnet':'mainnet';
+
+                if(transactionProvider.addressController.text != ''){
+                  transactionProvider.validateAddress(transactionProvider.addressController.text, bloc, net, userName);
+                }
 
               },
             ),
@@ -730,11 +766,11 @@ class _TransferScreenState extends State<TransferScreen> {
                 padding: EdgeInsets.only(left: 5.0),
                 child: Icon(Icons.info_outlined, size: 25, color: Color(0xff989898),),
               ),
-            )
+            ),
           ],
         ),
         const SizedBox(
-          height: 30,
+          height: 20,
         ),
         Container(
           padding: const EdgeInsets.fromLTRB(10, 5, 5, 5),
@@ -771,10 +807,10 @@ class _TransferScreenState extends State<TransferScreen> {
           ),
         ),
         const SizedBox(height: 20),
-        _note(),
-        const SizedBox(
-          height: 30,
-        ),
+        // _note(),
+        // const SizedBox(
+        //   height: 30,
+        // ),
         SizedBox(
           height: SizeUtils.height / 2.5,
           child: GridView.builder(

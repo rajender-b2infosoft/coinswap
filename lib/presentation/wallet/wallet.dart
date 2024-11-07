@@ -108,11 +108,14 @@ class _WalletScreenState extends State<WalletScreen> {
                           itemBuilder: (context, index) {
                             final w = data[index];
 
-                            return _buildCryptoTile(
+                            var balance = (w.cryptoType == 'bitcoin')?provider.btcBalance:(w.cryptoType == 'ethereum')?provider.ethBalance:provider.usdtBalance;
+
+                            return (w.walletAddress!=null) ? _buildCryptoTile(
                               cryptoName: w.cryptoType.toString()[0].toUpperCase() + w.cryptoType!.substring(1).toLowerCase(),
                               cryptoSymbol: (w.cryptoType == 'bitcoin')?"BTC":(w.cryptoType == 'ethereum')?"ETH":"USDT",
                               cryptoIcon: (w.cryptoType == 'bitcoin')?ImageConstant.bit:(w.cryptoType == 'ethereum')?ImageConstant.eth:ImageConstant.t,
-                              amount: w.balance.toString(),
+                              amount: balance.toString(),
+                              // amount: w.balance.toString(),
                               walletAddress: w.walletAddress.toString(),
                               privateKey: w.publicKey.toString(),
                               cryptoColor: (w.cryptoType == 'bitcoin')?appTheme.orange:(w.cryptoType == 'ethereum')?appTheme.color5E8DF7:appTheme.green,
@@ -122,7 +125,10 @@ class _WalletScreenState extends State<WalletScreen> {
                                   _expandedStates[index] = expanded; // Update the expansion state
                                 });
                               },
-                            );
+                            ) : Center(child: Padding(
+                              padding: const EdgeInsets.only(top: 80.0),
+                              child: Text('Wallet not created yet!', style: CustomTextStyles.gray7272_16,),
+                            ));
                           }
                         );
                       }

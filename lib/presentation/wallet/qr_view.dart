@@ -9,12 +9,18 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 
 class ScannerScreen extends StatefulWidget {
+  final String blockchain;
+
+  const ScannerScreen({super.key, required this.blockchain});
+
   @override
   State<ScannerScreen> createState() => _ScannerScreenState();
   static Widget builder(BuildContext context) {
+    final args =
+    ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     return ChangeNotifierProvider(
       create: (context) => TransactionProvider(),
-      child: ScannerScreen(),
+      child: ScannerScreen(blockchain: args['blockchain']),
     );
   }
 }

@@ -204,7 +204,7 @@ class _VerifyOtpState extends State<VerifyOtp> {
                                     ),
                                   ),
                                 ],
-                              ):Row(
+                              ):Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text('Enter the OTP sent to ',

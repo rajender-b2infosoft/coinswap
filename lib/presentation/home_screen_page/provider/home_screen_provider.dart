@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -14,6 +15,7 @@ import '../../../theme/theme_helper.dart';
 import '../../profile/models/profile.dart';
 import '../../transactions/models/transaction.dart';
 import '../models/home_screen_model.dart';
+import '../models/livePrice.dart';
 import '../models/recentTransaction.dart';
 
 class HomeScreenProvider extends ChangeNotifier {
@@ -21,6 +23,10 @@ class HomeScreenProvider extends ChangeNotifier {
   HomeScreenModel registerModel = HomeScreenModel();
   late SocketIOClient _webSocketClient;
 
+  List<CryptoLivePriceModel> _cryptoList = [];
+  List<CryptoLivePriceModel> get cryptoList => _cryptoList;
+
+  DateTime? _lastUpdate;
 
   RecentTransactionModel? _recenTransactionData;
   RecentTransactionModel? get recenTransactionData => _recenTransactionData;
@@ -32,6 +38,9 @@ class HomeScreenProvider extends ChangeNotifier {
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+
+  String _walletBalance = '0.0';
+  String get walletBalance => _walletBalance;
 
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
@@ -91,7 +100,7 @@ class HomeScreenProvider extends ChangeNotifier {
 
   HomeScreenProvider() {
     getUserInfo();
-    _fetchPrices();
+    // _fetchPrices();
     _startPeriodicUpdates();
 
     sharedPrefData();
@@ -99,24 +108,37 @@ class HomeScreenProvider extends ChangeNotifier {
     _webSocketService.stream.listen((data) {
 
       if (data['type'] == 'ticker') {
-        final symbol = data['product_id'];
-        final price = double.tryParse(data['price'] ?? '') ?? 0.0;
-        final percentageChange = data['percentage_change'] ?? '0.00';
-        final color = data['color'] ?? 'red'; // Default color is red
-        if (price != 0.0) {
-          _prices[symbol] = price;
-          _colors[symbol] = color;
-          _percentages[symbol] = percentageChange;
-          _streamController.add(data);
-          // notifyListeners();
-          _notifyIfNotDisposed();
-        }
-        // notifyListeners();
-        _notifyIfNotDisposed();
+
+          final symbol = data['product_id'];
+          final price = double.tryParse(data['price'] ?? '') ?? 0.0;
+          final percentageChange = data['percentage_change'] ?? '0.00';
+          final color = data['color'] ?? 'red'; // Default color is red
+
+          final currentTime = DateTime.now();
+          // Change interval from 24 hour
+          if (_lastUpdate == null || currentTime.difference(_lastUpdate!).inMinutes >= 1) {
+            _lastUpdate = currentTime;
+            if (price != 0.0) {
+              _prices[symbol] = price;
+              _colors[symbol] = color;
+              _percentages[symbol] = percentageChange;
+              _streamController.add(data);
+              // notifyListeners();
+              _notifyIfNotDisposed();
+            }
+            // notifyListeners();
+            _notifyIfNotDisposed();
+          }
+
       }
     });
   }
 
+  void _startPeriodicUpdates() {
+    _timer = Timer.periodic(const Duration(minutes: 1), (timer) async {
+      // await _fetchPrices();      // when need to display live data uncomment it
+    });
+  }
 
   Stream<Map<String, dynamic>> get stream => _streamController.stream;
 
@@ -128,7 +150,7 @@ class HomeScreenProvider extends ChangeNotifier {
   String getPercentage(String symbol) => _percentages[symbol] ?? '0.00';
 
   ///////////////////Code for Moralis ////////////////////////////////////
-  final MoralisApiService _apiService = MoralisApiService();
+  // final MoralisApiService _apiService = MoralisApiService();
   double _ethPrice = 0.0;
   double _btcPrice = 0.0;
   double _usdtPrice = 0.0;
@@ -145,60 +167,56 @@ class HomeScreenProvider extends ChangeNotifier {
   String? get usdtPercentChange => _usdtPercentChange;
   String? get btcPercentChange => _btcPercentChange;
 
-  Future<void> _fetchPrices() async {
-    await Future.wait([
-      _fetchEthPrice(),
-      _getUsdtPrice(),
-      _fetchBtcPrice(),
-    ]);
-  }
+  // Future<void> _fetchPrices() async {
+  //   await Future.wait([
+  //     _fetchEthPrice(),
+  //     _getUsdtPrice(),
+  //     _fetchBtcPrice(),
+  //   ]);
+  // }
 
-  void _startPeriodicUpdates() {
-    _timer = Timer.periodic(const Duration(seconds: 50), (timer) async {
-      // await _fetchPrices();      // when need to display live data uncomment it
-    });
-  }
 
-  Future<void> _fetchEthPrice() async {
-    try{
-      final tokenData = await _apiService.getTokenPrice("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2");
-      _ethPrice = tokenData['usdPrice']?.toDouble() ?? 0.0;
-      _ethPercentChange = tokenData['24hrPercentChange']??'0.0';
-      // notifyListeners();
-      _notifyIfNotDisposed();
-    }catch(e){
-      _ethPrice = 0.0;
-      // notifyListeners();
-      _notifyIfNotDisposed();
-    }
-  }
 
-  Future<void> _getUsdtPrice() async {
-    try{
-      final tokenData =  await _apiService.getTokenPrice('0xdac17f958d2ee523a2206206994597c13d831ec7');
-      _usdtPrice = tokenData['usdPrice']?.toDouble() ?? 0.0;
-      _usdtPercentChange = tokenData['24hrPercentChange']??'0.0';
-      // notifyListeners();
-      _notifyIfNotDisposed();
-    }catch(e){
-      _usdtPrice = 0.0;
-      // notifyListeners();
-      _notifyIfNotDisposed();
-    }
-  }
-
-  Future<void> _fetchBtcPrice() async {
-    try{
-      final btcData = await _apiService.getBtcPrice();
-      _btcPrice = btcData['bitcoin']['usd']?.toDouble() ?? 0.0;
-      // notifyListeners();
-      _notifyIfNotDisposed();
-    }catch(e){
-      _btcPrice = 0.0;
-      // notifyListeners();
-      _notifyIfNotDisposed();
-    }
-  }
+  // Future<void> _fetchEthPrice() async {
+  //   try{
+  //     final tokenData = await _apiService.getTokenPrice("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2");
+  //     _ethPrice = tokenData['usdPrice']?.toDouble() ?? 0.0;
+  //     _ethPercentChange = tokenData['24hrPercentChange']??'0.0';
+  //     // notifyListeners();
+  //     _notifyIfNotDisposed();
+  //   }catch(e){
+  //     _ethPrice = 0.0;
+  //     // notifyListeners();
+  //     _notifyIfNotDisposed();
+  //   }
+  // }
+  //
+  // Future<void> _getUsdtPrice() async {
+  //   try{
+  //     final tokenData =  await _apiService.getTokenPrice('0xdac17f958d2ee523a2206206994597c13d831ec7');
+  //     _usdtPrice = tokenData['usdPrice']?.toDouble() ?? 0.0;
+  //     _usdtPercentChange = tokenData['24hrPercentChange']??'0.0';
+  //     // notifyListeners();
+  //     _notifyIfNotDisposed();
+  //   }catch(e){
+  //     _usdtPrice = 0.0;
+  //     // notifyListeners();
+  //     _notifyIfNotDisposed();
+  //   }
+  // }
+  //
+  // Future<void> _fetchBtcPrice() async {
+  //   try{
+  //     final btcData = await _apiService.getBtcPrice();
+  //     _btcPrice = btcData['bitcoin']['usd']?.toDouble() ?? 0.0;
+  //     // notifyListeners();
+  //     _notifyIfNotDisposed();
+  //   }catch(e){
+  //     _btcPrice = 0.0;
+  //     // notifyListeners();
+  //     _notifyIfNotDisposed();
+  //   }
+  // }
 
   Future<void> getUserWalets() async{
     _isLoading = true;
@@ -232,9 +250,59 @@ class HomeScreenProvider extends ChangeNotifier {
       final response = await apiService.getUserProfile();
       //check response
       if (response != null && response['status'] == 'success') {
+
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        //await prefs.setString('status', val);
+        //await _secureStorage.write(key: cryptoType, value: walletAddress);
+
+        if(response['data'].length>0){
+          //get user all 3 wallets total to display on home page
+          _walletBalance = response['data'][0]['total_amount_sum'].toString();
+
+          var status = response['data'][0]['status'];
+          var userStatus = (status == 'active')?'Active':(status == 'under_review')?'Under Review':'Inactive';
+
+          await prefs.setString('status', userStatus);
+
+          //in home page set user wallet address in secure storage
+          for (var wallet in response['data']) {
+            String walletAddress = wallet['wallet_address'];
+            String cryptoType = wallet['crypto_type'];
+            // Store wallet address in secure storage based on the crypto type
+            await _secureStorage.write(key: cryptoType, value: walletAddress);
+          }
+          notifyListeners();
+        }
+        // _walletBalance
         _walletData = UserProfileResponse.fromJson(response);
 
+
+
         // CommonWidget.showToastView('Wallets data fetched successfully', appTheme.gray8989);
+      }else {
+        CommonWidget.showToastView(response['message'], appTheme.gray8989);
+      }
+    }catch (e) {
+      print(e);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> userWalletConvertedBalance() async {
+    _isLoading = true;
+    notifyListeners();
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int? userId = prefs.getInt('user_id');
+
+    try{
+      final response = await apiService.getUserBalance(userId);
+      //check response
+      if (response != null && response['status'] == 'success') {
+        //get user all 3 wallets total to display on home page
+        _walletBalance = response['data'][0]['totalAmount'].toString();
       }else {
         CommonWidget.showToastView(response['message'], appTheme.gray8989);
       }
@@ -275,6 +343,32 @@ class HomeScreenProvider extends ChangeNotifier {
 
   void _notifyIfNotDisposed() {
     if (!_isDisposed) {
+      notifyListeners();
+    }
+  }
+
+  Future<void> getCryptoLivePrice() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try{
+      final response = await apiService.livePrice();
+
+      if (response != null && response['status'] == 'success') {
+        _cryptoList = (response['data'] as List)
+            .map((crypto) => CryptoLivePriceModel.fromJson(crypto))
+            .toList();
+        _isLoading = false;
+        notifyListeners();
+      } else {
+        _errorMessage = 'Failed to fetch data. Status code: ${response.statusCode}';
+        _isLoading = false;
+        notifyListeners();
+      }
+    }catch (e) {
+      print(e);
+    } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:intl/intl.dart';
 import '../../../common_widget.dart';
 import '../../../services/api_service.dart';
 import '../../../theme/theme_helper.dart';
@@ -56,30 +57,28 @@ class TransactionScreenProvider extends ChangeNotifier{
 
 
   Future<void> transactionsData(type, status, date) async {
+    String formattedDate ='';
+    if(date != ''){
+      DateTime parsedDate = DateFormat('yyyy-dd-MM').parse(date); // Parse the date
+      formattedDate = DateFormat('yyyy-MM-dd').format(parsedDate);
+    }
     _isLoading = true;
     _errorMessage = null;
     _transactionData = null;
     notifyListeners();
-    try{
-      final response = await apiService.getTransactions(type, status, date);
 
+    try{
+      final response = await apiService.getTransactions(type, status, formattedDate);
       //check response
       if (response != null && response['status'] == 'success') {
 
-
-
-        print('provider.transactionData!.data///////////////////////////response/////////');
-        print(response);
         _transactionData = Transaction.fromJson(response);
 
-
-        print('_transactionData//////////////////////////_transactionData/////////');
-        print(_transactionData);
-        CommonWidget.showToastView(response?['message'], appTheme.gray8989);
+        // CommonWidget.showToastView(response?['message'], appTheme.gray8989);
         notifyListeners();
       }else {
         _errorMessage = response?['message'];
-        CommonWidget.showToastView(response?['message'], appTheme.gray8989);
+        // CommonWidget.showToastView(response?['message'], appTheme.gray8989);
       }
     }catch (e) {
       _errorMessage = "An error occurred: $e";

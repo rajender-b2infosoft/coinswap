@@ -12,9 +12,6 @@ class EncryptionService {
 
   EncryptionService._internal();
 
-  // Key: 56bc6fbc79c8de6031076f4cf1540fddfe42f96ed5841940e079bad93617e632
-  // IV: f9a72833ccc2f7c28ae9f4b39a2e6452
-
   Future<void> initialize() async {
     try {
       // Initialize the Key and IV from HEX strings
@@ -38,17 +35,6 @@ class EncryptionService {
     final encrypted = encrypter.encrypt(data, iv: _iv);
     return encrypted.base16; // Use base16 for HEX encoding
   }
-
-  // Decrypt data
-  // Future<String> decryptData(String encryptedData) async {
-  //   if (!_initialized) {
-  //     throw Exception("EncryptionService not initialized");
-  //   }
-  //   final encrypter = encrypt.Encrypter(encrypt.AES(_key));
-  //   final decrypted = encrypter.decrypt16(encryptedData, iv: _iv); // Use base16 for HEX decoding
-  //   return decrypted;
-  // }
-
 
   Future<String> decryptData(String encryptedData) async {
     if (!_initialized) {

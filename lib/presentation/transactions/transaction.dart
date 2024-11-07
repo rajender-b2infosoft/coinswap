@@ -22,6 +22,8 @@ class _TransactionScreenState extends State<TransactionScreen> {
   late TransactionScreenProvider provider;
   late TextEditingController _dateController;
 
+  String status = 'Pending';
+
   @override
   void initState() {
     super.initState();
@@ -230,7 +232,52 @@ class _TransactionScreenState extends State<TransactionScreen> {
               const SizedBox(height: 40,),
               Text('Date', style: CustomTextStyles.main16,),
               const SizedBox(height: 10,),
-              dateField(),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: appTheme.color549FE3,
+                      blurRadius: 1.0,
+                    ),
+                  ],
+                ),
+                child: TextFormField(
+                  readOnly: true,
+                  decoration: InputDecoration(
+                    contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 13),
+                    fillColor: appTheme.lightBlue,
+                    filled: true,
+                    hintText: 'DD/MM/YY',
+                    hintStyle: CustomTextStyles.gray18_color747474,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  controller: _dateController,
+                  onTap: () async {
+                    DateTime? pickedDate = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(1900),
+                      lastDate: DateTime.now(),
+                    );
+                    print(pickedDate);
+                    if (pickedDate != null) {
+                      provider.setDate(pickedDate);
+                      setState(() {
+                        // _dateController.text = "${pickedDate.day}-${pickedDate.month}-${pickedDate.year}";
+                        _dateController.text = "${pickedDate.year}-${pickedDate.day}-${pickedDate.month}";
+                      });
+                    }
+                  },
+                ),
+              ),
               const SizedBox(height: 40,),
               // Text('Type', style: CustomTextStyles.main16,),
               // const SizedBox(height: 10,),
@@ -240,7 +287,26 @@ class _TransactionScreenState extends State<TransactionScreen> {
               const SizedBox(height: 10,),
               statusButton(),
               const SizedBox(height: 40,),
-              Center(child: applyButton())
+              Center(
+                  child: CustomElevatedButton(
+                    buttonStyle: ElevatedButton.styleFrom(
+                        backgroundColor: appTheme.main,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0)
+                        ),
+                        elevation: 0
+                    ),
+                    buttonTextStyle: CustomTextStyles.white18,
+                    height: 50,
+                    width: 200,
+                    text: 'Apply',
+                    onPressed: () async {
+                      var type = (provider.isButton=='sent')?'dr':'cr';
+                      provider.transactionsData(type,status.toLowerCase(),_dateController.text);
+                      Navigator.pop(context);
+                    },
+                  )
+              )
             ],
           ),
         );
@@ -298,11 +364,11 @@ class _TransactionScreenState extends State<TransactionScreen> {
     );
   }
 
-  Widget statusButton(){
+  Widget statusButton() {
     return Container(
       padding: const EdgeInsets.only(left: 10),
       width: double.infinity,
-      decoration: BoxDecoration (
+      decoration: BoxDecoration(
         color: appTheme.lightBlue,
         boxShadow: [
           BoxShadow(
@@ -312,116 +378,41 @@ class _TransactionScreenState extends State<TransactionScreen> {
         ],
         borderRadius: BorderRadius.circular(10.0),
       ),
-
-      child: Consumer<TransactionScreenProvider>(
-          builder: (context, provider, child) {
-            return DropdownButton<String>(
-              value: provider.status,
-              icon: Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: Icon(
-                  Icons.keyboard_arrow_down,
-                  color: appTheme.gray7272,
+      child: StatefulBuilder(
+        builder: (context, setState) {
+          return DropdownButton<String>(
+            value: status, // Bind the status variable
+            icon: Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: Icon(
+                Icons.keyboard_arrow_down,
+                color: appTheme.gray7272,
+              ),
+            ),
+            isExpanded: true,
+            underline: const SizedBox(),
+            items: <String>['Pending', 'Completed', 'Created'].map((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(
+                  value,
+                  style: CustomTextStyles.gray18_color747474,
                 ),
-              ),
-              isExpanded: true,
-              underline: const SizedBox(),
-              items: <String>[
-                'Pending',
-                'Approved',
-                'Unapproved',
-              ].map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(
-                    value,
-                    style:CustomTextStyles.gray18_color747474,
-                  ),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                  provider.setStatus(newValue);
-              },
-            );
-          }
-      ),
-    );
-  }
-
-  Widget applyButton(){
-    return Consumer<TransactionScreenProvider>(
-        builder: (context, provider, child) {
-        return CustomElevatedButton(
-          buttonStyle: ElevatedButton.styleFrom(
-              backgroundColor: appTheme.main,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0)
-              ),
-              elevation: 0
-          ),
-          buttonTextStyle: CustomTextStyles.white18,
-          height: 50,
-          width: 200,
-          text: 'Apply',
-          onPressed: () async {
-            var type = (provider.isButton=='sent')?'dr':'cr';
-            Navigator.pop(context);
-            provider.transactionsData(type,provider.status.toLowerCase(),_dateController.text);
-
-          },
-        );
-      }
-    );
-  }
-
-  Widget dateField(){
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10.0),
-        boxShadow: [
-          BoxShadow(
-            color: appTheme.color549FE3,
-            blurRadius: 1.0,
-          ),
-        ],
-      ),
-      child: TextFormField(
-        readOnly: true,
-        decoration: InputDecoration(
-          contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 13),
-          fillColor: appTheme.lightBlue,
-          filled: true,
-          hintText: 'DD/MM/YY',
-          hintStyle: CustomTextStyles.gray18_color747474,
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
-            borderSide: BorderSide.none,
-          ),
-        ),
-        controller: _dateController,
-        onTap: () async {
-          DateTime? pickedDate = await showDatePicker(
-            context: context,
-            initialDate: DateTime.now(),
-            firstDate: DateTime(1900),
-            lastDate: DateTime.now(),
+              );
+            }).toList(),
+            onChanged: (newValue) {
+              setState(() {
+                print('New value selected: $newValue');
+                status = newValue!; // Update the status
+                print('Updated status: $status');
+              });
+            },
           );
-          print(pickedDate);
-          if (pickedDate != null) {
-            provider.setDate(pickedDate);
-            setState(() {
-              // _dateController.text = "${pickedDate.day}-${pickedDate.month}-${pickedDate.year}";
-              _dateController.text = "${pickedDate.year}-${pickedDate.day}-${pickedDate.month}";
-            });
-          }
-        },
+        }
       ),
     );
   }
+
 
   Widget _buildActivityCard(String address, String currency, String amount,
       String transactionId, String date, type, note, status) {
@@ -429,7 +420,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
     return InkWell(
       onTap: (){
         NavigatorService.pushNamed(AppRoutes.approvalScreen,
-            argument: {'blockchain': currency,'status': status, 'address': address, 'amount': amount, 'fee': 'slow', 'note': note, 'date': date});
+            argument: {'blockchain': currency,'status': status, 'address': address, 'amount': amount, 'fee': 'slow', 'note': note, 'date': date, 'page': 'trx'});
       },
       child: Padding(
         padding: const EdgeInsets.only(bottom: 10.0, right: 3, left: 3, top: 3),

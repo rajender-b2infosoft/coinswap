@@ -44,6 +44,7 @@ class UserProfile {
   final String? privkey;
   final String? seed;
   final String? cryptoType;
+  final dynamic? total_amount_sum;
 
   UserProfile({
      this.userId,
@@ -66,6 +67,7 @@ class UserProfile {
      this.privkey,
      this.seed,
      this.cryptoType,
+     this.total_amount_sum,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
@@ -90,6 +92,7 @@ class UserProfile {
       privkey: json['privkey'],
       seed: json['seed'],
       cryptoType: json['crypto_type'],
+      total_amount_sum: json['total_amount_sum'],
     );
   }
 }

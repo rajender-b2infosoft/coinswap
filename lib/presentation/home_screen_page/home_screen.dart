@@ -13,7 +13,7 @@ import '../../routes/routeaprovider.dart';
 import '../../services/WebSocketService.dart';
 import '../../services/socketService.dart';
 import '../auth/provider/auth_provider.dart';
-import 'package:flutter_web_auth/flutter_web_auth.dart';
+// import 'package:flutter_web_auth/flutter_web_auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert'; // For json decoding
 // import 'package:uni_links/uni_links.dart';
@@ -43,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final _secureStorage = const FlutterSecureStorage();
   // late WebSocketClient _webSocketClient;
   late SocketIOClient _webSocketClient;
-  final WebSocketService _webSocketService = WebSocketService();
+  // final WebSocketService _webSocketService = WebSocketService();
 
 
   final _linkStream = StreamController<String>();
@@ -59,30 +59,30 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final coinbaseAuthorizeUrl = 'https://www.coinbase.com/oauth/authorize';
   final coinbaseTokenUrl = 'https://api.coinbase.com/oauth/token';
 
-  // Step 1: Initiate Coinbase OAuth2 Flow
-  Future<void> loginWithCoinbase() async {
-    final authorizationUrl =
-        '$coinbaseAuthorizeUrl?response_type=code&client_id=$clientId&redirect_uri=$redirectUri&scope=wallet:user:read';
-    try {
-      // Open the browser and start the OAuth2 flow
-      final result = await FlutterWebAuth.authenticate(
-        url: authorizationUrl,
-        callbackUrlScheme: 'coinbase-callback', // Custom URI scheme
-      );
-      // Extract the authorization code from the result
-      final code = Uri.parse(result).queryParameters['code'];
-
-      // if (code != null) {
-      //   // Step 2: Exchange code for access token
-      //   await exchangeCodeForAccessToken(code);
-      // }
-    } catch (e) {
-      print("Error during Coinbase authentication: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error during Coinbase authentication')),
-      );
-    }
-  }
+  // // Step 1: Initiate Coinbase OAuth2 Flow
+  // Future<void> loginWithCoinbase() async {
+  //   final authorizationUrl =
+  //       '$coinbaseAuthorizeUrl?response_type=code&client_id=$clientId&redirect_uri=$redirectUri&scope=wallet:user:read';
+  //   try {
+  //     // Open the browser and start the OAuth2 flow
+  //     final result = await FlutterWebAuth.authenticate(
+  //       url: authorizationUrl,
+  //       callbackUrlScheme: 'coinbase-callback', // Custom URI scheme
+  //     );
+  //     // Extract the authorization code from the result
+  //     final code = Uri.parse(result).queryParameters['code'];
+  //
+  //     // if (code != null) {
+  //     //   // Step 2: Exchange code for access token
+  //     //   await exchangeCodeForAccessToken(code);
+  //     // }
+  //   } catch (e) {
+  //     print("Error during Coinbase authentication: $e");
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text('Error during Coinbase authentication')),
+  //     );
+  //   }
+  // }
 
   // Step 2: Exchange Authorization Code for Access Token
   Future<void> exchangeCodeForAccessToken(String code) async {
@@ -131,10 +131,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
 
       homeProvider = Provider.of<HomeScreenProvider>(context, listen: false);
+      //get user info like address, status, balance and other
       homeProvider.userWalletData();
+      //create function to get wallet converted balance
+      homeProvider.userWalletConvertedBalance();
 
       //Get user recent transaction
       homeProvider.recentTransactionsData();
+
+      //Get crypto live price
+      homeProvider.getCryptoLivePrice();
 
       routeName = Provider.of<RouteNameProvider>(context, listen: false).routeName;
       WidgetsBinding.instance?.addObserver(this);
@@ -323,7 +329,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       children: [
                         InkWell(
                           onTap:(){
-                            fetchAccountInfo();
+                            // fetchAccountInfo();
                            },
                           child: Text(
                             'Wallet',
@@ -383,7 +389,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   Padding(
                     padding: const EdgeInsets.only(left: 15.0, right: 15),
                     child: Text(
-                      '\$00.00',
+                      '\$${(homeProvider.walletBalance=='null')?'0.0':homeProvider.walletBalance}',
                       style: CustomTextStyles.white30,
                       // style: CustomTextStyles.white18,
                     ),
@@ -426,11 +432,65 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Text(
+                        'Information',
+                        style: CustomTextStyles.gray7272_17,
+                      ),
+                      const SizedBox(height: 16),
+                      // Consumer<HomeScreenProvider>(
+                      //     builder: (context, homeProvider, child) {
+
+                            Container(
+                              height: 130,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: homeProvider.cryptoList.length,
+                                itemBuilder: (context, index){
+
+                                  var cryptoType = (homeProvider.cryptoList[index].cryptoType=='bitcoin')?'BTC':(homeProvider.cryptoList[index].cryptoType=='ethereum')?'ETH':'USDT';
+                                  var color = (homeProvider.cryptoList[index].cryptoType=='bitcoin')?appTheme.orange:(homeProvider.cryptoList[index].cryptoType=='ethereum')?appTheme.color7CA:appTheme.green;
+                                  var img = (homeProvider.cryptoList[index].cryptoType=='bitcoin')?ImageConstant.bit:(homeProvider.cryptoList[index].cryptoType=='ethereum')?ImageConstant.eth:ImageConstant.t;
+                                  var price = double.parse(homeProvider.cryptoList[index].price);
+                                  String formattedPrice = price.toStringAsFixed(3);
+
+                                  return Padding(
+                                    padding: EdgeInsets.only(left: (index==1)?8.0:(index==2)?8.0:0.0),
+                                    child: _buildInfoCard(img, cryptoType, formattedPrice,homeProvider.cryptoList[index].usd24hChange, color, 'btcColor', 'bitcoin'),
+                                  );
+
+                                  // return _buildInfoCard(ImageConstant.bit, 'BTC', bit_price.toString(),
+                                  //           bit_percentage, appTheme.orange, 'btcColor', 'bitcoin');
+                                }
+                              ),
+                            ),
+
+                          //   var bit_price = homeProvider.getPrice('BTC-USD');
+                          //   var eth_price = homeProvider.getPrice('ETH-USD');
+                          //   var usdt_price = homeProvider.getPrice('USDT-USD');
+                          //
+                          //   var bit_percentage = homeProvider.getPercentage('BTC-USD');
+                          //   var eth_percentage = homeProvider.getPercentage('ETH-USD');
+                          //   var usdt_percentage = homeProvider.getPercentage('USDT-USD');
+                          //
+                          // return Row(
+                          //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          //     children: [
+                          //       _buildInfoCard(ImageConstant.bit, 'BTC', bit_price.toString(),
+                          //           bit_percentage, appTheme.orange, 'btcColor', 'bitcoin'),
+                          //       _buildInfoCard(ImageConstant.eth, 'ETH', eth_price.toString(),
+                          //         eth_percentage, appTheme.color7CA, 'ethColor', 'ethereum'),
+                          //       _buildInfoCard(ImageConstant.t, 'USDT', usdt_price.toString(),
+                          //         usdt_percentage, appTheme.green, 'usdtColor', 'tether'),
+                          //     ],
+                          // );
+                     //   }
+                     // ),
+                      const SizedBox(height: 32),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Information',
+                            'Recent activity',
                             style: CustomTextStyles.gray7272_17,
                           ),
                           TextButton(
@@ -443,60 +503,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             ),
                           ),
                         ],
-                      ),
-                      const SizedBox(height: 16),
-                      Consumer<HomeScreenProvider>(
-                          builder: (context, homeProvider, child) {
-
-                            var bit_price = homeProvider.getPrice('BTC-USD');
-                            var eth_price = homeProvider.getPrice('ETH-USD');
-                            var usdt_price = homeProvider.getPrice('USDT-USD');
-
-                            var bit_percentage = homeProvider.getPercentage('BTC-USD');
-                            var eth_percentage = homeProvider.getPercentage('ETH-USD');
-                            var usdt_percentage = homeProvider.getPercentage('USDT-USD');
-
-
-                            // double ethPrice = double.tryParse(homeProvider.ethPrice.toString()) ?? 0.0;
-                            // double btcPrice = double.tryParse(homeProvider.btcPrice.toString()) ?? 0.0;
-                            // double usdtPrice = double.tryParse(homeProvider.usdtPrice.toString()) ?? 0.0;
-                            //
-                            // String percentChangeBTC = homeProvider.btcPercentChange.toString();
-                            // String percentChangeETH = homeProvider.ethPercentChange.toString();
-                            // String percentChangeUSDT = homeProvider.usdtPercentChange.toString();
-                            //
-                            // String priceBTC = btcPrice.toStringAsFixed(2);
-                            // String priceETH = ethPrice.toStringAsFixed(3);
-                            // String priceUSDT = usdtPrice.toStringAsFixed(4);
-
-                          return Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                              _buildInfoCard(ImageConstant.bit, 'BTC', bit_price.toString(),
-                                  bit_percentage, appTheme.orange, 'btcColor'),
-                            _buildInfoCard(ImageConstant.eth, 'ETH', eth_price.toString(),
-                                eth_percentage, appTheme.color7CA, 'ethColor'),
-                            _buildInfoCard(ImageConstant.t, 'USDT', usdt_price.toString(),
-                                usdt_percentage, appTheme.green, 'usdtColor'),
-                            ],
-                          );
-                         // return Row(
-                         //      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                         //      children: [
-                         //      _buildInfoCard(ImageConstant.bit, 'BTC', priceBTC,
-                         //          percentChangeBTC, appTheme.orange, 'btcColor'),
-                         //    _buildInfoCard(ImageConstant.eth, 'ETH', priceETH,
-                         //        percentChangeETH, appTheme.color7CA, 'ethColor'),
-                         //    _buildInfoCard(ImageConstant.t, 'USDT', priceUSDT,
-                         //        percentChangeUSDT, appTheme.green, 'usdtColor'),
-                         //    ],
-                         //  );
-                       }
-                     ),
-                      const SizedBox(height: 32),
-                      Text(
-                        'Recent activity',
-                        style: CustomTextStyles.gray7272_17,
                       ),
                       const SizedBox(height: 16),
 
@@ -580,14 +586,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 width: 60,
                                 padding: const EdgeInsets.all(2),
                                 decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: appTheme.main,
+                                  // shape: BoxShape.circle,
+                                  // color: appTheme.main,
+                                  border: Border.all(width: 1, color: appTheme.main),
+                                  borderRadius: BorderRadius.circular(50),
                                 ),
                                 child: ClipOval(
-                                  child: Image.network((homeProvider.selfie!=null)?Constants.imgUrl +homeProvider.selfie.toString(): ImageConstant.iconUser,
+                                  child: (homeProvider.selfie!=null)? Image.network(Constants.imgUrl +homeProvider.selfie.toString(),
                                     width: 75, // Set the desired width
                                     height: 75, // Set the desired height
                                     fit: BoxFit.cover, // Adjust how the image should fit within its box
+                                  ):CustomImageView(
+                                    imagePath: ImageConstant.iconUser,
+                                    width: 30,
+                                    height: 30,
                                   ),
                                 ),
                               ),
@@ -710,7 +722,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
         if(homeProvider.userStatus.toString() == 'Active' || homeProvider.userStatus.toString() == 'active'){
           if(text == 'Send'){
-            NavigatorService.pushNamed(redirect, argument: {'toAddress': '','cryptoType': 'Ethereum','amount': ''});
+            NavigatorService.pushNamed(redirect, argument: {'toAddress': '','cryptoType': 'USDT','amount': ''});
           }else{
             NavigatorService.pushNamed(redirect);
           }
@@ -768,14 +780,25 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildInfoCard(
-      img, String currency, String amount, String change, Color changeColor, percentColor) {
+      img, String currency, String amount, String change, Color changeColor, percentColor, type) {
     return InkWell(
       onTap: (){
-        var cryptoType = (currency=='BTC')?'Bitcoin':(currency=='ETH')?'Ethereum':'USDT';
-        NavigatorService.pushNamed(AppRoutes.transferScreen, argument: {'toAddress': '', 'cryptoType': cryptoType, 'amount': ''});
+
+        NavigatorService.pushNamed(AppRoutes.lineChartScreen, argument: {"type": type});
+
+        // if(homeProvider.userStatus.toString() == 'Active' || homeProvider.userStatus.toString() == 'active'){
+        //   var cryptoType = (currency=='BTC')?'Bitcoin':(currency=='ETH')?'Ethereum':'USDT';
+        //   NavigatorService.pushNamed(AppRoutes.transferScreen, argument: {'toAddress': '', 'cryptoType': cryptoType, 'amount': ''});
+        // }else{
+        //   PopupUtil().popUp(context,"${homeProvider.userStatus.toString()}",
+        //       CustomTextStyles.white17_400,
+        //       "Your account is currently ${homeProvider.userStatus.toString()}."
+        //   );
+        // }
+
       },
       child: Container(
-        width: SizeUtils.width / 3.5,
+        width: SizeUtils.width / 3.52,
         padding: const EdgeInsets.fromLTRB(16, 5, 16, 5),
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
@@ -804,7 +827,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     )
                   ),
                   TextSpan(
-                    text: '/USDT',
+                    text: '/USD',
                     style: CustomTextStyles.gray8_7272,
                   ),
                 ],

@@ -11,9 +11,10 @@ import '../presentation/auth/verify_identity.dart';
 import '../presentation/auth/verify_otp.dart';
 import '../presentation/conversion/conversion.dart';
 import '../presentation/conversion/conversion_done.dart';
+import '../presentation/graphs/bitcoinGraph.dart';
 import '../presentation/home_screen_page/home_screen.dart';
 import '../presentation/get_started/get_started.dart';
-import '../presentation/home_screen_page/wallet_page.dart';
+// import '../presentation/home_screen_page/wallet_page.dart';
 import '../presentation/mpin/generateMpin.dart';
 import '../presentation/mpin/mpin.dart';
 import '../presentation/profile/profile.dart';
@@ -54,11 +55,12 @@ class AppRoutes{
   static const String transferOtp = '/transferOtp';
   static const String walletPin = '/walletPin';
   static const String approvalScreen = '/approvalScreen';
+  static const String lineChartScreen = '/lineChartScreen';
 
   static const String loginScreen = '/login_screen';
   static const String registerScreen = '/register_screen';
   static const String homeScreen = '/home_screen';
-  static const String walletPage = '/walletPage';
+  // static const String walletPage = '/walletPage';
   static const String appNavigationScreen = '/app_navigation_screen';
   static const String initialRoute = '/initialRoute';
 
@@ -87,11 +89,12 @@ class AppRoutes{
     transferOtp: TransferOtp.builder,
     walletPin: WalletPin.builder,
     approvalScreen: ApprovalScreen.builder,
+    lineChartScreen: LineChartScreen.builder,
 
     loginScreen: LoginScreen.builder,
     registerScreen: RegisterScreen.builder,
     homeScreen: HomeScreen.builder,
-    walletPage: WalletPage.builder,
+    // walletPage: WalletPage.builder,
     appNavigationScreen: AppNavigationScreen.builder,
     initialRoute: SplashScreen.builder
   };

@@ -133,7 +133,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ],
                               ),
                               const SizedBox(height: 2,),
-                              Text("${provider.email}",style: CustomTextStyles.color9898_15,)
+                              SizedBox(
+                                width: SizeUtils.width/2.1,
+                                  child: Text("${provider.email}",style: CustomTextStyles.color9898_15,)
+                              )
                             ],
                           )
                         ],
@@ -159,7 +162,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 children: [
                                   Column(
                                     children: [
-                                      Text("\$00.00",style: CustomTextStyles.color0072D_20,),
+                                      Text("\$${provider.totalBalance}",style: CustomTextStyles.color0072D_20,),
+                                      // Text("\$${(data[0].total_amount_sum != null) ? data[0].total_amount_sum : '0.0'}",style: CustomTextStyles.color0072D_20,),
                                       Text("Wallet",style: CustomTextStyles.color9898_18,)
                                     ],
                                   ),
@@ -169,7 +173,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                   Column(
                                     children: [
-                                      Text("${(data[0].totalTransactions!=null)?data[0].totalTransactions:'0'}",style: CustomTextStyles.color0072D_20),
+                                      // Text("${(data[0].totalTransactions!=null)?data[0].totalTransactions:'0'}",style: CustomTextStyles.color0072D_20),
+                                      Text("${(data.length>1)?data.length:0}",style: CustomTextStyles.color0072D_20),
                                       Text("Transfers",style: CustomTextStyles.color9898_18)
                                     ],
                                   )
@@ -189,7 +194,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   var type = (profile.cryptoType=='bitcoin')?'BTC':(profile.cryptoType=='ethereum')?'ETH':'USDT';
                                   var img = (type == 'BTC')?ImageConstant.bit:(type == 'ETH')?ImageConstant.eth:ImageConstant.t;
                                   var color = (type == 'BTC')?CustomTextStyles.orange16:(type == 'ETH')?CustomTextStyles.color5E8DF7_16:CustomTextStyles.green16;
-                                  return commonContainer(type, img, profile.balance.toString(), color);
+
+                                  var balance = (profile.cryptoType == 'bitcoin')?provider.btcBalance:(profile.cryptoType == 'ethereum')?provider.ethBalance:provider.usdtBalance;
+
+
+                                  return (profile.cryptoType!= null)?commonContainer(type, img, balance.toString(), color):Container();
+                                  // return (profile.cryptoType!= null)?commonContainer(type, img, profile.balance.toString(), color):Container();
                                 }
                               ),
                             ),
