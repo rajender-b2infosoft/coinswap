@@ -44,6 +44,13 @@ class _TransferOtpState extends State<TransferOtp> {
     super.initState();
     provider = Provider.of<TransactionProvider>(context, listen: false);
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      //function for get admin commission settings
+      provider.getCommissionSetting(context);
+      // //function for get admin commission wallets
+      // provider.getCommissionWallets(context);
+    });
+
     _controllers = List.generate(_otpLength, (index) => TextEditingController());
     _focusNodes = List.generate(_otpLength, (index) => FocusNode());
 

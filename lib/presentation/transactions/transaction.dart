@@ -155,21 +155,14 @@ class _TransactionScreenState extends State<TransactionScreen> {
                   ),
                 ),
                 const SizedBox(height: 30,),
-                SizedBox(
-                  height: SizeUtils.height/2,
+                Container(
+                  height: SizeUtils.height/1.5,
                   child: Consumer<TransactionScreenProvider>(
                       builder: (context, provider, child) {
 
                         if (provider.isLoading) {
                           return Center(child: CircularProgressIndicator());
                         }
-                        // if (provider.errorMessage != null) {
-                        //   return Center(
-                        //       child: Padding(
-                        //         padding: const EdgeInsets.all(0),
-                        //         child: Text(provider.errorMessage!),
-                        //       ));
-                        // }
                         if (provider.transactionData == null || provider.transactionData!.data.isEmpty) {
                           return Center(
                               child: Padding(
@@ -186,11 +179,12 @@ class _TransactionScreenState extends State<TransactionScreen> {
                           final tr = data[index];
                           var cryptoType = (tr.cryptoType=='bitcoin')?'BTC':(tr.cryptoType=='ethereum')?"ETH":"USDT";
                           var amount = (tr.transactionType=='dr')?'-${tr.amount}':'${tr.amount}';
+                          var toAddress = (tr.transactionType=='dr')?tr.receiverWalletAddress:tr.senderWalletAddress;
                           DateTime parsedDate = DateTime.parse(tr.createdAt.toString());
                           String formattedDate = DateFormat('dd-MMM-yyyy').format(parsedDate);
 
-                          return _buildActivityCard(tr.receiverWalletAddress.toString(), cryptoType, '\$${tr.amount}',
-                              amount, formattedDate, tr.transactionType, tr.note, tr.status);
+                          return _buildActivityCard(tr.receiverWalletAddress.toString(), cryptoType, '${tr.amount}',
+                              amount, formattedDate, tr.transactionType, tr.note, tr.status, tr.transactionId, toAddress);
                         }
                       );
                     }
@@ -415,15 +409,16 @@ class _TransactionScreenState extends State<TransactionScreen> {
 
 
   Widget _buildActivityCard(String address, String currency, String amount,
-      String transactionId, String date, type, note, status) {
+      String transactionId, String date, type, note, status, trxId, toAddress) {
 
     return InkWell(
       onTap: (){
         NavigatorService.pushNamed(AppRoutes.approvalScreen,
-            argument: {'blockchain': currency,'status': status, 'address': address, 'amount': amount, 'fee': 'slow', 'note': note, 'date': date, 'page': 'trx'});
+            argument: {'blockchain': currency,'status': status, 'address': address, 'amount': amount,
+              'fee': 'slow', 'note': note, 'date': date, 'page': 'trx', 'trxId': (status!='pending')?trxId:'', 'toAddress':toAddress });
       },
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 10.0, right: 3, left: 3, top: 3),
+        padding: const EdgeInsets.only(bottom: 10.0, right: 1, left: 3, top: 3),
         child: Container(
           decoration: BoxDecoration(
               color: appTheme.white,

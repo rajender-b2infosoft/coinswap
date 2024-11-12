@@ -1,5 +1,3 @@
-import 'package:crypto_app/theme/custom_text_style.dart';
-import 'package:crypto_app/theme/theme_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:crypto_app/presentation/home_screen_page/provider/home_screen_provider.dart';
 import '../../core/app_export.dart';

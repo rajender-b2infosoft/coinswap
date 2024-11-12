@@ -1,7 +1,6 @@
 import 'package:crypto_app/presentation/auth/provider/forgotPassword.dart';
 import 'package:crypto_app/presentation/auth/provider/selfieProvider.dart';
 import 'package:crypto_app/presentation/graphs/providers/btcProvider.dart';
-import 'package:crypto_app/presentation/home_screen_page/provider/wallet_provider.dart';
 import 'package:crypto_app/presentation/mpin/provider/mpin.dart';
 import 'package:crypto_app/presentation/profile/provider/profile.dart';
 import 'package:crypto_app/presentation/transactions/provider/transaction.dart';
@@ -78,9 +77,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
             ChangeNotifierProvider<SelfieProvider>(
               create: (context)=>SelfieProvider(),
             ),
-            // ChangeNotifierProvider<WalletProvider>(
-            //   create: (context)=>WalletProvider(),
-            // ),
             ChangeNotifierProvider<ForgotPasswordProvider>(
               create: (context)=>ForgotPasswordProvider(),
             ),

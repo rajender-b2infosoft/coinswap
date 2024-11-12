@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:crypto_app/presentation/home_screen_page/provider/home_screen_provider.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/app_export.dart';
@@ -10,16 +9,8 @@ import '../../core/utils/constants.dart';
 import '../../core/utils/popup_util.dart';
 import '../../main.dart';
 import '../../routes/routeaprovider.dart';
-import '../../services/WebSocketService.dart';
 import '../../services/socketService.dart';
 import '../auth/provider/auth_provider.dart';
-// import 'package:flutter_web_auth/flutter_web_auth.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert'; // For json decoding
-// import 'package:uni_links/uni_links.dart';
-
-import '../transactions/models/transaction.dart';
-import '../wallet/provider/wallet.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -37,13 +28,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late HomeScreenProvider homeProvider;
-  // late RouteNameProvider routeProvider;
+
   late AuthProvider authProvider;
   var count = 0;
-  final _secureStorage = const FlutterSecureStorage();
-  // late WebSocketClient _webSocketClient;
   late SocketIOClient _webSocketClient;
-  // final WebSocketService _webSocketService = WebSocketService();
 
 
   final _linkStream = StreamController<String>();
@@ -51,74 +39,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   String walletAddress = '';
   String accessToken = '';
   // Coinbase OAuth2 credentials
-  final clientId = '34ba3164-2d6b-46d8-a1e5-59fa7937f45b';
-  final clientSecret = 'IPG3MPbrzocGjy9~oX~yrbFVu6';
-  // final redirectUri = 'coinswap://callback';
-  // final redirectUri = 'https://coinswap.co.in:3000/callback';
-  final redirectUri = 'https://coinswap.co.in:3000/auth/coinbase-callback';
-  final coinbaseAuthorizeUrl = 'https://www.coinbase.com/oauth/authorize';
-  final coinbaseTokenUrl = 'https://api.coinbase.com/oauth/token';
+  // final clientId = '34ba3164-2d6b-46d8-a1e5-59fa7937f45b';
+  // final clientSecret = 'IPG3MPbrzocGjy9~oX~yrbFVu6';
+  // final redirectUri = 'https://coinswap.co.in:3000/auth/coinbase-callback';
+  // final coinbaseAuthorizeUrl = 'https://www.coinbase.com/oauth/authorize';
+  // final coinbaseTokenUrl = 'https://api.coinbase.com/oauth/token';
 
-  // // Step 1: Initiate Coinbase OAuth2 Flow
-  // Future<void> loginWithCoinbase() async {
-  //   final authorizationUrl =
-  //       '$coinbaseAuthorizeUrl?response_type=code&client_id=$clientId&redirect_uri=$redirectUri&scope=wallet:user:read';
-  //   try {
-  //     // Open the browser and start the OAuth2 flow
-  //     final result = await FlutterWebAuth.authenticate(
-  //       url: authorizationUrl,
-  //       callbackUrlScheme: 'coinbase-callback', // Custom URI scheme
-  //     );
-  //     // Extract the authorization code from the result
-  //     final code = Uri.parse(result).queryParameters['code'];
-  //
-  //     // if (code != null) {
-  //     //   // Step 2: Exchange code for access token
-  //     //   await exchangeCodeForAccessToken(code);
-  //     // }
-  //   } catch (e) {
-  //     print("Error during Coinbase authentication: $e");
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(content: Text('Error during Coinbase authentication')),
-  //     );
-  //   }
-  // }
-
-  // Step 2: Exchange Authorization Code for Access Token
-  Future<void> exchangeCodeForAccessToken(String code) async {
-    try {
-      final response = await http.post(
-        Uri.parse(coinbaseTokenUrl),
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: {
-          'grant_type': 'authorization_code',
-          'code': code,
-          'client_id': clientId,
-          'client_secret': clientSecret,
-          'redirect_uri': redirectUri,
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          accessToken = data['access_token'];
-          walletAddress = "Connected to Coinbase Wallet";
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Successfully connected to Coinbase Wallet')),
-        );
-      } else {
-        print("Failed to retrieve access token");
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to retrieve access token')),
-        );
-      }
-    } catch (e) {
-      print("Error exchanging code for token: $e");
-    }
-  }
 
   @override
   void initState() {
@@ -129,70 +55,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     // _webSocketClient = SocketIOClient();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-
       homeProvider = Provider.of<HomeScreenProvider>(context, listen: false);
       //get user info like address, status, balance and other
       homeProvider.userWalletData();
       //create function to get wallet converted balance
       homeProvider.userWalletConvertedBalance();
-
       //Get user recent transaction
       homeProvider.recentTransactionsData();
-
       //Get crypto live price
       homeProvider.getCryptoLivePrice();
-
       routeName = Provider.of<RouteNameProvider>(context, listen: false).routeName;
       WidgetsBinding.instance?.addObserver(this);
       _connectWebSocket();
     });
-  }
-
-  Future<void> fetchAccountInfo() async {
-    final url = 'https://api.coinbase.com/v2/accounts'; // Coinbase API endpoint for accounts
-    final response = await http.get(
-      Uri.parse(url),
-      headers: {
-        'Authorization': 'Bearer TM7cyOCsKHGvVsNPYqx4pDNb53-Rt-S0-HQigJNHpSQ.HR1u6VJPUMNeP126c5h1nJpK3VdM-v933wDIvowZX8A',
-        'CB-VERSION': '2024-08-08',
-        // 'Authorization': 'Bearer $accessToken',
-      },
-    );
-
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      print("Account Information: $data");
-      // You can update the UI with account information here
-    } else {
-      print("Failed to fetch account information");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to fetch account information')),
-      );
-    }
-  }
-
-  // Future<void> _initUniLinks() async {
-  //   try {
-  //     final initialLink = await getInitialLink();
-  //     if (initialLink != null) {
-  //       _handleDeepLink(initialLink);
-  //     }
-  //   } catch (e) {
-  //     print('Failed to get initial link: $e');
-  //   }
-  //
-  //   linkStream.listen((String? link) {
-  //     if (link != null) {
-  //       _handleDeepLink(link);
-  //     }
-  //   });
-  // }
-
-  void _handleDeepLink(String link) {
-    // Process the link (e.g., extract parameters)
-    print('Received deep link:::::::::::::::::::::::: $link');
-    // Navigate or update state based on the deep link
   }
 
   @override
@@ -241,7 +116,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     return WillPopScope(
       onWillPop: () async {
-        // Call _onBackPressed and return its result
         bool shouldPop = await _onBackPressed(context);
         return shouldPop;
       },
@@ -328,9 +202,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     child: Row(
                       children: [
                         InkWell(
-                          onTap:(){
-                            // fetchAccountInfo();
-                           },
+                          onTap:(){},
                           child: Text(
                             'Wallet',
                             style: CustomTextStyles.white23,
@@ -341,9 +213,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ),
                         InkWell(
                           onTap: (){
-                            // Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
-                            // print('pressed:::::::::::::');
-                            //   NavigatorService.pushNamed(AppRoutes.walletPage);
                               NavigatorService.pushNamed(AppRoutes.walletScreen);
                           },
                           child: CustomImageView(
@@ -355,43 +224,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       ],
                     ),
                   ),
-
-                  // walletAddress.isNotEmpty
-                  //     ? Text('Connected: $walletAddress')
-                  //     : const Text('Not connected', style: TextStyle(color: Colors.white)),
-                  // const SizedBox(height: 20),
-                  // Container(
-                  //   color: Colors.green,
-                  //   child: ElevatedButton(
-                  //     onPressed: loginWithCoinbase,
-                  //     child: const Text('Connect Coinbase Wallet', style: TextStyle(color: Colors.white),),
-                  //   ),
-                  // ),
-
                   const SizedBox(height: 8),
-                  // Stack(
-                  //   clipBehavior: Clip.none,
-                  //   children: [
-                  //     Text(
-                  //       '92,99,222',
-                  //       style: CustomTextStyles.white30,
-                  //     ),
-                  //     Positioned(
-                  //       right: -40,
-                  //       top: -5,
-                  //       child: Text(
-                  //         'PCI',
-                  //         style: CustomTextStyles.white20,
-                  //       ),
-                  //     ),
-                  //   ],
-                  // ),
                   Padding(
                     padding: const EdgeInsets.only(left: 15.0, right: 15),
-                    child: Text(
-                      '\$${(homeProvider.walletBalance=='null')?'0.0':homeProvider.walletBalance}',
-                      style: CustomTextStyles.white30,
-                      // style: CustomTextStyles.white18,
+                    child: SizedBox(
+                      width: SizeUtils.width,
+                      child: Text(
+                        '\$${(homeProvider.walletBalance=='null')?'0.0':homeProvider.walletBalance}',
+                        overflow: TextOverflow.ellipsis,
+                        style: CustomTextStyles.white30,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 30),
@@ -437,10 +279,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         style: CustomTextStyles.gray7272_17,
                       ),
                       const SizedBox(height: 16),
-                      // Consumer<HomeScreenProvider>(
-                      //     builder: (context, homeProvider, child) {
-
-                            Container(
+                            SizedBox(
                               height: 130,
                               child: ListView.builder(
                                 scrollDirection: Axis.horizontal,
@@ -455,7 +294,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
                                   return Padding(
                                     padding: EdgeInsets.only(left: (index==1)?8.0:(index==2)?8.0:0.0),
-                                    child: _buildInfoCard(img, cryptoType, formattedPrice,homeProvider.cryptoList[index].usd24hChange, color, 'btcColor', 'bitcoin'),
+                                    child: _buildInfoCard(img, cryptoType, formattedPrice,homeProvider.cryptoList[index].usd24hChange, color, 'btcColor', homeProvider.cryptoList[index].cryptoType),
                                   );
 
                                   // return _buildInfoCard(ImageConstant.bit, 'BTC', bit_price.toString(),
@@ -483,8 +322,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           //         usdt_percentage, appTheme.green, 'usdtColor', 'tether'),
                           //     ],
                           // );
-                     //   }
-                     // ),
                       const SizedBox(height: 32),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -505,7 +342,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ],
                       ),
                       const SizedBox(height: 16),
-
                       Container(
                         height: SizeUtils.height/4,
                         child: SingleChildScrollView(
@@ -836,6 +672,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             const SizedBox(height: 5,),
             Text(
               amount,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: changeColor,
                 fontSize: 13,

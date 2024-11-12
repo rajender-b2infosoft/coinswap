@@ -1,13 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/utils/constants.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
-
 import '../core/utils/navigation_service.dart';
 import '../routes/app_routes.dart';
 
@@ -305,27 +303,16 @@ class ApiService {
     }
   }
 
-  Future sendAmount(toAddress,type,amountInEth) async {
+  Future getAdminCommissionWallets(type) async {
     try {
-      // dynamic data = jsonEncode(<dynamic, dynamic>{
-      //   'toAddress': toAddress,
-      //   'privateKey': privateKey,
-      //   'amountInEth': amountInEth
-      // });
-
-      dynamic data = jsonEncode(<dynamic, dynamic>{
-        'destinationAddressId': toAddress,
-        'assetType': type,
-        'amount': amountInEth,
-        "gasless": true
-      });
-      final response = await post('api/sendETH', data);
+      final response = await get('api/commission-wallets/$type');
       return response;
     } catch (e) {
-      print("Error(Function sendAmount):$e");
+      print("Error(Function getAdminCommissionWallets):$e");
       return e.toString();
     }
   }
+
 
   Future verifyOtp(req, otp) async {
 

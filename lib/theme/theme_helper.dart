@@ -26,6 +26,20 @@ class ThemeHelper {
     'darkCode': ColorSchemes.darkCodeColorScheme
   };
 
+  Map<String, Gradient> _supportedGradients = {
+    'lightCode': LinearGradient(
+      colors: [Color(0xFF0073D0), Color(0xFF0460E5)], // Light theme gradient
+    ),
+    'darkCode': LinearGradient(
+      colors: [Color(0xFF6283E5), Color(0xFF3D4D86)], // Dark theme gradient
+    ),
+  };
+
+  // Return the gradient based on the current theme
+  Gradient getGradient() {
+    return _supportedGradients[_appTheme] ?? _supportedGradients['lightCode']!;
+  }
+
 
   LightCodeColors _getThemeColors(){
     return _supportedCustomColor[_appTheme]?? LightCodeColors();
@@ -176,6 +190,7 @@ class LightCodeColors {
   Color get color0072 => Color(0xff0072CF);
   Color get blueLight => Color(0XFFB3DBFF);
   Color get white => Color(0XFFFFFFFF);
+  Color get white1 => Color(0XFFFFFFFF);
   Color get gray => Color(0XFF8F8F8F);
   Color get red => Color(0XFFD03D3D);
   Color get gray7272 => Color(0XFF727272);
@@ -191,8 +206,10 @@ class LightCodeColors {
   Color get f6f6f6 => const Color(0XFFF6F6F6);
   Color get color7D7D => const Color(0XFF7D7D7D);
   Color get color549FE3 => const Color(0XFF549FE3);
+  Color get color549FE3shadowColor => const Color(0XFF549FE3);
   Color get color8C8C => const Color(0XFF8C8C8C);
   Color get color8383 => const Color(0XFF838383);
+  Color get main_mpin => const Color(0XFF016CD8);
   Color get color9999 => const Color(0XFF999999);
   Color get color9898 => const Color(0XFF989898);
   Color get color7CA => const Color(0XFF7CA0F7);
@@ -215,7 +232,12 @@ class LightCodeColors {
   Color get colorFFB8B8 => const Color(0XFFFFB8B8);
   Color get color2E92ED => const Color(0XFF2E92ED);
   Color get black => const Color(0XFF000000);
-
+  Color get mainreciever => Color(0XFF016CD8);
+  Color get color_549F => Color(0XFF549FE3);
+  Color get color_E3EA => const Color(0XFF016FD3);
+  Color get color_5A78D1 => const Color(0XFF0073D0);
+  Color get color_0460E5 => const Color(0XFF0460E5);
+  Color get color_E4F0FF => const Color(0XFFE4F0FF);
 }
 
 class DarkCodeColors extends LightCodeColors {
@@ -225,7 +247,9 @@ class DarkCodeColors extends LightCodeColors {
   Color get gray => Color(0XFFD6D6D6);
   Color get lightBlue => Color(0XFF8A9ED8);
   Color get color549FE3 => const Color(0XFF549FE3);
+  Color get color549FE3shadowColor => const Color(0XFF7CA0F7);
   Color get white => Color(0XFFFFFFFF);
+  Color get white1 => Color(0XFF1B1C2E);
   Color get blueLight => Color(0XFF5572C6);
   Color get orange => Color(0XFFFF9416);
   Color get green => Color(0XFF26A17B);
@@ -235,9 +259,17 @@ class DarkCodeColors extends LightCodeColors {
   Color get color9999 => const Color(0XFF5570C4);
   Color get color0071 => const Color(0XFF5570C4);
   Color get mainTitle => Color(0XFF5572C6);
+  Color get f6f6f6 => const Color(0XFF1B1C2E);
+  Color get mainreciever => Color(0XFF5570C4);
+  Color get color0072D => Color(0xFF5A77D1);
+  Color get color_549F => Color(0xFFDDE7FF);
+  Color get main_mpin => const Color(0XFF45599B);
+  Color get color_E3EA => const Color(0XFFE3EAFF);
+  Color get color_5A78D1 => const Color(0XFF5A78D1);
+  Color get color_0460E5 => const Color(0XFF435695);
+  Color get color_E4F0FF => const Color(0XFFDDE7FF);
 
 
-  Color get color036 => Color(0xFF0363E2);
   Color get color0072 => Color(0xff0072CF);
   Color get red => Color(0XFFD03D3D);
   Color get grayA0A0 => Color(0XFFA0A0A0);
@@ -245,7 +277,7 @@ class DarkCodeColors extends LightCodeColors {
   Color get grayLite => Color(0XFFededed);
   Color get gray8989 => Color(0XFF898989);
   Color get error => const Color(0XFFff7373);
-  Color get f6f6f6 => const Color(0XFFF6F6F6);
+
   Color get color7D7D => const Color(0XFF7D7D7D);
   Color get color8C8C => const Color(0XFF8C8C8C);
   Color get color7CA => const Color(0XFF7CA0F7);

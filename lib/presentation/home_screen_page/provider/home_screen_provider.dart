@@ -1,19 +1,13 @@
 import 'dart:async';
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../common_widget.dart';
-import '../../../core/utils/navigation_service.dart';
-import '../../../routes/app_routes.dart';
 import '../../../services/api_service.dart';
 import '../../../services/cryptoWebSocketServices.dart';
-import '../../../services/moralisApiService.dart';
 import '../../../services/socketService.dart';
 import '../../../theme/theme_helper.dart';
 import '../../profile/models/profile.dart';
-import '../../transactions/models/transaction.dart';
 import '../models/home_screen_model.dart';
 import '../models/livePrice.dart';
 import '../models/recentTransaction.dart';
@@ -71,11 +65,11 @@ class HomeScreenProvider extends ChangeNotifier {
     _userStatus = status;
   }
 
-  final CryptoWebSocketService _webSocketService = CryptoWebSocketService(
-      apiKey: '892f03857a58a0e4e9d7ab9721ba0a80',
-      apiSecret: 'dFj8fhnuuvtQKhKoErr2Hbo/cABByGV/YxnE4DltS8AzEDzbMmovTwSBJiQGav9NROvfcwwkth3yx05+RJv+5w==',
-      passphrase: '7qzkaq49eqg'
-  );
+  // final CryptoWebSocketService _webSocketService = CryptoWebSocketService(
+  //     apiKey: '892f03857a58a0e4e9d7ab9721ba0a80',
+  //     apiSecret: 'dFj8fhnuuvtQKhKoErr2Hbo/cABByGV/YxnE4DltS8AzEDzbMmovTwSBJiQGav9NROvfcwwkth3yx05+RJv+5w==',
+  //     passphrase: '7qzkaq49eqg'
+  // );
 
   final StreamController<Map<String, dynamic>> _streamController = StreamController.broadcast();
 
@@ -104,34 +98,34 @@ class HomeScreenProvider extends ChangeNotifier {
     _startPeriodicUpdates();
 
     sharedPrefData();
-    _webSocketService.subscribeToSymbols(['BTC-USD', 'ETH-USD', 'USDT-USD']);
-    _webSocketService.stream.listen((data) {
-
-      if (data['type'] == 'ticker') {
-
-          final symbol = data['product_id'];
-          final price = double.tryParse(data['price'] ?? '') ?? 0.0;
-          final percentageChange = data['percentage_change'] ?? '0.00';
-          final color = data['color'] ?? 'red'; // Default color is red
-
-          final currentTime = DateTime.now();
-          // Change interval from 24 hour
-          if (_lastUpdate == null || currentTime.difference(_lastUpdate!).inMinutes >= 1) {
-            _lastUpdate = currentTime;
-            if (price != 0.0) {
-              _prices[symbol] = price;
-              _colors[symbol] = color;
-              _percentages[symbol] = percentageChange;
-              _streamController.add(data);
-              // notifyListeners();
-              _notifyIfNotDisposed();
-            }
-            // notifyListeners();
-            _notifyIfNotDisposed();
-          }
-
-      }
-    });
+    // _webSocketService.subscribeToSymbols(['BTC-USD', 'ETH-USD', 'USDT-USD']);
+    // _webSocketService.stream.listen((data) {
+    //
+    //   if (data['type'] == 'ticker') {
+    //
+    //       final symbol = data['product_id'];
+    //       final price = double.tryParse(data['price'] ?? '') ?? 0.0;
+    //       final percentageChange = data['percentage_change'] ?? '0.00';
+    //       final color = data['color'] ?? 'red'; // Default color is red
+    //
+    //       final currentTime = DateTime.now();
+    //       // Change interval from 24 hour
+    //       if (_lastUpdate == null || currentTime.difference(_lastUpdate!).inMinutes >= 1) {
+    //         _lastUpdate = currentTime;
+    //         if (price != 0.0) {
+    //           _prices[symbol] = price;
+    //           _colors[symbol] = color;
+    //           _percentages[symbol] = percentageChange;
+    //           _streamController.add(data);
+    //           // notifyListeners();
+    //           _notifyIfNotDisposed();
+    //         }
+    //         // notifyListeners();
+    //         _notifyIfNotDisposed();
+    //       }
+    //
+    //   }
+    // });
   }
 
   void _startPeriodicUpdates() {
@@ -148,75 +142,7 @@ class HomeScreenProvider extends ChangeNotifier {
   double getPrice(String symbol) => _prices[symbol] ?? 0.0;
   String getColor(String symbol) => _colors[symbol] ?? 'red';
   String getPercentage(String symbol) => _percentages[symbol] ?? '0.00';
-
-  ///////////////////Code for Moralis ////////////////////////////////////
-  // final MoralisApiService _apiService = MoralisApiService();
-  double _ethPrice = 0.0;
-  double _btcPrice = 0.0;
-  double _usdtPrice = 0.0;
-  String? _ethPercentChange = '0.0';
-  String? _btcPercentChange = '0.0';
-  String? _usdtPercentChange = '0.0';
   Timer? _timer;
-
-  double get ethPrice => _ethPrice;
-  double get usdtPrice => _usdtPrice;
-  double get btcPrice => _btcPrice;
-
-  String? get ethPercentChange => _ethPercentChange;
-  String? get usdtPercentChange => _usdtPercentChange;
-  String? get btcPercentChange => _btcPercentChange;
-
-  // Future<void> _fetchPrices() async {
-  //   await Future.wait([
-  //     _fetchEthPrice(),
-  //     _getUsdtPrice(),
-  //     _fetchBtcPrice(),
-  //   ]);
-  // }
-
-
-
-  // Future<void> _fetchEthPrice() async {
-  //   try{
-  //     final tokenData = await _apiService.getTokenPrice("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2");
-  //     _ethPrice = tokenData['usdPrice']?.toDouble() ?? 0.0;
-  //     _ethPercentChange = tokenData['24hrPercentChange']??'0.0';
-  //     // notifyListeners();
-  //     _notifyIfNotDisposed();
-  //   }catch(e){
-  //     _ethPrice = 0.0;
-  //     // notifyListeners();
-  //     _notifyIfNotDisposed();
-  //   }
-  // }
-  //
-  // Future<void> _getUsdtPrice() async {
-  //   try{
-  //     final tokenData =  await _apiService.getTokenPrice('0xdac17f958d2ee523a2206206994597c13d831ec7');
-  //     _usdtPrice = tokenData['usdPrice']?.toDouble() ?? 0.0;
-  //     _usdtPercentChange = tokenData['24hrPercentChange']??'0.0';
-  //     // notifyListeners();
-  //     _notifyIfNotDisposed();
-  //   }catch(e){
-  //     _usdtPrice = 0.0;
-  //     // notifyListeners();
-  //     _notifyIfNotDisposed();
-  //   }
-  // }
-  //
-  // Future<void> _fetchBtcPrice() async {
-  //   try{
-  //     final btcData = await _apiService.getBtcPrice();
-  //     _btcPrice = btcData['bitcoin']['usd']?.toDouble() ?? 0.0;
-  //     // notifyListeners();
-  //     _notifyIfNotDisposed();
-  //   }catch(e){
-  //     _btcPrice = 0.0;
-  //     // notifyListeners();
-  //     _notifyIfNotDisposed();
-  //   }
-  // }
 
   Future<void> getUserWalets() async{
     _isLoading = true;
@@ -252,8 +178,6 @@ class HomeScreenProvider extends ChangeNotifier {
       if (response != null && response['status'] == 'success') {
 
         SharedPreferences prefs = await SharedPreferences.getInstance();
-        //await prefs.setString('status', val);
-        //await _secureStorage.write(key: cryptoType, value: walletAddress);
 
         if(response['data'].length>0){
           //get user all 3 wallets total to display on home page
@@ -313,7 +237,6 @@ class HomeScreenProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-
 
   // Future<void> transactionsData(type, status, date) async {
   Future<void> recentTransactionsData() async {
@@ -378,7 +301,7 @@ class HomeScreenProvider extends ChangeNotifier {
     _isDisposed = true;
     _timer?.cancel();
     _streamController.close();
-    _webSocketService.close();
+    // _webSocketService.close();
     super.dispose();
   }
 

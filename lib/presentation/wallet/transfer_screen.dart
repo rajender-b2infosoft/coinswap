@@ -54,7 +54,10 @@ class _TransferScreenState extends State<TransferScreen> {
       //function for get converted balance
       transactionProvider.userWalletConvertedBalance();
       transactionProvider.getSettings(context);
+      //function for get admin commission settings
       transactionProvider.getCommissionSetting(context);
+      // //function for get admin commission wallets
+      // transactionProvider.getCommissionWallets(context);
       transactionProvider.addressController.text = widget.toAddress;
       transactionProvider.setCurrency(widget.cryptoType);
       // transactionProvider.setCurrency('USDT');
@@ -75,7 +78,8 @@ class _TransferScreenState extends State<TransferScreen> {
   // }
 
   Future<void> checkAddress() async {
-    var network = (transactionProvider.selectedCurrency == 'Ethereum')?"mainnet":(transactionProvider.selectedCurrency == 'USDT')?"mainnet":"mainnet";
+    // var network = (transactionProvider.selectedCurrency == 'Ethereum')?"mainnet":(transactionProvider.selectedCurrency == 'USDT')?"mainnet":"mainnet";
+    var network = (transactionProvider.selectedCurrency == 'Ethereum')?"sepolia":(transactionProvider.selectedCurrency == 'USDT')?"nile":"mainnet";
     var blockchain = (transactionProvider.selectedCurrency == 'Ethereum')?"ethereum":(transactionProvider.selectedCurrency == 'USDT')?"tron":"bitcoin";
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var userName = prefs.getString('userName');
@@ -180,6 +184,14 @@ class _TransferScreenState extends State<TransferScreen> {
                   text: "Confirm",
                   // text: transactionProvider.isLoading ? '' : "Confirm",
                   onPressed: () async {
+                   //  var blockchain = (transactionProvider.selectedCurrency == 'Ethereum')?"ethereum":(transactionProvider.selectedCurrency == 'USDT')?"tron":"bitcoin";
+                   //
+                   // transactionProvider.calculateCommission(blockchain, 1021);
+                   //
+                   //  print('$blockchain LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL>>>>>>>>>>>>>>>>>>>>>>>>>>> ${transactionProvider.selectedCurrency}');
+                   //
+                   //  print(transactionProvider.adminCommissionAmount);
+                   // return;
 
                     // var commissionSetting = transactionProvider.sortCommission(transactionProvider.commissionSettingsData!.data);
                     //
@@ -377,8 +389,8 @@ class _TransferScreenState extends State<TransferScreen> {
           validator: (value) => checkEmpty(value, error),
           onChanged: (value) async {
             transactionProvider.setqrCodeData(value);
-            // var network = (transactionProvider.selectedCurrency == 'Ethereum')?"sepolia":(transactionProvider.selectedCurrency == 'USDT')?"nail":"testnet";
-            var network = (transactionProvider.selectedCurrency == 'Ethereum')?"mainnet":(transactionProvider.selectedCurrency == 'USDT')?"mainnet":"mainnet";
+            var network = (transactionProvider.selectedCurrency == 'Ethereum')?"sepolia":(transactionProvider.selectedCurrency == 'USDT')?"nail":"testnet";
+            // var network = (transactionProvider.selectedCurrency == 'Ethereum')?"mainnet":(transactionProvider.selectedCurrency == 'USDT')?"mainnet":"mainnet";
             var blockchain = (transactionProvider.selectedCurrency == 'Ethereum')?"ethereum":(transactionProvider.selectedCurrency == 'USDT')?"tron":"bitcoin";
             SharedPreferences prefs = await SharedPreferences.getInstance();
             var userName = prefs.getString('userName');
@@ -518,118 +530,6 @@ class _TransferScreenState extends State<TransferScreen> {
       },
     );
 
-    // showDialog(
-    //   context: context,
-    //   builder: (BuildContext context) {
-    //     return AlertDialog(
-    //       shape: RoundedRectangleBorder(
-    //         borderRadius: BorderRadius.circular(20.0), // Adjust the radius here
-    //       ),
-    //       contentPadding: EdgeInsets.zero,
-    //       content: Stack(
-    //         children: [
-    //           Container(
-    //             width: SizeUtils.width,
-    //             child: Column(
-    //               mainAxisSize: MainAxisSize.min,
-    //               children: [
-    //                 Container(
-    //                   width: 200,
-    //                   padding: const EdgeInsets.only(left: 5, right: 5, top: 5, bottom: 10),
-    //                   decoration: BoxDecoration(
-    //                       color: appTheme.main,
-    //                       borderRadius: const BorderRadius.only(
-    //                         bottomLeft: Radius.circular(20),
-    //                         bottomRight: Radius.circular(20),
-    //                       )),
-    //                   child: Text('Transaction summary',
-    //                     textAlign: TextAlign.center, // Center the text
-    //                     style: CustomTextStyles.white14,
-    //                   ),
-    //                 ),
-    //                 Padding(
-    //                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-    //                   child: Column(
-    //                     crossAxisAlignment: CrossAxisAlignment.start,
-    //                     children: [
-    //                       Row(
-    //                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    //                         children: [
-    //                           Text('Total Amount',
-    //                             textAlign: TextAlign.center, // Center the text
-    //                             style: CustomTextStyles.gray7272_14,
-    //                           ),
-    //                           Text((transactionProvider.amountController.text!='')?transactionProvider.amountController.text:'0.0',
-    //                             textAlign: TextAlign.center, // Center the text
-    //                             style: CustomTextStyles.gray7272_14,
-    //                           ),
-    //                         ],
-    //                       ),
-    //                       SizedBox(height: 10,),
-    //                       Row(
-    //                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    //                         children: [
-    //                           Text('Platform fee',
-    //                             textAlign: TextAlign.center, // Center the text
-    //                             style: CustomTextStyles.gray7272_14,
-    //                           ),
-    //                           Text(transactionProvider.commissionAmount.toString(),
-    //                             textAlign: TextAlign.center, // Center the text
-    //                             style: CustomTextStyles.orange14,
-    //                           ),
-    //                         ],
-    //                       ),
-    //                       SizedBox(height: 15,),
-    //                       CustomImageView(
-    //                         imagePath: ImageConstant.dotLine,
-    //                         width: SizeUtils.width-50,
-    //                       ),
-    //                       SizedBox(height: 15,),
-    //                       Row(
-    //                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    //                         children: [
-    //                           Text('Final Amount',
-    //                             textAlign: TextAlign.center, // Center the text
-    //                             style: CustomTextStyles.gray7272_16Bold,
-    //                           ),
-    //                           Text(afterCommission.toString(),
-    //                             textAlign: TextAlign.center, // Center the text
-    //                             style: CustomTextStyles.green14,
-    //                           ),
-    //                         ],
-    //                       ),
-    //                       Container(
-    //                         width: SizeUtils.width/2.5,
-    //                           child: Text('(Amount received by the receiver)', style: CustomTextStyles.gray12,))
-    //                     ],
-    //                   ),
-    //                 ),
-    //               ],
-    //             ),
-    //           ),
-    //           Positioned(
-    //             top: 200,
-    //             left: 0,
-    //             right: 0,
-    //             child: GestureDetector(
-    //               onTap: () {
-    //                 Navigator.pop(context);
-    //               },
-    //               child: CustomImageView(
-    //                 height: 50,
-    //                 width: 50,
-    //                 // fit: BoxFit.fill,
-    //                 color: Colors.red,
-    //                 imagePath: ImageConstant.clear,
-    //               ),
-    //             ),
-    //           )
-    //         ],
-    //       ),
-    //       actions: <Widget>[],
-    //     );
-    //   },
-    //);
   }
 
   Widget _buildInfoCard() {
@@ -732,7 +632,8 @@ class _TransferScreenState extends State<TransferScreen> {
                 var userName = prefs.getString('userName');
 
                 var bloc = (blockchain=='USDT')?'tron':(blockchain=='ETH')?'ethereum':'bitcoin';
-                var net = (blockchain=='USDT')?'mainnet':(blockchain=='ETH')?'mainnet':'mainnet';
+                // var net = (blockchain=='USDT')?'mainnet':(blockchain=='ETH')?'mainnet':'mainnet';
+                var net = (blockchain=='USDT')?'nile':(blockchain=='ETH')?'sepolia':'mainnet';
 
                 if(transactionProvider.addressController.text != ''){
                   transactionProvider.validateAddress(transactionProvider.addressController.text, bloc, net, userName);
@@ -804,6 +705,13 @@ class _TransferScreenState extends State<TransferScreen> {
               contentPadding:
                   const EdgeInsets.symmetric(vertical: 0, horizontal: 30),
             ),
+            // onChanged: (val){
+            //
+            //   print('::::::::::::::::::::::::::::--->');
+            //   print(transactionProvider.selectedCurrency);
+            //
+            //   // transactionProvider.setCurrency(widget.cryptoType);
+            // },
           ),
         ),
         const SizedBox(height: 20),

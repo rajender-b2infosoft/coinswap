@@ -1,10 +1,8 @@
 import 'package:crypto_app/presentation/settings/provider/setting.dart';
-import 'package:crypto_app/theme/theme_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../common_widget.dart';
 import '../../core/app_export.dart';
-import '../../widgets/custom_elevated_button.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 
 class SettingScreen extends StatefulWidget {

@@ -143,6 +143,8 @@ class SocketIOClient {
       print('vaultody_webhook:::::::::::::::::: ${data}');
 
       _showNotification('', data['message'].toString());
+      //call provider function for update home page balance
+      Provider.of<HomeScreenProvider>(context, listen: false).userWalletData();
     });
   }
 

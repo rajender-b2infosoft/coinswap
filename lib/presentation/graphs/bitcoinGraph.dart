@@ -2,7 +2,6 @@ import 'package:crypto_app/core/app_export.dart';
 import 'package:crypto_app/presentation/graphs/providers/btcProvider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class LineChartScreen extends StatefulWidget {
@@ -253,7 +252,6 @@ class LineChartSample extends StatelessWidget {
   Widget build(BuildContext context) {
     return LineChart(
       LineChartData(
-        // backgroundColor: Colors.lightBlueAccent.withOpacity(0.2),
         lineBarsData: [
           LineChartBarData(
             spots: dataPoints,
@@ -314,7 +312,6 @@ class LineChartSample extends StatelessWidget {
               // reservedSize: 20,
               getTitlesWidget: (value, meta) {
                 return Text(
-                  // DateTime.now().add(Duration(days: value.toInt() - 30)).toString().substring(5, 10),
                   DateFormat('dd/MM').format(
                       DateTime.now().add(Duration(days: value.toInt() - 30))),
                   style: TextStyle(color: appTheme.black, fontSize: 10),

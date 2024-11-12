@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import '../../../services/api_service.dart';
 
 class BtcProvider with ChangeNotifier {
+  final apiService = ApiService();
   dynamic? usdPrice;
   dynamic? marketCap;
   dynamic? volume24h;
@@ -59,36 +61,48 @@ class BtcProvider with ChangeNotifier {
     }).toList();
   }
 
-
   Future<void> fetchStatsData(String type) async {
     _isLoading = true;
     notifyListeners();
+    try{
+      final response = await apiService.livePrice();
 
-    final url =
-        'https://api.coingecko.com/api/v3/simple/price?ids=$type&vs_currencies=usd&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true&include_last_updated_at=true';
-    const headers = {
-      'accept': 'application/json',
-      'x-cg-pro-api-key': 'CG-KqynxDQYcXJmSvq8MRe7xy7n',
-    };
+      if (response != null && response['status'] == 'success') {
 
-    try {
-      final response = await http.get(Uri.parse(url), headers: headers);
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        usdPrice = data[type]['usd'];
-        marketCap = data[type]['usd_market_cap'];
-        volume24h = data[type]['usd_24h_vol'];
-        change24h = data[type]['usd_24h_change'];
-        DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(data[type]['last_updated_at'] * 1000);
-        lastUpdated = DateFormat('dd/MM/yyyy hh:mm a').format(dateTime);
+        final List<dynamic> data = response['data'];
+        // Find the crypto object that matches the specified type
+        final crypto = data.firstWhere(
+              (item) => item['crypto_type'] == type,
+          orElse: () => null,
+        );
+
+        if (crypto != null) {
+          usdPrice = crypto['price'] ?? 0.0;
+          marketCap = crypto['usd_market_cap'] ?? 0.0;
+          volume24h = crypto['usd_24h_vol'] ?? 0.0;
+          change24h = crypto['usd_24h_change'] ?? 0.0;
+          // Convert the timestamp to DateTime
+          DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(
+            crypto['last_updated_at'] * 1000,
+          );
+          lastUpdated = DateFormat('dd/MM/yyyy hh:mm a').format(dateTime);
+        } else {
+          _errorMessage = 'No data found for the specified type: $type';
+        }
+
+        _isLoading = false;
+        notifyListeners();
       } else {
         _errorMessage = 'Failed to fetch data. Status code: ${response.statusCode}';
+        _isLoading = false;
+        notifyListeners();
       }
-    } catch (error) {
-      _errorMessage = 'An error occurred: $error';
+    }catch (e) {
+      print(e);
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
+
 }

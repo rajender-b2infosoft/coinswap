@@ -187,8 +187,16 @@ class _WalletScreenState extends State<WalletScreen> {
             ),),
             trailing: Column(
               mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(amount, style: CustomTextStyles.gray7272_15),
+                SizedBox(
+                  width: SizeUtils.width/3,
+                  child: Center(
+                    child: Text(amount,
+                        overflow: TextOverflow.ellipsis,
+                        style: CustomTextStyles.gray7272_15),
+                  ),
+                ),
                 Text(isExpanded ? "Hide Details" : "Show Details", style: CustomTextStyles.gray12),
               ],
             ),

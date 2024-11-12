@@ -37,6 +37,7 @@ class TransactionData {
   String? transactionType;
   String? requestId;
   String? transactionRequestId;
+  String? transactionId;
   String? note;
   String? feePriority;
   String? cryptoType;
@@ -56,6 +57,7 @@ class TransactionData {
     this.transactionType,
     this.requestId,
     this.transactionRequestId,
+    this.transactionId,
     this.note,
     this.feePriority,
     this.cryptoType,
@@ -77,6 +79,7 @@ class TransactionData {
       transactionType: json['transaction_type'],
       requestId: json['requestId'],
       transactionRequestId: json['transactionRequestId'],
+      transactionId: json['transactionId'],
       note: json['note'],
       feePriority: json['feePriority'],
       cryptoType: json['crypto_type'],
@@ -99,6 +102,7 @@ class TransactionData {
       'transaction_type': transactionType,
       'requestId': requestId,
       'transactionRequestId': transactionRequestId,
+      'transactionId': transactionId,
       'note': note,
       'feePriority': feePriority,
       'crypto_type': cryptoType,

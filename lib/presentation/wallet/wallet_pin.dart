@@ -34,6 +34,14 @@ class _WalletPinState extends State<WalletPin> {
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      //function for get admin commission settings
+      transactionProvider.getCommissionSetting(context);
+      // //function for get admin commission wallets
+      // transactionProvider.getCommissionWallets(context);
+    });
+
   }
 
   @override

@@ -162,7 +162,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 children: [
                                   Column(
                                     children: [
-                                      Text("\$${provider.totalBalance}",style: CustomTextStyles.color0072D_20,),
+                                      Container(
+                                        width: SizeUtils.width/4,
+                                        child: Text("\$${provider.totalBalance}",
+                                          overflow: TextOverflow.ellipsis,
+                                          style: CustomTextStyles.color0072D_20,),
+                                      ),
                                       // Text("\$${(data[0].total_amount_sum != null) ? data[0].total_amount_sum : '0.0'}",style: CustomTextStyles.color0072D_20,),
                                       Text("Wallet",style: CustomTextStyles.color9898_18,)
                                     ],
@@ -277,7 +282,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
-              child: Text(value,style: CustomTextStyles.color0072D_16,),
+              child: SizedBox(
+                width: SizeUtils.width/3,
+                child: Center(
+                  child: Text(value,
+                    overflow: TextOverflow.ellipsis,
+                    style: CustomTextStyles.color0072D_16,),
+                ),
+              ),
             )
           ],
         ),

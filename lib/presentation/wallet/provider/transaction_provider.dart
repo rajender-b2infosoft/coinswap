@@ -1,6 +1,6 @@
 import 'dart:convert';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:http/http.dart' as http;
 import 'package:crypto_app/core/app_export.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
@@ -8,6 +8,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../common_widget.dart';
 import '../../../services/api_service.dart';
 import '../models/commission_settings.dart';
+import 'package:http/http.dart' as http;
+
+import '../models/commission_wallets.dart';
 
 
 class TransactionProvider extends ChangeNotifier{
@@ -19,6 +22,9 @@ class TransactionProvider extends ChangeNotifier{
   Map<String, dynamic>? _userData;
   Map<String, dynamic>? get userData => _userData;
 
+
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
 
   List<dynamic> walletData = [];
   void setWalletData(List<dynamic> data) {
@@ -32,6 +38,17 @@ class TransactionProvider extends ChangeNotifier{
   CommissionSettingsResponse? _commissionSettingsData;
   CommissionSettingsResponse? get commissionSettingsData => _commissionSettingsData;
 
+  WalletResponse? _commissionWalletData;
+  WalletResponse? get commissionWalletData => _commissionWalletData;
+  List<Wallet> _walletCommissionData = [];
+  List<Wallet> get walletCommissionData => _walletCommissionData;
+
+
+  List<CommissionData> _commissionData = [];
+  double adminCommissionAmount = 0.0;
+  String adminAddress = '';
+  List<CommissionData> get commissionData => _commissionData;
+
   late TextEditingController _addressController = TextEditingController();
   late TextEditingController _noteController = TextEditingController();
   late TextEditingController _amountController = TextEditingController();
@@ -40,9 +57,16 @@ class TransactionProvider extends ChangeNotifier{
   TextEditingController get addressController => _addressController;
   TextEditingController get amountController => _amountController;
 
+  double _cryptoCompareUSD = 0.0;
+  double get cryptoCompareUSD => _cryptoCompareUSD;
+
+  String _trxUserName = '';
+  String get trxUserName => _trxUserName;
+
   TransactionProvider(){
     _addressController.addListener(() async {
-      var network = (_selectedCurrency == 'Ethereum')?"mainnet":(_selectedCurrency == 'USDT')?"mainnet":"mainnet";
+      // var network = (_selectedCurrency == 'Ethereum')?"mainnet":(_selectedCurrency == 'USDT')?"mainnet":"mainnet";
+      var network = (_selectedCurrency == 'Ethereum')?"sepolia":(_selectedCurrency == 'USDT')?"nile":"mainnet";
       var blockchain = (_selectedCurrency == 'Ethereum')?"ethereum":(_selectedCurrency == 'USDT')?"tron":"bitcoin";
       SharedPreferences prefs = await SharedPreferences.getInstance();
       var userName = prefs.getString('userName');
@@ -179,7 +203,7 @@ class TransactionProvider extends ChangeNotifier{
       _amountController.text = currentText.substring(0, currentText.length - 1);
 
       var blockchain = (_selectedCurrency=='Ethereum')?'eth':(_selectedCurrency=='USDT')?'usdt':'btc';
-      _commissionAmount  = getCommissionRateForAmount(double.parse(_amountController.text), blockchain)!;
+      _commissionAmount  = getCommissionRateForAmount(double.parse(_amountController.text), blockchain) ?? 0.0;
 
       notifyListeners();
     }
@@ -192,7 +216,7 @@ class TransactionProvider extends ChangeNotifier{
       _isTextEntered = _amountController.text.isNotEmpty;
 
       var blockchain = (_selectedCurrency=='Ethereum')?'eth':(_selectedCurrency=='USDT')?'usdt':'btc';
-      _commissionAmount  = getCommissionRateForAmount(double.parse(_amountController.text), blockchain)!;
+      _commissionAmount  = getCommissionRateForAmount(double.parse(_amountController.text), blockchain) ?? 0.0;
 
       notifyListeners();
     }
@@ -203,10 +227,10 @@ class TransactionProvider extends ChangeNotifier{
       var blockchain = (_selectedCurrency=='Ethereum')?'eth':(_selectedCurrency=='USDT')?'usdt':'btc';
       if (_amountController.text.isEmpty) {
         _amountController.text = '0.';
-        _commissionAmount  = getCommissionRateForAmount(double.parse(_amountController.text), blockchain)!;
+        _commissionAmount  = getCommissionRateForAmount(double.parse(_amountController.text), blockchain) ?? 0.0;
       } else {
         _amountController.text += '.';
-        _commissionAmount  = getCommissionRateForAmount(double.parse(_amountController.text), blockchain)!;
+        _commissionAmount  = getCommissionRateForAmount(double.parse(_amountController.text), blockchain) ?? 0.0;
       }
       notifyListeners();
     }
@@ -215,58 +239,8 @@ class TransactionProvider extends ChangeNotifier{
   void appendAmountController(String number) {
     _amountController.text += number;
     var blockchain = (_selectedCurrency=='Ethereum')?'eth':(_selectedCurrency=='USDT')?'usdt':'btc';
-
-
-    _commissionAmount  = getCommissionRateForAmount(double.parse(_amountController.text), blockchain)!;
-
-    print('::::::::::::::::::::::::::::');
-    print(_commissionAmount);
-    print(blockchain);
-
+    _commissionAmount  = getCommissionRateForAmount(double.parse(_amountController.text), blockchain) ?? 0.0;
     notifyListeners();
-  }
-
-  // Future sendETH(context, toAddress,privateKey,amountInEth) async {
-  Future sendETH(context, toAddress,type,amountInEth) async {
-    _isLoading = true;
-    notifyListeners();
-    try{
-      // final response = await apiService.sendAmount(toAddress,privateKey,amountInEth);
-      final response = await apiService.sendAmount(toAddress,type,amountInEth);
-
-      if (response != null && response['status'] != 'error') {
-        CommonWidget().snackBar(context, appTheme.green, response['message']);
-
-      } else {
-        CommonWidget().snackBar(context, appTheme.red, response['message']);
-      }
-    }catch (e) {
-      print(e);
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> getEthBalance(
-      String address,
-      String chain,
-      ) async {
-    final String apiUrl = 'https://deep-index.moralis.io/api/v2/$address/balance?chain=$chain';
-    const String apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6ImU3NDNhYzg1LTA5ZTctNGQ3Ni05MmNkLWQ1ZDJkMGEwNTg5ZSIsIm9yZ0lkIjoiNDA0Njk2IiwidXNlcklkIjoiNDE1ODM4IiwidHlwZUlkIjoiN2I1NDdlZTAtNzllZS00OTJmLWE5NTItY2E3MTU5ODY2NjI5IiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3MjM2OTYyOTMsImV4cCI6NDg3OTQ1NjI5M30.aTBXhoxJ1PhDWn7UpVwwImqV7_zgbsiJN8Pq62eaBYs";
-
-    final url = Uri.parse('$apiUrl');
-    final headers = {
-      'X-API-Key': apiKey,
-      'Content-Type': 'application/json',
-    };
-    final response = await http.get(url, headers: headers);
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      await _secureStorage.write(key: 'ethBalance', value: data['balance']);
-    } else {
-      throw Exception('Failed to send ETH. Error: ${response.body}');
-    }
   }
 
   Future<void> scanQRCode(blockchain) async {
@@ -293,12 +267,106 @@ class TransactionProvider extends ChangeNotifier{
     }
   }
 
+  // // New Function to get or update admin commission address based on wallet type
+  // void updateAdminAddress(String walletType) {
+  //   // Filter the wallets to find the one that matches the walletType and has default set to 1
+  //   Wallet? matchedWallet = _walletCommissionData.firstWhere(
+  //         (wallet) => wallet.walletType.toLowerCase() == walletType.toLowerCase() && wallet.defaultWallet == 1,
+  //     orElse: () => Wallet(
+  //       id: 0,
+  //       userId: 0,
+  //       vaultId: '',
+  //       walletType: '',
+  //       walletAddress: '',
+  //       balance: '0.0',
+  //       defaultWallet: 0,
+  //       createdAt: DateTime.now(),
+  //     ),
+  //   );
+  //
+  //   // Set the admin address based on the filtered wallet
+  //   if (matchedWallet.id != 0) {
+  //     adminAddress = matchedWallet.walletAddress;
+  //   } else {
+  //     adminAddress = ''; // Set a default value if no matching wallet is found
+  //   }
+  //
+  //   notifyListeners();
+  // }
+
+  // Function to determine commission amount based on blockchain and final amount
+  void calculateCommission(String blockchain, double finalAmount) {
+    if (blockchain == 'ethereum') {
+      // Handle Ethereum case
+      final ethCommission = _commissionData.firstWhere(
+            (commission) => commission.cryptoType.toLowerCase() == 'eth',
+        orElse: () => CommissionData(
+          id: 0,
+          cryptoType: 'eth',
+          fromRange: 0,
+          toRange: 0,
+          commissionRate: 0.01,
+          createdAt: '',
+          updatedAt: null,
+          deletedAt: null,
+        ),
+      );
+      adminCommissionAmount = ethCommission.commissionRate;
+      adminAddress = '0x50ad50e334f13d6bdda46ff7d800f2c1f3b3f64a'; // testing
+    } else if (blockchain == 'tron') {
+      // Handle Tron case dynamically using the API data
+      final usdtCommission = _commissionData.firstWhere(
+            (commission) =>
+        commission.cryptoType.toLowerCase() == 'usdt' &&
+            finalAmount >= commission.fromRange &&
+            finalAmount < commission.toRange,
+        orElse: () => CommissionData(
+          id: 0,
+          cryptoType: 'usdt',
+          fromRange: 0,
+          toRange: 0,
+          commissionRate: 0.0,
+          createdAt: '',
+          updatedAt: null,
+          deletedAt: null,
+        ),
+      );
+
+      adminCommissionAmount = usdtCommission.commissionRate;
+      adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw'; // testing
+    } else {
+      // Default case for other blockchains
+      adminCommissionAmount = 0.0;
+      adminAddress = '';
+    }
+    notifyListeners();
+  }
+
+  //Function for get admin commission wallet
+  Future getCommissionWallets(type) async{
+    try{
+      final response = await apiService.getAdminCommissionWallets(type);
+      if (response != null && response['status'] == 'success') {
+        adminAddress = response['data'][0]['wallet_address'];
+        notifyListeners();
+      } else {
+        print(response['message']);
+      }
+    }catch(e){
+      print(e);
+    }finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future getCommissionSetting(context) async{
     try{
       final response = await apiService.getCommissionSettings();
       if (response != null && response['status'] == 'success') {
-        _commissionSettingsData  = CommissionSettingsResponse.fromJson(response);
-        // CommonWidget.showToastView(response['message'], appTheme.gray8989);
+        final commissionSettings = CommissionSettingsResponse.fromJson(response);
+        _commissionData = commissionSettings.data;
+        notifyListeners();
       } else {
         CommonWidget().snackBar(context, appTheme.red, response['message']);
       }
@@ -344,77 +412,53 @@ class TransactionProvider extends ChangeNotifier{
         String formattedDate = DateFormat('dd-MMM-yyyy').format(now);
 
           var blockchain = (cryptoType == 'Ethereum')?"ethereum":(cryptoType == 'USDT')?"tron":"bitcoin";
-          var network = (cryptoType == 'Ethereum')?"mainnet":(cryptoType == 'USDT')?"mainnet":"mainnet";
+          // var network = (cryptoType == 'Ethereum')?"mainnet":(cryptoType == 'USDT')?"mainnet":"mainnet";
+          var network = (cryptoType == 'Ethereum')?"sepolia":(cryptoType == 'USDT')?"nile":"mainnet";
 
         var finalAmount = double.parse(amount);
         var ethCommission = 0.01;
         double amountAfterCommission = finalAmount;
 
-        var commissionAmount = 0.0;
-        var adminAddress = '';
+        // var commissionAmount = 0.0;
+        // var adminAddress = '';
 
-        if(blockchain == 'ethereum'){
-          commissionAmount = 0.01;
-          // adminAddress = '0x50ad50e334f13d6bdda46ff7d800f2c1f3b3f64a';
-          adminAddress = '0x3b5d925d4e229fce9407371507f9f2b5c7eb6621';
-          print('11111111111111111111111111111');
-          // amountAfterCommission = finalAmount - ethCommission;
-          // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amountAfterCommission, 'slow', note, address);
-          // await Future.delayed(Duration(seconds: 1));
-          // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, ethCommission, 'slow', note, '0x50ad50e334f13d6bdda46ff7d800f2c1f3b3f64a');
-        }else if(blockchain == 'tron'){
-          if(finalAmount >= 25000){
-            commissionAmount = 5;
-            // adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
-            adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
-            print('22222222222222222222222222');
-            // amountAfterCommission = finalAmount - 5;
-            // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amountAfterCommission, 'slow', note, address);
-            // await Future.delayed(Duration(seconds: 1));
-            // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, 5, 'slow', note, 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw');
-          }else if(finalAmount <= 25000 && finalAmount >= 10000){
-            commissionAmount = 3.2;
-            // adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
-            adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
-            print('333333333333333333333333333');
-            // amountAfterCommission = finalAmount - 3.2;
-            // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amountAfterCommission, 'slow', note, address);
-            // await Future.delayed(Duration(seconds: 1));
-            // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, 3.2, 'slow', note, 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw');
-          }else if(finalAmount <= 10000 && finalAmount >= 5000){
-            commissionAmount = 2.5;
-            // adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
-            adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
-            print('444444444444444444444');
-            // amountAfterCommission = finalAmount - 2.5;
-            // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amountAfterCommission, 'slow', note, address);
-            // await Future.delayed(Duration(seconds: 1));
-            // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, 2.5, 'slow', note, 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw');
-          }else if(finalAmount >= 1000 && finalAmount <= 5000){
-            commissionAmount = 1.5;
-            // adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
-            adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
-            print('55555555555555555555');
-            // amountAfterCommission = finalAmount - 1.5;
-            // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amountAfterCommission, 'slow', note, address);
-            // await Future.delayed(Duration(seconds: 1));
-            // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, 1.5, 'slow', note, 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw');
-          }else{
-            //we can use it for bitcoin
-            commissionAmount = 0.0;
-            // adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
-            adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
-            print('666666666666666666666666');
-            // amountAfterCommission = finalAmount;
-            // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amountAfterCommission, 'slow', note, address);
-          }
-        }
+        // var blockchain = "tron";
+        //call function to calculate admin commission
+        calculateCommission(blockchain, finalAmount);
+        await getCommissionWallets(blockchain);
 
-        // await sendETH(context,address,type,amount);
-        await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amount, 'slow', note, address, adminAddress, commissionAmount);
-        NavigatorService.pushNamed(AppRoutes.approvalScreen, argument: {'blockchain': blockchain,'status': 'pending', 'address': fromAddress, 'amount': amount, 'fee': 'slow', 'note': note, 'date': formattedDate, 'page': 'home'});
+        // if(blockchain == 'ethereum'){
+        //   commissionAmount = 0.01;
+        //   adminAddress = '0x50ad50e334f13d6bdda46ff7d800f2c1f3b3f64a';  //testing
+        //   // adminAddress = '0x3b5d925d4e229fce9407371507f9f2b5c7eb6621'; // live
+        // }else if(blockchain == 'tron'){
+        //   if(finalAmount >= 25000){
+        //     commissionAmount = 5;
+        //     adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';  //testing
+        //     // adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';   //live
+        //   }else if(finalAmount <= 25000 && finalAmount >= 10000){
+        //     commissionAmount = 3.2;
+        //     adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';  //testing
+        //     // adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';  //live
+        //   }else if(finalAmount <= 10000 && finalAmount >= 5000){
+        //     commissionAmount = 2.5;
+        //     adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';  //testing
+        //     // adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';  //live
+        //   }else if(finalAmount >= 1000 && finalAmount <= 5000){
+        //     commissionAmount = 1.5;
+        //     adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';  //testing
+        //     // adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';  //live
+        //   }else{
+        //     //we can use it for bitcoin
+        //     commissionAmount = 0.0;
+        //     adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';  //testing
+        //     // adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';  //live
+        //   }
+        // }
 
-        // NavigatorService.pushNamedAndRemoveUntil(AppRoutes.transferScreen, argument: {'toAddress': address, 'cryptoType': cryptoType, 'amount': amount});
+        await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amount, 'slow', note, address, adminAddress, adminCommissionAmount);
+        NavigatorService.pushNamed(AppRoutes.approvalScreen, argument: {'blockchain': blockchain,'status': 'pending',
+          'address': fromAddress, 'amount': amount, 'fee': 'slow', 'note': note, 'date': formattedDate, 'page': 'home', 'trxId': '', 'toAddress':''});
       } else {
         CommonWidget().snackBar(context, appTheme.red, response['message']);
       }
@@ -431,89 +475,62 @@ class TransactionProvider extends ChangeNotifier{
     try{
       final response = await apiService.verifyMpin(pin);
       if (response != null && response['status'] == 'success') {
-        // NavigatorService.pushNamedAndRemoveUntil(AppRoutes.transferScreen, argument: {'toAddress': address, 'cryptoType': cryptoType, 'amount': amount});
-        // CommonWidget().snackBar(context, appTheme.green, response['message']);
-        // var type = (cryptoType == 'Ethereum')?"eth":"usdt";
-
-
         // Get the current date
         DateTime now = DateTime.now();
         // Format the date as '23-Apr-2024'
         String formattedDate = DateFormat('dd-MMM-yyyy').format(now);
 
         var blockchain = (cryptoType == 'Ethereum')?"ethereum":(cryptoType == 'USDT')?"tron":"bitcoin";
-        var network = (cryptoType == 'Ethereum')?"mainnet":(cryptoType == 'USDT')?"mainnet":"mainnet";
+        // var network = (cryptoType == 'Ethereum')?"mainnet":(cryptoType == 'USDT')?"mainnet":"mainnet";
+        var network = (cryptoType == 'Ethereum')?"sepolia":(cryptoType == 'USDT')?"nile":"mainnet";
 
         var finalAmount = double.parse(amount);
         var ethCommission = 0.01;
         double amountAfterCommission = finalAmount;
 
         var commissionAmount = 0.0;
-        var adminAddress = '';
+        // var adminAddress = '';
 
-        if(blockchain == 'ethereum'){
-          commissionAmount = 0.01;
-          // adminAddress = '0x50ad50e334f13d6bdda46ff7d800f2c1f3b3f64a';
-          adminAddress = '0x3b5d925d4e229fce9407371507f9f2b5c7eb6621';
-          print('11111111111111111111111111111');
-          // amountAfterCommission = finalAmount - ethCommission;
-          // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amountAfterCommission, 'slow', note, address);
-          // await Future.delayed(Duration(seconds: 1));
-          // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, ethCommission, 'slow', note, '0x50ad50e334f13d6bdda46ff7d800f2c1f3b3f64a');
-        }else if(blockchain == 'tron'){
-          if(finalAmount >= 25000){
-            commissionAmount = 5;
-            // adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
-            adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
-            print('22222222222222222222222222');
-            // amountAfterCommission = finalAmount - 5;
-            // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amountAfterCommission, 'slow', note, address);
-            // await Future.delayed(Duration(seconds: 1));
-            // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, 5, 'slow', note, 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw');
-          }else if(finalAmount <= 25000 && finalAmount >= 10000){
-            commissionAmount = 3.2;
-            // adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
-            adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
-            print('333333333333333333333333333');
-            // amountAfterCommission = finalAmount - 3.2;
-            // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amountAfterCommission, 'slow', note, address);
-            // await Future.delayed(Duration(seconds: 1));
-            // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, 3.2, 'slow', note, 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw');
-          }else if(finalAmount <= 10000 && finalAmount >= 5000){
-            commissionAmount = 2.5;
-            // adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
-            adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
-            print('444444444444444444444');
-            // amountAfterCommission = finalAmount - 2.5;
-            // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amountAfterCommission, 'slow', note, address);
-            // await Future.delayed(Duration(seconds: 1));
-            // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, 2.5, 'slow', note, 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw');
-          }else if(finalAmount >= 1000 && finalAmount <= 5000){
-            commissionAmount = 1.5;
-            // adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
-            adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
-            print('55555555555555555555');
-            // amountAfterCommission = finalAmount - 1.5;
-            // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amountAfterCommission, 'slow', note, address);
-            // await Future.delayed(Duration(seconds: 1));
-            // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, 1.5, 'slow', note, 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw');
-          }else{
-            //we can use it for bitcoin
-            commissionAmount = 0.0;
-            // adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';
-            adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
-            print('666666666666666666666666');
-            // amountAfterCommission = finalAmount;
-            // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amountAfterCommission, 'slow', note, address);
-          }
-        }
+        //call function to calculate admin commission
+        calculateCommission(blockchain, finalAmount);
+        await getCommissionWallets(blockchain);
+
+        // updateAdminAddress(blockchain);
+
+        // if(blockchain == 'ethereum'){
+        //   commissionAmount = 0.01;
+        //   adminAddress = '0x50ad50e334f13d6bdda46ff7d800f2c1f3b3f64a'; //testng
+        //   // adminAddress = '0x3b5d925d4e229fce9407371507f9f2b5c7eb6621'; //live
+        // }else if(blockchain == 'tron'){
+        //   if(finalAmount >= 25000){
+        //     commissionAmount = 5;
+        //     adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';  //testing
+        //     // adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';  //live
+        //   }else if(finalAmount <= 25000 && finalAmount >= 10000){
+        //     commissionAmount = 3.2;
+        //     adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';  //testing
+        //     // adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';  //live
+        //   }else if(finalAmount <= 10000 && finalAmount >= 5000){
+        //     commissionAmount = 2.5;
+        //     adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';  //testing
+        //     // adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';  //live
+        //   }else if(finalAmount >= 1000 && finalAmount <= 5000){
+        //     commissionAmount = 1.5;
+        //     adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';  //testing
+        //     // adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';  //live
+        //   }else{
+        //     //we can use it for bitcoin
+        //     commissionAmount = 0.0;
+        //     adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';  //testing
+        //     // adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';  //live
+        //   }
+        // }
 
 
-        await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amount, 'slow', note, address, adminAddress, commissionAmount);
-        NavigatorService.pushNamed(AppRoutes.approvalScreen, argument: {'blockchain': blockchain,'status': 'pending', 'address': fromAddress, 'amount': amount, 'fee': 'slow', 'note': note, 'date': formattedDate, 'page': 'home'});
-
-        // await sendETH(context,address,type,amount);
-        // NavigatorService.pushNamedAndRemoveUntil(AppRoutes.transferScreen, argument: {'toAddress': address, 'cryptoType': cryptoType, 'amount': amount, 'note': note});
+        await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amount, 'slow', note, address, adminAddress, adminCommissionAmount);
+        // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amount, 'slow', note, address, adminAddress, commissionAmount);
+        NavigatorService.pushNamed(AppRoutes.approvalScreen, argument: {'blockchain': blockchain,'status': 'pending', 'address': fromAddress, 'amount': amount,
+          'fee': 'slow', 'note': note, 'date': formattedDate, 'page': 'home', 'trxId': '', 'toAddress':''});
       } else {
         CommonWidget.showToastView(response['message'], appTheme.red);
         // CommonWidget().snackBar(context, appTheme.red, response['message']);
@@ -568,14 +585,11 @@ class TransactionProvider extends ChangeNotifier{
 
   /// Function to get commission rate based on the input amount
   double? getCommissionRateForAmount(double amount, String cryptoType) {
+
+
     if (_commissionSettingsData == null || _commissionSettingsData!.data.isEmpty) {
       return null; // Return null if data is not available
     }
-
-    print('>>>>>>>>>>>>>>>>>>>>>>>>>>amount');
-    print(amount);
-    print(amount.runtimeType);
-    print(cryptoType);
 
     // Loop through the list of commission settings
     for (var setting in _commissionSettingsData!.data) {
@@ -673,6 +687,30 @@ class TransactionProvider extends ChangeNotifier{
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> cryptocompare(String type) async {
+    final url = Uri.parse(
+        'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD');
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        // Update the price if the API returns the correct data
+        if (data['USD'] != null) {
+          _cryptoCompareUSD = data['USD'];
+        } else {
+          _cryptoCompareUSD = 0.0;
+        }
+      } else {
+        throw Exception('Failed to load price');
+      }
+    } catch (error) {
+      print('Error fetching ETH price: $error');
+      _cryptoCompareUSD = 0.0;
+    }
+    // Notify listeners about the data change
+    notifyListeners();
   }
 
   @override

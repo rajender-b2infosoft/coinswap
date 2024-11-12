@@ -7,7 +7,6 @@
 
 import 'package:crypto_app/main.dart';
 import 'package:crypto_app/services/socketService.dart';
-import 'package:crypto_app/services/webSocketClient.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';

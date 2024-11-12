@@ -1,6 +1,5 @@
 import 'package:crypto_app/theme/theme_helper.dart';
 import 'package:crypto_app/widgets/animation.dart';
-import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'core/utils/navigation_service.dart';

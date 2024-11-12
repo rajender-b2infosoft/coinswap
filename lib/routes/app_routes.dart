@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../presentation/app_navigation_screen/app_navingation_screen.dart';
 import '../presentation/auth/forgotPasswordChange.dart';
 import '../presentation/auth/forgotPasswordOtp.dart';
 import '../presentation/auth/forgot_password.dart';
@@ -61,7 +60,7 @@ class AppRoutes{
   static const String registerScreen = '/register_screen';
   static const String homeScreen = '/home_screen';
   // static const String walletPage = '/walletPage';
-  static const String appNavigationScreen = '/app_navigation_screen';
+  // static const String appNavigationScreen = '/app_navigation_screen';
   static const String initialRoute = '/initialRoute';
 
   static Map<String, WidgetBuilder> get route => {
@@ -95,7 +94,7 @@ class AppRoutes{
     registerScreen: RegisterScreen.builder,
     homeScreen: HomeScreen.builder,
     // walletPage: WalletPage.builder,
-    appNavigationScreen: AppNavigationScreen.builder,
+    // appNavigationScreen: AppNavigationScreen.builder,
     initialRoute: SplashScreen.builder
   };
 }

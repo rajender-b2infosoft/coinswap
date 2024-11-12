@@ -1,10 +1,6 @@
-import 'dart:math';
 
-import 'package:crypto_app/theme/custom_text_style.dart';
-import 'package:crypto_app/theme/theme_helper.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
-import 'package:crypto_app/presentation/home_screen_page/provider/home_screen_provider.dart';
 import '../../core/app_export.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../wallet/provider/transaction_provider.dart';
@@ -112,61 +108,6 @@ class _ConversionScreenState extends State<ConversionScreen> {
                   style: CustomTextStyles.gray7272_16,
                 ),
                 const SizedBox(height: 10),
-                // Container(
-                //   height: 60,
-                //   decoration: BoxDecoration(
-                //     color: appTheme.white,
-                //     border: Border.all(width: 1.5, color: appTheme.color549FE3.withOpacity(0.2)),
-                //     borderRadius: BorderRadius.circular(10),
-                //   ),
-                //   child: Row(
-                //     crossAxisAlignment: CrossAxisAlignment.center,
-                //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                //     children: [
-                //       const SizedBox(width: 10,),
-                //       ClipOval(
-                //         child: CustomImageView(
-                //           imagePath: ImageConstant.eth,
-                //           width: 36,
-                //           height: 36,
-                //         ),
-                //       ),
-                //       const SizedBox(width: 10,),
-                //       Text('ETH', style: CustomTextStyles.gray7272_14,),
-                //       const SizedBox(width: 20,),
-                //       const Spacer(),
-                //       Transform.rotate(
-                //           angle: 90 * pi / 180,child: Icon(Icons.arrow_forward_ios, size: 20, color: appTheme.main,)),
-                //       const SizedBox(width: 10,),
-                //
-                //       const Spacer(),
-                //       CustomImageView(
-                //         imagePath: ImageConstant.line,
-                //         width: 2,
-                //         color: const Color(0XFF549FE3).withOpacity(0.3),
-                //         // height: 15,
-                //       ),
-                //       const Spacer(),
-                //
-                //       ClipOval(
-                //         child: CustomImageView(
-                //           imagePath: ImageConstant.bit,
-                //           width: 36,
-                //           height: 36,
-                //         ),
-                //       ),
-                //       const SizedBox(width: 10,),
-                //       Text('BTH', style: CustomTextStyles.gray7272_14,),
-                //       const SizedBox(width: 20,),
-                //       Transform.rotate(
-                //           angle: 90 * pi / 180,child: Icon(Icons.arrow_forward_ios, size: 20, color: appTheme.main,)),
-                //       const SizedBox(width: 20,),
-                //
-                //
-                //     ],
-                //   ),
-                // ),
-
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
