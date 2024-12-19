@@ -12,7 +12,8 @@ class WalletPin extends StatefulWidget {
   final String amount;
   final String note;
   final String fromAddress;
-  const WalletPin({super.key, required this.toAddress, required this.cryptoType, required this.amount, required this.note, required this.fromAddress});
+  final String page;
+  const WalletPin({super.key, required this.toAddress, required this.cryptoType, required this.amount, required this.note, required this.fromAddress, required this.page});
 
   @override
   State<WalletPin> createState() => _WalletPinState();
@@ -20,7 +21,7 @@ class WalletPin extends StatefulWidget {
     final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     return ChangeNotifierProvider(
       create: (context) => MpinProvider(),
-      child: WalletPin(toAddress: args['toAddress'], cryptoType: args['cryptoType'], amount: args['amount'], note: args['note'], fromAddress: args['fromAddress']),
+      child: WalletPin(toAddress: args['toAddress'], cryptoType: args['cryptoType'], amount: args['amount'], note: args['note'], fromAddress: args['fromAddress'], page: args['page']),
     );
   }
 }
@@ -297,7 +298,7 @@ class _WalletPinState extends State<WalletPin> {
           if(enteredOtp.length !< 4) {
             CommonWidget.showToastView('Please Enter valid pin', appTheme.red);
           }else if(enteredOtp.length == 4){
-            transactionProvider.checkMpin(context, enteredOtp, widget.toAddress, widget.cryptoType, widget.amount, widget.note, widget.fromAddress);
+            transactionProvider.checkMpin(context, enteredOtp, widget.toAddress, widget.cryptoType, widget.amount, widget.note, widget.fromAddress, widget.page);
           }
         },
       ),

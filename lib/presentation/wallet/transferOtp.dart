@@ -373,7 +373,8 @@ class _TransferOtpState extends State<TransferOtp> {
   }
 
   Widget _proceedButton(BuildContext context) {
-    return (provider.isLoading)
+    // return (provider.isLoading == true)
+    return Provider.of<TransactionProvider>(context).trxLoading
         ? CommonWidget().customAnimation(context, 50.0, 250.0)
         :CustomElevatedButton(
       buttonStyle: ElevatedButton.styleFrom(

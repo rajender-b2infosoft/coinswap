@@ -22,12 +22,13 @@ class SocketIOClient {
 
   Future<void> initializeNotifications() async {
     // Initialize the WebSocket connection
-    _channel = WebSocketChannel.connect(Uri.parse('ws://your_websocket_url'));
+    _channel = WebSocketChannel.connect(Uri.parse('https://api.coinswap.co.in:8000'));
 
     // Listen for incoming messages
     _channel.stream.listen((message) {
       var data = json.decode(message);
-      _showNotification(data['title'], data['body']);
+      // _showNotification(data['title'], data['body']);
+      _showNotification('Transaction Info.', data['body']);
     }, onError: (error) {
       // Handle error if necessary
       print('WebSocket error: $error');
@@ -59,7 +60,7 @@ class SocketIOClient {
 
   // Connect to the Socket.IO server
   void connectSocket(String token, String userId, BuildContext context, HomeScreenProvider provider) {
-    const String serverUrl = 'https://coinswap.co.in:8000';
+    const String serverUrl = 'https://api.coinswap.co.in:8000';
     // Configure the Socket.IO client with reconnection options
     _socket = IO.io(serverUrl, <String, dynamic>{
       'transports': ['websocket'],
@@ -142,7 +143,7 @@ class SocketIOClient {
     _socket!.on('vaultody_webhook', (data) async {
       print('vaultody_webhook:::::::::::::::::: ${data}');
 
-      _showNotification('', data['message'].toString());
+      // _showNotification('', data['message'].toString());
       //call provider function for update home page balance
       Provider.of<HomeScreenProvider>(context, listen: false).userWalletData();
     });
@@ -181,7 +182,7 @@ class SocketIOClient {
   }
 
   // Emit an event to the server
-  void emitEvent(String eventName, dynamic data) {
+  void emitStatusEvent(String eventName, dynamic data) {
     _socket?.emit(eventName, data);
   }
 

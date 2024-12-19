@@ -35,6 +35,7 @@ class TransferScreen extends StatefulWidget {
 
 class _TransferScreenState extends State<TransferScreen> {
   late TransactionProvider transactionProvider;
+  late ThemeProvider themeProvider;
 
   final _secureStorage = const FlutterSecureStorage();
   final _focusNodeAddress = FocusNode();
@@ -49,6 +50,8 @@ class _TransferScreenState extends State<TransferScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       transactionProvider =
           Provider.of<TransactionProvider>(context, listen: false);
+
+      themeProvider = Provider.of<ThemeProvider>(context, listen: false);
       //function for check wallet sufficient balance to make transaction
       transactionProvider.userWalletData();
       //function for get converted balance
@@ -78,14 +81,21 @@ class _TransferScreenState extends State<TransferScreen> {
   // }
 
   Future<void> checkAddress() async {
-    // var network = (transactionProvider.selectedCurrency == 'Ethereum')?"mainnet":(transactionProvider.selectedCurrency == 'USDT')?"mainnet":"mainnet";
-    var network = (transactionProvider.selectedCurrency == 'Ethereum')?"sepolia":(transactionProvider.selectedCurrency == 'USDT')?"nile":"mainnet";
+    var network = (transactionProvider.selectedCurrency == 'Ethereum')?"mainnet":(transactionProvider.selectedCurrency == 'USDT')?"mainnet":"mainnet";
+    // var network = (transactionProvider.selectedCurrency == 'Ethereum')?"sepolia":(transactionProvider.selectedCurrency == 'USDT')?"nile":"mainnet";
     var blockchain = (transactionProvider.selectedCurrency == 'Ethereum')?"ethereum":(transactionProvider.selectedCurrency == 'USDT')?"tron":"bitcoin";
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var userName = prefs.getString('userName');
 
+    print('............................>>>first');
+    print(network);
+    print(blockchain);
+    print(transactionProvider.addressController.text);
+
     if(transactionProvider.addressController.text != ''){
       transactionProvider.validateAddress(transactionProvider.addressController.text, blockchain, network, userName);
+
+      print('............................>>>first1');
     }
   }
 
@@ -105,6 +115,7 @@ class _TransferScreenState extends State<TransferScreen> {
   @override
   Widget build(BuildContext context) {
     transactionProvider = Provider.of<TransactionProvider>(context, listen: true);
+    themeProvider = Provider.of<ThemeProvider>(context, listen: false);
 
     return PopScope(
       canPop: false,
@@ -134,7 +145,7 @@ class _TransferScreenState extends State<TransferScreen> {
             padding: const EdgeInsets.all(20),
             height: SizeUtils.height,
             decoration: BoxDecoration(
-                color: appTheme.white,
+                color: (themeProvider.themeType == 'lightCode')?appTheme.white:appTheme.main,
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(50),
                   topRight: Radius.circular(50),
@@ -174,7 +185,7 @@ class _TransferScreenState extends State<TransferScreen> {
         : Center(
             child:  CustomElevatedButton(
                   buttonStyle: ElevatedButton.styleFrom(
-                      backgroundColor: appTheme.main,
+                      backgroundColor: appTheme.main_mpin,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(50.0)),
                       elevation: 0),
@@ -182,21 +193,7 @@ class _TransferScreenState extends State<TransferScreen> {
                   height: 50,
                   width: 250,
                   text: "Confirm",
-                  // text: transactionProvider.isLoading ? '' : "Confirm",
                   onPressed: () async {
-                   //  var blockchain = (transactionProvider.selectedCurrency == 'Ethereum')?"ethereum":(transactionProvider.selectedCurrency == 'USDT')?"tron":"bitcoin";
-                   //
-                   // transactionProvider.calculateCommission(blockchain, 1021);
-                   //
-                   //  print('$blockchain LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL>>>>>>>>>>>>>>>>>>>>>>>>>>> ${transactionProvider.selectedCurrency}');
-                   //
-                   //  print(transactionProvider.adminCommissionAmount);
-                   // return;
-
-                    // var commissionSetting = transactionProvider.sortCommission(transactionProvider.commissionSettingsData!.data);
-                    //
-                    // print(':::::::::::::::::::::::::commissionSetting::::::::::)');
-                    // print(commissionSetting);
 
                     if (transactionProvider.selectedCurrency == 'Bitcoin') {
                       CommonWidget.showToastView(
@@ -238,13 +235,13 @@ class _TransferScreenState extends State<TransferScreen> {
                         }
 
                         //check minimum amount
-                        if(double.parse(amount) > 0.02){
+                        // if(double.parse(amount) > 0.02){
 
                           if(transactionProvider.selectedCurrency == 'USDT'){
                             fromAddress = (await _secureStorage.read(key: 'tron'))!;
                           }else if(transactionProvider.selectedCurrency == 'BIT'){
                             fromAddress = (await _secureStorage.read(key: 'bitcoin'))!;
-                          }else if(transactionProvider.selectedCurrency == 'ETH'){
+                          }else if(transactionProvider.selectedCurrency == 'Ethereum'){
                             fromAddress = (await _secureStorage.read(key: 'ethereum'))!;
                           }
 
@@ -263,7 +260,7 @@ class _TransferScreenState extends State<TransferScreen> {
                             //1 means user proceed with m-pin
                             NavigatorService.pushNamed(AppRoutes.walletPin,
                                 argument: {'toAddress': toAddress, 'cryptoType': transactionProvider.selectedCurrency,
-                                  'amount': amount, "note": 'note type', 'fromAddress': fromAddress}
+                                  'amount': amount, "note": 'note type', 'fromAddress': fromAddress, 'page': 'transfer'}
                             );
                           } else {
                             await transactionProvider.sendOtp(
@@ -280,53 +277,16 @@ class _TransferScreenState extends State<TransferScreen> {
                             transactionProvider.setLoding(false);
                           }
                           transactionProvider.setLoding(false);
-                        }
-                        else{
-                          CommonWidget.showToastView('The entered amount is below the minimum required. Please enter an amount greater than or equal to the minimum limit', appTheme.gray8989);
-                          transactionProvider.setLoding(false);
-                        }
+                        // }
+                        // else{
+                        //   CommonWidget.showToastView('The entered amount is below the minimum required. Please enter an amount greater than or equal to the minimum limit', appTheme.gray8989);
+                        //   transactionProvider.setLoding(false);
+                        // }
                       }
                     }
                   },
                 ),
           );
-  }
-
-  Widget _note(){
-    return  IntrinsicWidth(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width),  // Set max width to avoid expanding beyond screen
-        child: Container(
-          decoration: BoxDecoration(
-            color: appTheme.lightBlue,  // Background color of the text field
-            boxShadow: [
-              BoxShadow(
-                color: appTheme.color549FE3,
-                blurRadius: 1.0,
-              ),
-            ],
-            borderRadius: BorderRadius.circular(8),  // Rounded corners
-          ),
-          child: TextFormField(
-            controller: transactionProvider.noteController,
-            decoration: InputDecoration(
-              border: InputBorder.none,  // Remove the border
-              hintText: 'Add Note',
-              hintStyle: CustomTextStyles.main16color2E92ED,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),  // Padding inside the field
-            ),
-            maxLines: 1,
-            maxLength: _characterLimit,
-            buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,  // Hide counter text
-            textInputAction: TextInputAction.done,
-            keyboardType: TextInputType.text,
-            onChanged: (value) {
-              transactionProvider.setNoteController(value);
-            },
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _buildInput(node, TextEditingController controller, String label,
@@ -352,18 +312,13 @@ class _TransferScreenState extends State<TransferScreen> {
             ),
             contentPadding:
                 const EdgeInsets.symmetric(vertical: 13, horizontal: 13),
-            fillColor: Colors.white,
+            fillColor: appTheme.white1,
             filled: true,
             hintText: label,
             hintStyle: TextStyle(
               color: hasFocus || hasValue ? appTheme.blueDark : Colors.grey,
               fontSize: 16,
               fontWeight: FontWeight.normal),
-            // labelText: label,
-            // labelStyle: TextStyle(
-            //     color: hasFocus || hasValue ? appTheme.blueDark : Colors.grey,
-            //     fontSize: 16,
-            //     fontWeight: FontWeight.normal),
             border: OutlineInputBorder(
               borderSide: BorderSide(
                 width: 1.5,
@@ -389,17 +344,17 @@ class _TransferScreenState extends State<TransferScreen> {
           validator: (value) => checkEmpty(value, error),
           onChanged: (value) async {
             transactionProvider.setqrCodeData(value);
-            var network = (transactionProvider.selectedCurrency == 'Ethereum')?"sepolia":(transactionProvider.selectedCurrency == 'USDT')?"nail":"testnet";
-            // var network = (transactionProvider.selectedCurrency == 'Ethereum')?"mainnet":(transactionProvider.selectedCurrency == 'USDT')?"mainnet":"mainnet";
+            // var network = (transactionProvider.selectedCurrency == 'Ethereum')?"sepolia":(transactionProvider.selectedCurrency == 'USDT')?"nail":"testnet";
+            var network = (transactionProvider.selectedCurrency == 'Ethereum')?"mainnet":(transactionProvider.selectedCurrency == 'USDT')?"mainnet":"mainnet";
             var blockchain = (transactionProvider.selectedCurrency == 'Ethereum')?"ethereum":(transactionProvider.selectedCurrency == 'USDT')?"tron":"bitcoin";
             SharedPreferences prefs = await SharedPreferences.getInstance();
             var userName = prefs.getString('userName');
 
             //verifying address
             if(value.length > 25){
-              print('.................................=');
-              print(value);
+              print('............................>>>first2');
               transactionProvider.validateAddress(value, blockchain, network, userName);
+              print('............................>>>first22');
             }
           },
       ),
@@ -540,7 +495,7 @@ class _TransferScreenState extends State<TransferScreen> {
             minHeight: MediaQuery.of(context).size.height * 0.07,
           ),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: appTheme.white1,
             border: Border.all(
               width: 1.5,
               color: appTheme.color549FE3.withOpacity(0.2),
@@ -602,15 +557,21 @@ class _TransferScreenState extends State<TransferScreen> {
                                 color: Color(0xff727272),
                               ),
                             ),
-                            Text(
-                              (value == 'Ethereum')
-                                  ? '${transactionProvider.ethBalance}  (ERC-20)': (value == 'USDT')?'${transactionProvider.usdtBalance}  (TRC-20)'
-                                  : '${transactionProvider.btcBalance}',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w400,
-                                color: Color(0xff989898),
+                            Container(
+                              width: SizeUtils.width/2,
+                              child: Text(
+                                (value == 'Ethereum')
+                                    ? '${double.parse(transactionProvider.ethBalance).toStringAsFixed(6)}  (ERC-20)'
+                                    : (value == 'USDT')?
+                                '${double.parse(transactionProvider.usdtBalance).toStringAsFixed(6)}  (TRC-20)'
+                                    : transactionProvider.btcBalance,
+                                style: const TextStyle(
+                                  overflow: TextOverflow.ellipsis,
+                                  fontSize: 12,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w400,
+                                  color: Color(0xff989898),
+                                ),
                               ),
                             ),
                           ],
@@ -632,11 +593,19 @@ class _TransferScreenState extends State<TransferScreen> {
                 var userName = prefs.getString('userName');
 
                 var bloc = (blockchain=='USDT')?'tron':(blockchain=='ETH')?'ethereum':'bitcoin';
-                // var net = (blockchain=='USDT')?'mainnet':(blockchain=='ETH')?'mainnet':'mainnet';
-                var net = (blockchain=='USDT')?'nile':(blockchain=='ETH')?'sepolia':'mainnet';
+                var net = (blockchain=='USDT')?'mainnet':(blockchain=='ETH')?'mainnet':'mainnet';
+                // var net = (blockchain=='USDT')?'nile':(blockchain=='ETH')?'sepolia':'mainnet';
 
                 if(transactionProvider.addressController.text != ''){
+
+                  print('..........................//');
+                  print(transactionProvider.addressController.text);
+                  print(bloc);
+                  print(net);
+
+                  print('............................>>>first33');
                   transactionProvider.validateAddress(transactionProvider.addressController.text, bloc, net, userName);
+                  print('............................>>>first333');
                 }
 
               },
@@ -692,14 +661,14 @@ class _TransferScreenState extends State<TransferScreen> {
             cursorColor: (transactionProvider.amountController.text == '')
                 ? appTheme.colorc3c3
                 : appTheme.main,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: "00.00",
-              hintStyle: TextStyle(
+              hintStyle: const TextStyle(
                   color: Color(0xffB6B6B6),
                   fontSize: 24,
                   fontWeight: FontWeight.w300,
                   fontFamily: 'Poppins'),
-              fillColor: Colors.white,
+              fillColor: appTheme.white1,
               filled: true,
               border: InputBorder.none,
               contentPadding:

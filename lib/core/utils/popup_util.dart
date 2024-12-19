@@ -13,6 +13,7 @@ class PopupUtil {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: appTheme.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.0), // Adjust the radius here
           ),
@@ -44,7 +45,7 @@ class PopupUtil {
                 child: Text(
                   message,
                   textAlign: TextAlign.center, // Center the text
-                  style: CustomTextStyles.gray7272_17,
+                  style: CustomTextStyles.color7272_17,
                 ),
               ),
             ],
@@ -60,6 +61,7 @@ class PopupUtil {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: appTheme.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.0), // Adjust the radius here
           ),
@@ -70,7 +72,7 @@ class PopupUtil {
                 height: 80,
                 width: 80,
               ),
-              SizedBox(height: 10,),
+              const SizedBox(height: 10,),
               Text(title, style: titleStyle,
               ),
             ],
@@ -80,7 +82,7 @@ class PopupUtil {
             child: Text(
               message,
               textAlign: TextAlign.center, // Center the text
-              style: CustomTextStyles.gray7272_17,
+              style: CustomTextStyles.color7272_17,
             ),
           ),
           actions: <Widget>[],
@@ -95,6 +97,7 @@ class PopupUtil {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: appTheme.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.0), // Adjust the radius here
           ),
@@ -105,7 +108,7 @@ class PopupUtil {
                 height: 80,
                 width: 80,
               ),
-              SizedBox(height: 10,),
+              const SizedBox(height: 10,),
               Text(title, style: titleStyle),
             ],
           ),
@@ -182,5 +185,76 @@ class PopupUtil {
     );
   }
 
+  void logOutPopUp(BuildContext context, VoidCallback  onConfirm) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: appTheme.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0), // Adjust the radius here
+          ),
+          title: Column(
+            children: [
+              Icon(Icons.logout, size: 50, color: appTheme.main_mpin,),
+              const SizedBox(height: 0,),
+            ],
+          ),
+          content: Padding(
+            padding: const EdgeInsets.fromLTRB(15, 0, 15, 0),
+            child: Text(
+              'Logout',
+              textAlign: TextAlign.center, // Center the text
+              style: CustomTextStyles.main18_mpin,
+            ),
+          ),
+          actions: <Widget>[
+            Padding(
+              padding: const EdgeInsets.only(left: 10.0, right: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(width: 1, color: appTheme.main_mpin)
+                      ),
+                      child: GestureDetector(
+                        onTap: () async {
+                          NavigatorService.goBack();
+                        },
+                        child: Text(
+                          'Cancel',
+                          style: CustomTextStyles.main16,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                      decoration: BoxDecoration(
+                        color: appTheme.main_mpin,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: InkWell(
+                        onTap: onConfirm,
+                        child: Text(
+                          'Logout',
+                          style: CustomTextStyles.white17,
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
 }

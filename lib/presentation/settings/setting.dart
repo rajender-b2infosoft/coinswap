@@ -27,12 +27,22 @@ class _SettingScreenState extends State<SettingScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       provider = Provider.of<SettingProvider>(context, listen: false);
       provider.getSettings(context);
+      getTheme();
     });
+  }
+
+  getTheme() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? currentTheme = prefs.getString('themeData');
+    bool themeVal = (currentTheme=='darkCode')?true:false;
+
+    provider.toggleSwitch1(themeVal);
   }
 
   @override
   Widget build(BuildContext context) {
     provider = Provider.of<SettingProvider>(context, listen: true);
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: appTheme.main,
@@ -42,7 +52,8 @@ class _SettingScreenState extends State<SettingScreen> {
         automaticallyImplyLeading: false,
         leading: InkWell(
             onTap: () {
-              NavigatorService.goBack();
+              // NavigatorService.goBack();
+              NavigatorService.pushNamed(AppRoutes.homeScreen);
             },
             child: Icon(
               Icons.arrow_back_ios,
@@ -60,7 +71,7 @@ class _SettingScreenState extends State<SettingScreen> {
           height: SizeUtils.height,
           width: SizeUtils.width,
           decoration: BoxDecoration(
-              color: appTheme.white,
+              color: appTheme.white1,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(50),
                 topRight: Radius.circular(50),
@@ -81,7 +92,7 @@ class _SettingScreenState extends State<SettingScreen> {
                           height: 40,
                           width: 40,
                           decoration: BoxDecoration(
-                            color: appTheme.main,
+                            color: appTheme.main_mpin,
                             borderRadius: BorderRadius.circular(50),
                           ),
                           child: CustomImageView(
@@ -105,7 +116,7 @@ class _SettingScreenState extends State<SettingScreen> {
                     value: provider.isNotification,
                     inactiveColor: appTheme.colorEFEFEF,
                     activeColor: appTheme.lightGreen,
-                    onToggle: (val){
+                    onToggle: (val) {
                       provider.toggleSwitch();
                       provider.setSettingsData(context, val, 'notification');
                     },
@@ -125,7 +136,7 @@ class _SettingScreenState extends State<SettingScreen> {
                           height: 40,
                           width: 40,
                           decoration: BoxDecoration(
-                            color: appTheme.main,
+                            color: appTheme.main_mpin,
                             borderRadius: BorderRadius.circular(50),
                           ),
                           child: CustomImageView(
@@ -143,35 +154,35 @@ class _SettingScreenState extends State<SettingScreen> {
                   ),
                   Stack(
                     children: [
-
                       FlutterSwitch(
                         width: 70,
                         height: 30,
                         showOnOff: false,
                         toggleSize: 25.0,
-                        value: provider.isTheme,
+                        value: !provider.isTheme,
                         inactiveColor: appTheme.color2628,
                         activeColor: appTheme.color0072D,
-                        onToggle: (val)async{
-                          print(val);
-                          provider.toggleSwitch1();
-                          SharedPreferences prefs = await SharedPreferences.getInstance();
-                          if(!val){
+                        onToggle: (val) async {
+                          provider.toggleSwitch1(!val);
+                          SharedPreferences prefs =
+                              await SharedPreferences.getInstance();
+                          if (!val) {
                             prefs.setString('themeData', 'lightCode');
-                          }else{
+                          } else {
                             prefs.setString('themeData', 'darkCode');
                           }
 
-                          Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
+                          Provider.of<ThemeProvider>(context, listen: false)
+                              .toggleTheme();
                         },
-                          activeIcon:  CustomImageView(
-                            imagePath: ImageConstant.sun,
-                            height: 20,
-                          ),
-                          inactiveIcon:  CustomImageView(
-                            imagePath: ImageConstant.moon,
-                            height: 20,
-                          ),
+                        activeIcon: CustomImageView(
+                          imagePath: ImageConstant.sun,
+                          height: 20,
+                        ),
+                        inactiveIcon: CustomImageView(
+                          imagePath: ImageConstant.moon,
+                          height: 20,
+                        ),
                       ),
                     ],
                   ),
@@ -190,7 +201,7 @@ class _SettingScreenState extends State<SettingScreen> {
                         height: 40,
                         width: 40,
                         decoration: BoxDecoration(
-                          color: appTheme.main,
+                          color: appTheme.main_mpin,
                           borderRadius: BorderRadius.circular(50),
                         ),
                         child: CustomImageView(
@@ -208,14 +219,16 @@ class _SettingScreenState extends State<SettingScreen> {
                     ],
                   ),
                   InkWell(
-                    onTap: (){
-                      NavigatorService.pushNamed(AppRoutes.mpinScreen);
-                    },
+                      onTap: () {
+                        NavigatorService.pushNamed(AppRoutes.mpinScreen);
+                      },
                       child: Icon(
-                        Icons.arrow_forward_ios_rounded, color: appTheme.grayA0A0, weight: 600,))
+                        Icons.arrow_forward_ios_rounded,
+                        color: appTheme.grayA0A0,
+                        weight: 600,
+                      ))
                 ],
               ),
-
               const SizedBox(
                 height: 25,
               ),
@@ -229,7 +242,7 @@ class _SettingScreenState extends State<SettingScreen> {
                           height: 40,
                           width: 40,
                           decoration: BoxDecoration(
-                            color: appTheme.main,
+                            color: appTheme.main_mpin,
                             borderRadius: BorderRadius.circular(50),
                           ),
                           child: CustomImageView(
@@ -258,14 +271,16 @@ class _SettingScreenState extends State<SettingScreen> {
                     activeText: "Mpin",
                     inactiveText: "OTP",
                     // inactiveColor: appTheme.colorEFEFEF,
-                    inactiveColor: appTheme.main,
-                    activeColor: appTheme.main,
-                    onToggle: (val){
-                      if(provider.isPin != ''){
+                    inactiveColor: appTheme.mainTitle,
+                    activeColor: appTheme.mainTitle,
+                    onToggle: (val) {
+                      if (provider.isPin != '') {
                         provider.mpinToggle();
-                        provider.setSettingsData(context, val, 'default_security');
-                      }else{
-                        CommonWidget.showToastView("Please generate m-pin first", appTheme.gray8989);
+                        provider.setSettingsData(
+                            context, val, 'default_security');
+                      } else {
+                        CommonWidget.showToastView(
+                            "Please generate m-pin first", appTheme.gray8989);
                       }
                     },
                   )

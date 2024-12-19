@@ -183,6 +183,7 @@ class ColorSchemes {
 
 class LightCodeColors {
   Color get main => Color(0XFF016CD8);
+  Color get blu => Color(0XFF016CD8);
   Color get colorc3c3 => Color(0xFFC3C3C3);
   Color get color036 => Color(0xFF0363E2);
   Color get mainTitle => Color(0XFF016FD3);
@@ -238,9 +239,18 @@ class LightCodeColors {
   Color get color_5A78D1 => const Color(0XFF0073D0);
   Color get color_0460E5 => const Color(0XFF0460E5);
   Color get color_E4F0FF => const Color(0XFFE4F0FF);
+  Color get color7272 => Color(0XFF727272);
+  Color get colorf8f8 => Color(0XFF8F8F8F);
+  Color get drawerColor => Color(0XFFFFFFFF);
+  Color get lBlue => Color(0XFFE4F0FF);
 }
 
 class DarkCodeColors extends LightCodeColors {
+  Color get lBlue => Color(0XFF45599B);
+  Color get drawerColor => Color(0XFF313245);
+  Color get colorf8f8 => Color(0XFF8F8F8F);
+  Color get blu => Color(0XFF5572C6);
+  Color get color7272 => Color(0XFF727272);
   Color get main => Color(0XFF1b1c2e);
   Color get blueDark => Color(0XFF298AE2);
   Color get gray7272 => Color(0XFFD6D6D6);

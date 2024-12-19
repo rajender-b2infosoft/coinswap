@@ -11,6 +11,7 @@ import '../presentation/auth/verify_otp.dart';
 import '../presentation/conversion/conversion.dart';
 import '../presentation/conversion/conversion_done.dart';
 import '../presentation/graphs/bitcoinGraph.dart';
+import '../presentation/graphs/tradingViewGraph.dart';
 import '../presentation/home_screen_page/home_screen.dart';
 import '../presentation/get_started/get_started.dart';
 // import '../presentation/home_screen_page/wallet_page.dart';
@@ -62,6 +63,7 @@ class AppRoutes{
   // static const String walletPage = '/walletPage';
   // static const String appNavigationScreen = '/app_navigation_screen';
   static const String initialRoute = '/initialRoute';
+  static const String tradingViewChartPage = '/tradingViewChartPage';
 
   static Map<String, WidgetBuilder> get route => {
     splashScreen: SplashScreen.builder,
@@ -95,6 +97,7 @@ class AppRoutes{
     homeScreen: HomeScreen.builder,
     // walletPage: WalletPage.builder,
     // appNavigationScreen: AppNavigationScreen.builder,
-    initialRoute: SplashScreen.builder
+    initialRoute: SplashScreen.builder,
+    tradingViewChartPage: TradingViewChartPage.builder
   };
 }

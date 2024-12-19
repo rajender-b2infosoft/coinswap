@@ -4,14 +4,17 @@ import '../../core/app_export.dart';
 import '../../widgets/custom_elevated_button.dart';
 
 class ConversionDone extends StatefulWidget {
-  const ConversionDone({super.key});
+  final String page;
+  const ConversionDone({super.key, required this.page});
 
   @override
   State<ConversionDone> createState() => _ConversionDoneState();
-  static Widget builder(BuildContext context){
+  static Widget builder(BuildContext context) {
+    final args =
+        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     return ChangeNotifierProvider(
-      create: (context)=> HomeScreenProvider(),
-      child: const ConversionDone(),
+      create: (context) => HomeScreenProvider(),
+      child: ConversionDone(page: args['page']),
     );
   }
 }
@@ -30,31 +33,56 @@ class _ConversionDoneState extends State<ConversionDone> {
         backgroundColor: Colors.transparent,
         automaticallyImplyLeading: false,
         leading: InkWell(
-            onTap: (){
+            onTap: () {
               NavigatorService.goBack();
             },
-            child: Icon(Icons.arrow_back_ios, color: appTheme.white,)),
-        title: Text('Conversion ',
-          style:  CustomTextStyles.headlineMediumRegular,),
+            child: Icon(
+              Icons.arrow_back_ios,
+              color: appTheme.white,
+            )),
+        title: Text(
+          'Conversion ',
+          style: CustomTextStyles.headlineMediumRegular,
+        ),
       ),
-
       body: Padding(
         padding: const EdgeInsets.only(top: 100.0),
         child: Container(
           padding: const EdgeInsets.all(20),
           height: SizeUtils.height,
           decoration: BoxDecoration(
-              color: appTheme.white,
+              color: appTheme.white1,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(50),
                 topRight: Radius.circular(50),
-              )
-          ),
+              )),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoCard(),
+                //dummy code for now
+                (widget.page == 'convert')
+                    ? Center(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CustomImageView(
+                              imagePath: ImageConstant.comming_soon,
+                              width: 200,
+                              height: 200,
+                            ),
+                            const SizedBox(
+                              height: 50,
+                            ),
+                            const Text(
+                              'This Feature will be available soon',
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            )
+                          ],
+                        ),
+                      )
+                    : _buildInfoCard(),
               ],
             ),
           ),
@@ -67,7 +95,9 @@ class _ConversionDoneState extends State<ConversionDone> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 40,),
+        const SizedBox(
+          height: 40,
+        ),
         Center(
           child: CustomImageView(
             imagePath: ImageConstant.round_done,
@@ -75,16 +105,28 @@ class _ConversionDoneState extends State<ConversionDone> {
             height: 90,
           ),
         ),
-        const SizedBox(height: 20,),
-        Center(child: Text('Success !', style: CustomTextStyles.main28,)),
-        const SizedBox(height: 10,),
+        const SizedBox(
+          height: 20,
+        ),
+        Center(
+            child: Text(
+          'Success !',
+          style: CustomTextStyles.main28,
+        )),
+        const SizedBox(
+          height: 10,
+        ),
         Padding(
           padding: const EdgeInsets.only(left: 45.0, right: 45),
-          child: Text('9812.2312 (USDT) has been added to your wallet.',
+          child: Text(
+            '9812.2312 (USDT) has been added to your wallet.',
             textAlign: TextAlign.center,
-            style: CustomTextStyles.gray14,),
+            style: CustomTextStyles.gray14,
+          ),
         ),
-        const SizedBox(height: 70,),
+        const SizedBox(
+          height: 70,
+        ),
         _proceedButton(),
       ],
     );
@@ -95,9 +137,8 @@ class _ConversionDoneState extends State<ConversionDone> {
       child: CustomElevatedButton(
         buttonStyle: ElevatedButton.styleFrom(
           backgroundColor: appTheme.main,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(50.0)
-          ),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
           elevation: 0,
         ),
         buttonTextStyle: CustomTextStyles.white18,
@@ -110,5 +151,4 @@ class _ConversionDoneState extends State<ConversionDone> {
       ),
     );
   }
-
 }

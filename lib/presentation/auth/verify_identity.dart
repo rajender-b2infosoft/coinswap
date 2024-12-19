@@ -12,7 +12,6 @@ import 'package:camera/camera.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:image/image.dart' as img;
-import 'package:http/http.dart' as http;
 import 'dart:ui';
 
 class VerifyIdentity extends StatefulWidget {
@@ -33,13 +32,9 @@ class VerifyIdentity extends StatefulWidget {
 class _VerifyIdentityState extends State<VerifyIdentity> {
   late SelfieProvider selfieProvider;
 
-  final ImagePicker _picker = ImagePicker();
   late CameraController _controller;
   late Future<void> _initializeControllerFuture;
-  File? _imageFile;
   bool _isLoading = false;
-  String? _imageName; // Store the image name
-  String? _imageSize; // Store the image size
   bool _isFrontImage = true; // Track if we are capturing the front image
   FlashMode _flashMode = FlashMode.off; // Track the flash mode
   IconData isIcon = Icons.flash_auto;
@@ -149,26 +144,9 @@ class _VerifyIdentityState extends State<VerifyIdentity> {
 
     if (!blurry) {
       selfieProvider.addImage(imageFile);
-      // setState(() async {
-      //   _imageFile = imageFile; // Update the UI with the captured image
-      //   _imageName = path.basename(imageFile.path); // Get the image name
-      //   _imageSize = _formatFileSize(await imageFile.length());
-      // });
-      // await uploadImageToServer(imageFile);
       await selfieProvider.addDocument(imageFile, selfieProvider.groupValue);
-      // showSnackBar('Image uploaded successfully!');
     } else {
       showSnackBar('Image is blurry, please retake the picture.');
-    }
-  }
-
-  String _formatFileSize(int bytes) {
-    if (bytes < 1024) {
-      return '$bytes bytes';
-    } else if (bytes < 1048576) {
-      return '${(bytes / 1024).toStringAsFixed(2)} KB';
-    } else {
-      return '${(bytes / 1048576).toStringAsFixed(2)} MB';
     }
   }
 
@@ -275,7 +253,7 @@ class _VerifyIdentityState extends State<VerifyIdentity> {
                       padding: const EdgeInsets.all(20),
                       height: SizeUtils.height/1.5,
                       decoration: BoxDecoration(
-                        color: appTheme.white,
+                        color: appTheme.white1,
                         borderRadius: const BorderRadius.only(
                           topRight: Radius.circular(50),
                           topLeft: Radius.circular(50),
@@ -448,7 +426,7 @@ class _VerifyIdentityState extends State<VerifyIdentity> {
                 height: 90,
                 width: 200,
                 decoration: BoxDecoration(
-                  color: appTheme.main,
+                  color: appTheme.main_mpin,
                   borderRadius: BorderRadius.circular(20)
                 ),
                 child: Column(
@@ -616,44 +594,6 @@ class _VerifyIdentityState extends State<VerifyIdentity> {
     }
   }
 
-
-  // Widget uploadSelfie(SelfieProvider selfieProvider){
-  //   return Column(
-  //     children: [
-  //       CustomImageView(
-  //         imagePath: ImageConstant.capture,
-  //       ),
-  //       const SizedBox(height: 40,),
-  //       _proceedButton(selfieProvider),
-  //     ],
-  //   );
-  // }
-  //
-  // Widget _proceedButton(SelfieProvider selfieProvider) {
-  //   return CustomElevatedButton(
-  //     buttonStyle: ElevatedButton.styleFrom(
-  //       backgroundColor: appTheme.main,
-  //       shape: RoundedRectangleBorder(
-  //           borderRadius: BorderRadius.circular(50.0)
-  //       ),
-  //       elevation: 0
-  //     ),
-  //     buttonTextStyle: CustomTextStyles.white21,
-  //     // height: 41.v,
-  //     width: 250,
-  //     text: "Capture",
-  //     onPressed: () {
-  //       // NavigatorService.pushNamed(AppRoutes.registerSuccessScreen);
-  //       if (selfieProvider.selfieImage == null) {
-  //         CommonWidget.showToastView('Please take a selfie before proceeding!', appTheme.red);
-  //       } else {
-  //         var img = selfieProvider.selfieImage;
-  //         selfieProvider.addDocument(img, context, 1, 'passport');
-  //         // NavigatorService.pushNamed(AppRoutes.registerSuccessScreen);
-  //       }
-  //     },
-  //   );
-  // }
 }
 
 class CameraBottomSheet extends StatelessWidget {
@@ -727,6 +667,7 @@ class CameraBottomSheet extends StatelessWidget {
                       borderRadius: BorderRadius.circular(50),
                   ),
                   child: Center(child: Text('Upload the $cameraSide side of your document',
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: "Poppins",
                     fontWeight: FontWeight.w400,
@@ -736,27 +677,27 @@ class CameraBottomSheet extends StatelessWidget {
                 ),
               ),
 
-              Positioned(
-                bottom: 20,
-                left: SizeUtils.width/3.2,
-                child: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                      color: appTheme.main,
-                      borderRadius: BorderRadius.circular(50),
-                      border: Border.all(width: 2, color: appTheme.white)
-                  ),
-                  // child: Icon(Icons.electric_bolt_outlined, color: appTheme.white, size: 30,),
-                  child: IconButton(
-                    icon: Icon(flashIcon, color: appTheme.white, size: 30,),
-                    onPressed: onFlashToggle,
-                  ),
-                ),
-              ),
+              // Positioned(
+              //   bottom: 20,
+              //   left: SizeUtils.width/3.2,
+              //   child: Container(
+              //     padding: const EdgeInsets.all(2),
+              //     decoration: BoxDecoration(
+              //         color: appTheme.main,
+              //         borderRadius: BorderRadius.circular(50),
+              //         border: Border.all(width: 2, color: appTheme.white)
+              //     ),
+              //     // child: Icon(Icons.electric_bolt_outlined, color: appTheme.white, size: 30,),
+              //     child: IconButton(
+              //       icon: Icon(flashIcon, color: appTheme.white, size: 30,),
+              //       onPressed: onFlashToggle,
+              //     ),
+              //   ),
+              // ),
 
               Positioned(
                 bottom: 20,
-                left: SizeUtils.width/1.8,
+                left: SizeUtils.width/2.3,
                 child: InkWell(
                   onTap: (){
                     _takePicture(context);

@@ -96,7 +96,12 @@ class ApiService {
         'username': encryptData(email, encryptKey, iv),
         'password': password
       });
+
+      print('LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL');
+      print(data);
+
       final response = await post('auth/login', data);
+      print('..APi response...............$response');
       return response;
     } catch (e) {
       print("Error(Function userLogin):$e");
@@ -259,6 +264,25 @@ class ApiService {
     }
   }
 
+  Future trxById(id) async {
+    try {
+      final response = await get('api/transaction/$id');
+      return response;
+    } catch (e) {
+      print("Error(Function trxById):$e");
+      return e.toString();
+    }
+  }
+  Future trxByTrxId(id) async {
+    try {
+      final response = await get('api/transaction-by-transaction-id/$id');
+      return response;
+    } catch (e) {
+      print("Error(Function trxByTrxId):$e");
+      return e.toString();
+    }
+  }
+
   Future livePrice() async {
     try {
       final response = await get('api/live-price');
@@ -313,11 +337,18 @@ class ApiService {
     }
   }
 
+  Future getWalletDetails(address) async {
+    try {
+      final response = await get('api/wallet-details/$address');
+      return response;
+    } catch (e) {
+      print("Error(Function getWalletDetails):$e");
+      return e.toString();
+    }
+  }
 
-  Future verifyOtp(req, otp) async {
 
-    print('EncryData'+encryptData(req['username'], encryptKey, iv).toString());
-
+  Future verifyOtp(req, otp, fcmToken) async {
     try {
       dynamic data = jsonEncode(<dynamic, dynamic>{
         // 'username': req['username'],
@@ -326,7 +357,8 @@ class ApiService {
         // 'name': req['name'],
         'name': encryptData(req['name'], encryptKey, iv),
         'privacy_policy': req['privacy_policy'],
-        'otp': otp
+        'otp': otp,
+        'fcmToken': fcmToken
       });
 
       print('EncryData'+data.toString());
@@ -339,13 +371,14 @@ class ApiService {
     }
   }
 
-  Future verifyLoginOtp(email, password, otp) async {
+  Future verifyLoginOtp(email, password, otp, fcmToken) async {
     try {
       dynamic data = jsonEncode(<dynamic, dynamic>{
         // 'username': email,
         'username': encryptData(email, encryptKey, iv),
         'password': password,
-        'otp': otp
+        'otp': otp,
+        'fcmToken': fcmToken
       });
       final response = await post('auth/verify-login', data);
       return response;
@@ -567,6 +600,17 @@ class ApiService {
     }
   }
 
+  Future sendSuccessEmail() async {
+    try {
+      dynamic data = jsonEncode(<dynamic, dynamic>{});
+      final response = await post('api/send-email', data);
+      return response;
+    } catch (e) {
+      print("Error(Function sendSuccessEmail): $e");
+      return e.toString();
+    }
+  }
+
   Future sendTransactioToAdmin(fromAddress, blockchain, network, amount, fee, note, toAddress, adminAddress, commissionAmount) async {
     try {
       dynamic data = jsonEncode(<dynamic, dynamic>{
@@ -584,6 +628,30 @@ class ApiService {
       return response;
     } catch (e) {
       print("Error(Function sendTransactioToAdmin):$e");
+      return e.toString();
+    }
+  }
+
+
+  Future sendTrxToVaultody(id, sender_id, recipient_id, address, blockchain, network, amount, feePriority, recipientAddress, commission) async {
+    try {
+      dynamic data = jsonEncode(<dynamic, dynamic>{
+        "id": id,
+        "sender_id": sender_id,
+        "recipient_id": recipient_id,
+        "address": address,
+        "blockchain": blockchain,
+        "network": network,
+        "amount": amount,
+        "feePriority": feePriority,
+        "note": '',
+        "recipientAddress": recipientAddress,
+        "commission": commission,
+      });
+      final response = await post('api/send-to-address', data);
+      return response;
+    } catch (e) {
+      print("Error(Function sendTrxToVaultody):$e");
       return e.toString();
     }
   }

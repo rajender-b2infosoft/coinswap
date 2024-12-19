@@ -1,13 +1,7 @@
 import 'dart:async';
-
 import 'package:crypto_app/presentation/auth/provider/auth_provider.dart';
-import 'package:crypto_app/theme/custom_text_style.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../core/app_export.dart';
-import '../../core/utils/popup_util.dart';
-import '../../services/socketService.dart';
 import '../../widgets/custom_elevated_button.dart';
 
 class RegisterSuccessScreen extends StatefulWidget {
@@ -15,48 +9,50 @@ class RegisterSuccessScreen extends StatefulWidget {
 
   @override
   State<RegisterSuccessScreen> createState() => _RegisterSuccessScreenState();
-  static Widget builder(BuildContext context){
+  static Widget builder(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context)=> AuthProvider(),
+      create: (context) => AuthProvider(),
       child: const RegisterSuccessScreen(),
     );
   }
 }
 
 class _RegisterSuccessScreenState extends State<RegisterSuccessScreen> {
+
+  late AuthProvider provider;
+  late ThemeProvider themeProvider;
   Timer? _timer;
   int _start = 3;
-
 
   @override
   void initState() {
     super.initState();
+    themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    provider = Provider.of<AuthProvider>(context, listen: false);
     //startTimer();
-
   }
-
-
 
   void startTimer() {
     const oneSec = const Duration(seconds: 1);
     _timer = Timer.periodic(
-        oneSec,
-        (Timer timer){
+      oneSec,
+      (Timer timer) {
         if (_start == 0) {
-      timer.cancel();
-      // Navigate to dashboard
-    
-    } else {
-    setState(() {
-    _start--;
-    });
-    }
-  },
+          timer.cancel();
+          // Navigate to dashboard
+        } else {
+          setState(() {
+            _start--;
+          });
+        }
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    provider = Provider.of<AuthProvider>(context, listen: false);
+    themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     return SafeArea(
       child: Scaffold(
         backgroundColor: appTheme.main,
@@ -78,8 +74,8 @@ class _RegisterSuccessScreenState extends State<RegisterSuccessScreen> {
                   ),
                 ),
                 Positioned(
-                  left: (SizeUtils.width-120)/2.2,
-                  bottom: SizeUtils.height/1.35,
+                  left: (SizeUtils.width - 120) / 2.2,
+                  bottom: SizeUtils.height / 1.35,
                   child: CustomImageView(
                     imagePath: ImageConstant.logo,
                     height: 140.v,
@@ -88,7 +84,7 @@ class _RegisterSuccessScreenState extends State<RegisterSuccessScreen> {
                 ),
                 Positioned(
                   right: 0,
-                  bottom: SizeUtils.height/1.6,
+                  bottom: SizeUtils.height / 1.6,
                   child: CustomImageView(
                     imagePath: ImageConstant.LooperGroupBottom,
                     height: 140.v,
@@ -101,9 +97,9 @@ class _RegisterSuccessScreenState extends State<RegisterSuccessScreen> {
                   right: 0,
                   child: Container(
                     padding: const EdgeInsets.all(20),
-                    height: SizeUtils.height/1.5,
+                    height: SizeUtils.height / 1.5,
                     decoration: BoxDecoration(
-                      color: appTheme.white,
+                      color: appTheme.white1,
                       borderRadius: const BorderRadius.only(
                         topRight: Radius.circular(50),
                         topLeft: Radius.circular(50),
@@ -120,32 +116,45 @@ class _RegisterSuccessScreenState extends State<RegisterSuccessScreen> {
                               imagePath: ImageConstant.completed,
                               height: 250,
                             ),
-                            const SizedBox(height: 20,),
-                            Text('Congratulations!', style: CustomTextStyles.main28,),
+                            const SizedBox(
+                              height: 20,
+                            ),
+                            Text(
+                              'Congratulations!',
+                              style: (themeProvider.themeType == "lightCode")?CustomTextStyles.gray28:CustomTextStyles.gray28,
+                            ),
                             Padding(
                               padding: const EdgeInsets.all(15.0),
-                              child: Center(child: Text('Your ID is verified and account is set up Happy Trading!',
+                              child: Center(
+                                  child: Text(
+                                'Welcome to CoinSwap Happy Trading!',
                                 textAlign: TextAlign.center,
-                                style: CustomTextStyles.gray14,)),
+                                style: CustomTextStyles.gray14,
+                              )),
                             ),
-                            const SizedBox(height: 10,),
+                            const SizedBox(
+                              height: 10,
+                            ),
                             CustomElevatedButton(
                               buttonStyle: ElevatedButton.styleFrom(
-                                  backgroundColor: appTheme.main,
+                                  backgroundColor: appTheme.main_mpin,
                                   shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(50.0)
-                                  ),
-                                  elevation: 0
-                              ),
+                                      borderRadius:
+                                          BorderRadius.circular(50.0)),
+                                  elevation: 0),
                               buttonTextStyle: CustomTextStyles.white18,
                               width: 250,
                               height: 50,
                               text: "Continue",
-                              onPressed: ()async {
-                                NavigatorService.pushNamed(AppRoutes.homeScreen);
+                              onPressed: () async {
+                                provider.sendEmail();
+                                NavigatorService.pushNamed(
+                                    AppRoutes.homeScreen);
                               },
                             ),
-                            const SizedBox(height: 10,),
+                            const SizedBox(
+                              height: 10,
+                            ),
                           ],
                         ),
                       ),
@@ -159,5 +168,4 @@ class _RegisterSuccessScreenState extends State<RegisterSuccessScreen> {
       ),
     );
   }
-
 }

@@ -1,7 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 import 'package:crypto_app/presentation/auth/provider/auth_provider.dart';
-import 'package:crypto_app/theme/theme_helper.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../common_widget.dart';
@@ -16,22 +17,34 @@ class VerifyOtp extends StatefulWidget {
   final String type;
   final bool privacy_policy;
 
-  const VerifyOtp({super.key, required this.username, required this.password, required this.name, required this.type, required this.privacy_policy});
+  const VerifyOtp(
+      {super.key,
+      required this.username,
+      required this.password,
+      required this.name,
+      required this.type,
+      required this.privacy_policy});
 
   @override
   State<VerifyOtp> createState() => _VerifyOtpState();
-  static Widget builder(BuildContext context){
-    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+  static Widget builder(BuildContext context) {
+    final args =
+        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     return ChangeNotifierProvider(
-      create: (context)=> AuthProvider(),
-      child: VerifyOtp(username: args['username'], password: args['password'], name: args['name'], type: args['type'], privacy_policy: args['privacy_policy']),
+      create: (context) => AuthProvider(),
+      child: VerifyOtp(
+          username: args['username'],
+          password: args['password'],
+          name: args['name'],
+          type: args['type'],
+          privacy_policy: args['privacy_policy']),
     );
   }
-
 }
 
 class _VerifyOtpState extends State<VerifyOtp> {
   late AuthProvider authProvider;
+  late ThemeProvider themeProvider;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   int _otpLength = 4;
   late List<TextEditingController> _controllers;
@@ -41,13 +54,30 @@ class _VerifyOtpState extends State<VerifyOtp> {
   double _progress = 1.0;
   bool _isTimerActive = true;
 
+  late FirebaseMessaging messaging;
+  String _token = "";
+
   @override
   void initState() {
     super.initState();
-    authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    _controllers = List.generate(_otpLength, (index) => TextEditingController());
+    messaging = FirebaseMessaging.instance;
+
+    authProvider = Provider.of<AuthProvider>(context, listen: false);
+    themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+
+    _controllers =
+        List.generate(_otpLength, (index) => TextEditingController());
     _focusNodes = List.generate(_otpLength, (index) => FocusNode());
+
+    messaging.getToken().then((value) {
+      print('fcm token : ${value}');
+      if (Platform.isAndroid) {
+        _token = value.toString();
+      } else if (Platform.isIOS) {
+        _token = value.toString();
+      }
+    });
 
     for (var node in _focusNodes) {
       node.addListener(() {
@@ -91,7 +121,7 @@ class _VerifyOtpState extends State<VerifyOtp> {
       } else {
         setState(() {
           _start--;
-          _progress  = _start/45;
+          _progress = _start / 45;
         });
       }
     });
@@ -105,16 +135,15 @@ class _VerifyOtpState extends State<VerifyOtp> {
       startTimer();
     });
 
-    if(widget.type == 'login'){
+    if (widget.type == 'login') {
       // await authProvider.login(context, widget.username, widget.password);
       await authProvider.resendLogin(context, widget.username, widget.password);
-    }else{
+    } else {
       final requestOtp = RequestOtp(
           username: widget.username,
           name: widget.name,
           password: widget.password,
-          privacy_policy: widget.privacy_policy
-      );
+          privacy_policy: widget.privacy_policy);
       Provider.of<AuthProvider>(context, listen: false)
           .resendRequestOtp(context, requestOtp);
       // Provider.of<AuthProvider>(context, listen: false)
@@ -124,6 +153,7 @@ class _VerifyOtpState extends State<VerifyOtp> {
 
   @override
   Widget build(BuildContext context) {
+    themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     return SafeArea(
       child: Scaffold(
         resizeToAvoidBottomInset: false,
@@ -146,8 +176,8 @@ class _VerifyOtpState extends State<VerifyOtp> {
                   ),
                 ),
                 Positioned(
-                  left: (SizeUtils.width-120)/2.2,
-                  bottom: SizeUtils.height/1.35,
+                  left: (SizeUtils.width - 120) / 2.2,
+                  bottom: SizeUtils.height / 1.35,
                   child: CustomImageView(
                     imagePath: ImageConstant.logo,
                     height: 140.v,
@@ -156,7 +186,7 @@ class _VerifyOtpState extends State<VerifyOtp> {
                 ),
                 Positioned(
                   right: 0,
-                  bottom: SizeUtils.height/1.6,
+                  bottom: SizeUtils.height / 1.6,
                   child: CustomImageView(
                     imagePath: ImageConstant.LooperGroupBottom,
                     height: 140.v,
@@ -169,9 +199,9 @@ class _VerifyOtpState extends State<VerifyOtp> {
                   right: 0,
                   child: Container(
                     padding: const EdgeInsets.all(20),
-                    height: SizeUtils.height/1.5,
+                    height: SizeUtils.height / 1.5,
                     decoration: BoxDecoration(
-                      color: appTheme.white,
+                      color: appTheme.white1,
                       borderRadius: const BorderRadius.only(
                         topRight: Radius.circular(50),
                         topLeft: Radius.circular(50),
@@ -185,77 +215,101 @@ class _VerifyOtpState extends State<VerifyOtp> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Text((widget.type == 'login')?'Enter the OTP':'Verify your email address',style: CustomTextStyles.pageTitleMain,),
-                              const SizedBox(height: 8,),
-                              (widget.type == 'login')?Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text('Check your email address',
-                                    textAlign: TextAlign.center,
-                                    style: CustomTextStyles.gray12,
-                                  ),
-                                  Text(' ${widget.username}',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: appTheme.gray,
-                                      fontSize: 13,
-                                      fontFamily: 'Poppins',
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                ],
-                              ):Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text('Enter the OTP sent to ',
-                                    textAlign: TextAlign.center,
-                                    style: CustomTextStyles.gray12,
-                                  ),
-                                    Text(' ${widget.username}',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: appTheme.gray,
-                                        fontSize: 13,
-                                        fontFamily: 'Poppins',
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                    ),
-                                ],
+                              Center(
+                                child: Text(
+                                  (widget.type == 'login')
+                                      ? 'Enter the OTP'
+                                      : 'Verify your email address',
+                                  style: CustomTextStyles.pageTitleMain,
+                                ),
                               ),
+                              const SizedBox(
+                                height: 8,
+                              ),
+                              (widget.type == 'login')
+                                  ? Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          'Check your email address',
+                                          textAlign: TextAlign.center,
+                                          style: CustomTextStyles.gray12,
+                                        ),
+                                        Text(
+                                          ' ${widget.username}',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: appTheme.gray,
+                                            fontSize: 13,
+                                            fontFamily: 'Poppins',
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          'Enter the OTP sent to ',
+                                          textAlign: TextAlign.center,
+                                          style: CustomTextStyles.gray12,
+                                        ),
+                                        Text(
+                                          ' ${widget.username}',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: appTheme.gray,
+                                            fontSize: 13,
+                                            fontFamily: 'Poppins',
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                               const SizedBox(height: 40),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: List.generate(_otpLength, (index) => _buildOtpField(index)),
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: List.generate(_otpLength,
+                                    (index) => _buildOtpField(index)),
                               ),
                               const SizedBox(height: 40),
                               if (_isTimerActive)
-                              Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  CustomPaint(
-                                    size: Size(60, 60), // Size of the circle
-                                    painter: GradientCircularProgressPainter(double.parse(_start.toString())),
-                                  ),
-                                  Text(
-                                    '${_start.toInt()}',
-                                    style: TextStyle(
-                                      color: appTheme.main,
-                                      fontWeight: FontWeight.w400,
-                                      fontSize: 14, // Adjust font size as needed
+                                Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    CustomPaint(
+                                      size: Size(60, 60), // Size of the circle
+                                      painter: GradientCircularProgressPainter(
+                                          double.parse(_start.toString())),
                                     ),
-                                  ),
-                                ],
-                              ),
+                                    Text(
+                                      '${_start.toInt()}',
+                                      style: TextStyle(
+                                        color:(themeProvider.themeType == "lightCode")? appTheme.main: appTheme.gray,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize:
+                                            14, // Adjust font size as needed
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               if (!_isTimerActive) // Display resend button when timer is done
                                 InkWell(
-                                  onTap: () {
-                                    _resendOtp();
-                                  },
-                                    child: Text('Resend OTP', style: TextStyle(
-                                      color: appTheme.gray7272
-                                    ),)
-                                ),
-                              const SizedBox(height: 40,),
+                                    onTap: () {
+                                      _resendOtp();
+                                    },
+                                    child: Text(
+                                      'Resend OTP',
+                                      style:
+                                          TextStyle(color: appTheme.gray7272),
+                                    )),
+                              const SizedBox(
+                                height: 40,
+                              ),
                               _proceedButton(context),
                             ],
                           ),
@@ -279,9 +333,10 @@ class _VerifyOtpState extends State<VerifyOtp> {
       width: 55,
       height: 60,
       child: RawKeyboardListener(
-        focusNode: FocusNode(),  // FocusNode for the RawKeyboardListener
+        focusNode: FocusNode(), // FocusNode for the RawKeyboardListener
         onKey: (RawKeyEvent event) {
-          if (event is RawKeyDownEvent && event.logicalKey == LogicalKeyboardKey.backspace) {
+          if (event is RawKeyDownEvent &&
+              event.logicalKey == LogicalKeyboardKey.backspace) {
             if (_controllers[index].text.isNotEmpty) {
               // If the current text field is not empty, delete the text
               _controllers[index].clear();
@@ -289,9 +344,12 @@ class _VerifyOtpState extends State<VerifyOtp> {
               // Move to the previous field if the current field is empty
               // Clear text in the previous field and move the cursor
               FocusScope.of(context).requestFocus(_focusNodes[index - 1]);
-              _controllers[index - 1].clear();  // Clear text in the previous field
+              _controllers[index - 1]
+                  .clear(); // Clear text in the previous field
               _controllers[index - 1].selection = TextSelection.fromPosition(
-                TextPosition(offset: 0),  // Set cursor position to the start (or you can use length for the end)
+                TextPosition(
+                    offset:
+                        0), // Set cursor position to the start (or you can use length for the end)
               );
             }
           }
@@ -303,27 +361,30 @@ class _VerifyOtpState extends State<VerifyOtp> {
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           maxLength: 1,
           textAlign: TextAlign.center,
-          textInputAction: index < _otpLength - 1 ? TextInputAction.next : TextInputAction.done,
+          style: TextStyle(color: (themeProvider.themeType == "lightCode")?appTheme.main:appTheme.gray),
+          textInputAction: index < _otpLength - 1
+              ? TextInputAction.next
+              : TextInputAction.done,
           decoration: InputDecoration(
             counterText: '',
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.h),
               borderSide: BorderSide(
-                color: hasFocus || hasValue ? appTheme.main : appTheme.gray,
+                color: hasFocus || hasValue ? appTheme.main_mpin : appTheme.gray,
                 width: 2,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.h),
               borderSide: BorderSide(
-                color: hasFocus || hasValue ? appTheme.main : appTheme.gray,
+                color: hasFocus || hasValue ? appTheme.main_mpin : appTheme.gray,
                 width: 1,
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.h),
               borderSide: BorderSide(
-                color: hasFocus || hasValue ? appTheme.main : appTheme.gray,
+                color: hasFocus || hasValue ? appTheme.main_mpin : appTheme.gray,
                 width: 1,
               ),
             ),
@@ -344,100 +405,43 @@ class _VerifyOtpState extends State<VerifyOtp> {
           },
         ),
       ),
-      // TextField(
-      //   controller: _controllers[index],
-      //   focusNode: _focusNodes[index],
-      //   keyboardType: TextInputType.number,
-      //   // keyboardType: TextInputType.numberWithOptions(signed: false),
-      //   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      //   maxLength: 1,
-      //   textAlign: TextAlign.center,
-      //   decoration: InputDecoration(
-      //     counterText: '',
-      //     border: OutlineInputBorder(
-      //       borderRadius: BorderRadius.circular(8.h),
-      //       borderSide: BorderSide(
-      //         color: hasFocus || hasValue ? appTheme.main : appTheme.gray,
-      //         width: 2,
-      //       ),
-      //     ),
-      //     enabledBorder: OutlineInputBorder(
-      //       borderRadius: BorderRadius.circular(8.h),
-      //       borderSide: BorderSide(
-      //         color: hasFocus || hasValue ? appTheme.main : appTheme.gray,
-      //         width: 1,
-      //       ),
-      //     ),
-      //     focusedBorder: OutlineInputBorder(
-      //       borderRadius: BorderRadius.circular(8.h),
-      //       borderSide: BorderSide(
-      //         color: hasFocus || hasValue ? appTheme.main : appTheme.gray,
-      //         width: 1,
-      //       ),
-      //     ),
-      //   ),
-      //   onChanged: (value) {
-      //     if (value.isNotEmpty) {
-      //       if (index < _otpLength - 1) {
-      //         // Move to next field if input is not empty and not the last field
-      //         FocusScope.of(context).requestFocus(_focusNodes[index + 1]);
-      //       } else {
-      //         // Hide the keyboard when the last field is filled
-      //         FocusScope.of(context).unfocus();
-      //       }
-      //     } else if (index > 0) {
-      //       // Move to previous field if input is empty and not the first field
-      //       FocusScope.of(context).requestFocus(_focusNodes[index - 1]);
-      //     }
-      //   },
-      //   onEditingComplete: () {
-      //     if (index == _otpLength - 1) {
-      //       // Hide keyboard when editing of the last field completes
-      //       FocusScope.of(context).unfocus();
-      //     }
-      //   },
-      // ),
     );
   }
 
   Widget _proceedButton(BuildContext context) {
     return CustomElevatedButton(
       buttonStyle: ElevatedButton.styleFrom(
-        backgroundColor: appTheme.main,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(50.0)
-        ),
-          elevation: 0
-      ),
+          backgroundColor: appTheme.main_mpin,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
+          elevation: 0),
       buttonTextStyle: CustomTextStyles.white18,
       height: 50,
       width: 250,
       text: "Proceed",
       onPressed: () {
         String otp = _controllers.map((controller) => controller.text).join();
-          if(otp.length < 4){
-            CommonWidget().snackBar(context, appTheme.red, 'Please Enter valid OTP');
-          }else{
-            if(widget.type == 'login'){
-              Provider.of<AuthProvider>(context, listen: false)
-                  .verifyLoginOtp(context, widget.username, widget.password, otp);
-            }else{
-              final requestOtp = RequestOtp(
-                  username: widget.username,
-                  name: widget.name,
-                  password: widget.password,
-                  privacy_policy: widget.privacy_policy
-              );
-              Provider.of<AuthProvider>(context, listen: false)
-                  .verifyOtp(context, requestOtp, otp);
-            }
-
+        if (otp.length < 4) {
+          CommonWidget()
+              .snackBar(context, appTheme.red, 'Please Enter valid OTP');
+        } else {
+          if (widget.type == 'login') {
+            Provider.of<AuthProvider>(context, listen: false).verifyLoginOtp(
+                context, widget.username, widget.password, otp, _token);
+          } else {
+            final requestOtp = RequestOtp(
+                username: widget.username,
+                name: widget.name,
+                password: widget.password,
+                privacy_policy: widget.privacy_policy);
+            Provider.of<AuthProvider>(context, listen: false)
+                .verifyOtp(context, requestOtp, otp, _token);
           }
+        }
       },
     );
   }
 }
-
 
 class GradientCircularProgressPainter extends CustomPainter {
   final double percentage;
@@ -454,10 +458,10 @@ class GradientCircularProgressPainter extends CustomPainter {
       startAngle: -pi / 2,
       endAngle: 2 * pi,
       colors: [
-        Colors.blue,
-        Colors.blue.withOpacity(0.4),
-        Colors.blue.withOpacity(0.2),
-        Colors.blue.withOpacity(0.1),
+        appTheme.main_mpin,
+        appTheme.main_mpin.withOpacity(0.4),
+        appTheme.main_mpin.withOpacity(0.2),
+        appTheme.main_mpin.withOpacity(0.1),
       ],
       stops: [0.0, 0.33, 0.66, 1.0],
     );

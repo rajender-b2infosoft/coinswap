@@ -3,15 +3,13 @@ import '../../../common_widget.dart';
 import '../../../services/api_service.dart';
 import '../../../theme/theme_helper.dart';
 
-
-class SettingProvider extends ChangeNotifier{
+class SettingProvider extends ChangeNotifier {
   final apiService = ApiService();
-
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  setLoding(val){
+  setLoding(val) {
     _isLoading = val;
     notifyListeners();
   }
@@ -28,18 +26,19 @@ class SettingProvider extends ChangeNotifier{
   String? _isPin = '';
   String? get isPin => _isPin;
 
-  void toggleSwitch(){
+  void toggleSwitch() {
     _isNotification = !_isNotification;
     notifyListeners();
   }
 
-  void mpinToggle(){
+  void mpinToggle() {
     _isMpin = !_isMpin;
     notifyListeners();
   }
 
-  void toggleSwitch1(){
-    _isTheme = !_isTheme;
+  void toggleSwitch1(val) {
+    _isTheme = val;
+    // _isTheme = !_isTheme;
     notifyListeners();
   }
 
@@ -48,42 +47,41 @@ class SettingProvider extends ChangeNotifier{
     super.dispose();
   }
 
-  Future setSettingsData(context, status, type) async{
-    try{
+  Future setSettingsData(context, status, type) async {
+    try {
       final response = await apiService.setSettings(status, type);
       if (response != null && response['status'] == 'success') {
         CommonWidget.showToastView(response['message'], appTheme.gray8989);
       } else {
         CommonWidget().snackBar(context, appTheme.red, response['message']);
       }
-    }catch(e){
+    } catch (e) {
       print(e);
-    }finally {
+    } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-
-  Future getSettings(context) async{
-    try{
+  Future getSettings(context) async {
+    try {
       final response = await apiService.getSettingsData();
       if (response != null && response['status'] == 'success') {
-        _isNotification = (response['data']['notification'] == 1)?true:false;
-        _isMpin = (response['data']['default_security'] == 0)?false:true;
+        _isNotification =
+            (response['data']['notification'] == 1) ? true : false;
+        _isMpin = (response['data']['default_security'] == 0) ? false : true;
         _isPin = response['data']['mpin'];
         // _isNotification = result;
         // _isMpin = result;
-        CommonWidget.showToastView(response['message'], appTheme.gray8989);
+        // CommonWidget.showToastView(response['message'], appTheme.gray8989);
       } else {
         CommonWidget().snackBar(context, appTheme.red, response['message']);
       }
-    }catch(e){
+    } catch (e) {
       print(e);
-    }finally {
+    } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
-
 }

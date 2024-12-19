@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:crypto_app/core/app_export.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,15 +6,26 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../common_widget.dart';
 import '../../../services/api_service.dart';
+import '../../transactions/models/transaction.dart';
 import '../models/commission_settings.dart';
 import 'package:http/http.dart' as http;
 
-import '../models/commission_wallets.dart';
+import '../models/trxDetail.dart';
+
 
 
 class TransactionProvider extends ChangeNotifier{
   final apiService = ApiService();
   final _secureStorage = const FlutterSecureStorage();
+
+  TransactionDetails? _transaction;
+
+  TransactionDetails? get transaction => _transaction;
+
+  void setTransaction(Map<String, dynamic> json) {
+    _transaction = TransactionDetails.fromJson(json);
+    notifyListeners();
+  }
 
   bool _isDisposed = false;
 
@@ -32,17 +42,23 @@ class TransactionProvider extends ChangeNotifier{
     notifyListeners();
   }
 
+
+  late TextEditingController _fromController = TextEditingController();
+  final TextEditingController _toController = TextEditingController();
+  TextEditingController get fromController => _fromController;
+  TextEditingController get toController => _toController;
+  setInputAmount(val, convertedAmount){
+    _fromController.text = val;
+    var finalAmount = double.parse(val)*convertedAmount;
+    _toController.text = finalAmount.toString();
+    notifyListeners();
+  }
+
   double _commissionAmount = 0.0;
   double get commissionAmount => _commissionAmount;
 
   CommissionSettingsResponse? _commissionSettingsData;
   CommissionSettingsResponse? get commissionSettingsData => _commissionSettingsData;
-
-  WalletResponse? _commissionWalletData;
-  WalletResponse? get commissionWalletData => _commissionWalletData;
-  List<Wallet> _walletCommissionData = [];
-  List<Wallet> get walletCommissionData => _walletCommissionData;
-
 
   List<CommissionData> _commissionData = [];
   double adminCommissionAmount = 0.0;
@@ -57,8 +73,8 @@ class TransactionProvider extends ChangeNotifier{
   TextEditingController get addressController => _addressController;
   TextEditingController get amountController => _amountController;
 
-  double _cryptoCompareUSD = 0.0;
-  double get cryptoCompareUSD => _cryptoCompareUSD;
+  dynamic _cryptoCompareUSD = 0.0;
+  dynamic get cryptoCompareUSD => _cryptoCompareUSD;
 
   String _trxUserName = '';
   String get trxUserName => _trxUserName;
@@ -66,13 +82,19 @@ class TransactionProvider extends ChangeNotifier{
   TransactionProvider(){
     _addressController.addListener(() async {
       // var network = (_selectedCurrency == 'Ethereum')?"mainnet":(_selectedCurrency == 'USDT')?"mainnet":"mainnet";
-      var network = (_selectedCurrency == 'Ethereum')?"sepolia":(_selectedCurrency == 'USDT')?"nile":"mainnet";
-      var blockchain = (_selectedCurrency == 'Ethereum')?"ethereum":(_selectedCurrency == 'USDT')?"tron":"bitcoin";
+      // var network = (_selectedCurrency == 'Ethereum')?"sepolia":(_selectedCurrency == 'USDT')?"nile":"mainnet";
+      // var blockchain = (_selectedCurrency == 'Ethereum')?"ethereum":(_selectedCurrency == 'USDT')?"tron":"bitcoin";
       SharedPreferences prefs = await SharedPreferences.getInstance();
       var userName = prefs.getString('userName');
       if(_addressController.text.length > 40){
-        //verifying address
-        validateAddress(_addressController.text, blockchain, network, userName);
+        //
+        // print(':::::::::::::::::::::::::::::::::::::::::provider....');
+        // print(blockchain);
+        // print(network);
+        // print(_addressController.text);
+        //
+        // //verifying address
+        // validateAddress(_addressController.text, blockchain, network, userName);
       }
     });
   }
@@ -109,6 +131,9 @@ class TransactionProvider extends ChangeNotifier{
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  bool _trxLoading = false;
+  bool get trxLoading => _trxLoading;
+
   bool _isValidWallet = false;
   bool get isValidWallet => _isValidWallet;
 
@@ -133,6 +158,23 @@ class TransactionProvider extends ChangeNotifier{
   String _usdtBalance = '0';
   String get usdtBalance => _usdtBalance;
 
+  double _ethereumWalletBalance = 0;
+  double get ethereumWalletBalance => _ethereumWalletBalance;
+  double _bitcoinWalletBalance = 0;
+  double get bitcoinWalletBalance => _bitcoinWalletBalance;
+  double _tronWalletBalance = 0;
+  double get tronWalletBalance => _tronWalletBalance;
+
+
+  double _ethereumConvertedBalance = 0;
+  double get ethereumConvertedBalance => _ethereumConvertedBalance;
+  double _bitcoinConvertedBalance = 0;
+  double get bitcoinConvertedBalance => _bitcoinConvertedBalance;
+  dynamic _tronConvertedBalance = 0;
+  dynamic get tronConvertedBalance => _tronConvertedBalance;
+
+  dynamic _convertedAmount = 0;
+  dynamic get convertedAmount => _convertedAmount;
 
   setEthBalance(val){
     _ethBalance = val;
@@ -267,45 +309,21 @@ class TransactionProvider extends ChangeNotifier{
     }
   }
 
-  // // New Function to get or update admin commission address based on wallet type
-  // void updateAdminAddress(String walletType) {
-  //   // Filter the wallets to find the one that matches the walletType and has default set to 1
-  //   Wallet? matchedWallet = _walletCommissionData.firstWhere(
-  //         (wallet) => wallet.walletType.toLowerCase() == walletType.toLowerCase() && wallet.defaultWallet == 1,
-  //     orElse: () => Wallet(
-  //       id: 0,
-  //       userId: 0,
-  //       vaultId: '',
-  //       walletType: '',
-  //       walletAddress: '',
-  //       balance: '0.0',
-  //       defaultWallet: 0,
-  //       createdAt: DateTime.now(),
-  //     ),
-  //   );
-  //
-  //   // Set the admin address based on the filtered wallet
-  //   if (matchedWallet.id != 0) {
-  //     adminAddress = matchedWallet.walletAddress;
-  //   } else {
-  //     adminAddress = ''; // Set a default value if no matching wallet is found
-  //   }
-  //
-  //   notifyListeners();
-  // }
+  void calculateCommission(String blockchain, double finalAmount, String inAppUser) {
+    print('LLLLLLLLLLLLLLLLLLLLLLLLLLLLL_commissionData');
+    print(_commissionData.toString());
 
-  // Function to determine commission amount based on blockchain and final amount
-  void calculateCommission(String blockchain, double finalAmount) {
     if (blockchain == 'ethereum') {
       // Handle Ethereum case
       final ethCommission = _commissionData.firstWhere(
-            (commission) => commission.cryptoType.toLowerCase() == 'eth',
+            (commission) => commission.cryptoType.toLowerCase() == 'eth' && commission.transaction_type == inAppUser.toLowerCase(),
         orElse: () => CommissionData(
           id: 0,
           cryptoType: 'eth',
           fromRange: 0,
           toRange: 0,
           commissionRate: 0.01,
+          transaction_type: inAppUser,
           createdAt: '',
           updatedAt: null,
           deletedAt: null,
@@ -317,7 +335,7 @@ class TransactionProvider extends ChangeNotifier{
       // Handle Tron case dynamically using the API data
       final usdtCommission = _commissionData.firstWhere(
             (commission) =>
-        commission.cryptoType.toLowerCase() == 'usdt' &&
+        commission.cryptoType.toLowerCase() == 'usdt' && commission.transaction_type.toLowerCase() == inAppUser.toLowerCase() &&
             finalAmount >= commission.fromRange &&
             finalAmount < commission.toRange,
         orElse: () => CommissionData(
@@ -326,6 +344,7 @@ class TransactionProvider extends ChangeNotifier{
           fromRange: 0,
           toRange: 0,
           commissionRate: 0.0,
+          transaction_type: inAppUser,
           createdAt: '',
           updatedAt: null,
           deletedAt: null,
@@ -401,6 +420,7 @@ class TransactionProvider extends ChangeNotifier{
 
   Future verifyOtp(context, email, otp, type, address, cryptoType, amount, note, fromAddress) async{
     _isLoading = true;
+    _trxLoading = true;
     notifyListeners();
     try{
       final response = await apiService.verifyForgotPassword(email, otp, type);
@@ -412,66 +432,76 @@ class TransactionProvider extends ChangeNotifier{
         String formattedDate = DateFormat('dd-MMM-yyyy').format(now);
 
           var blockchain = (cryptoType == 'Ethereum')?"ethereum":(cryptoType == 'USDT')?"tron":"bitcoin";
-          // var network = (cryptoType == 'Ethereum')?"mainnet":(cryptoType == 'USDT')?"mainnet":"mainnet";
-          var network = (cryptoType == 'Ethereum')?"sepolia":(cryptoType == 'USDT')?"nile":"mainnet";
+          var network = (cryptoType == 'Ethereum')?"mainnet":(cryptoType == 'USDT')?"mainnet":"mainnet";
+          // var network = (cryptoType == 'Ethereum')?"sepolia":(cryptoType == 'USDT')?"nile":"mainnet";
 
         var finalAmount = double.parse(amount);
-        var ethCommission = 0.01;
-        double amountAfterCommission = finalAmount;
 
-        // var commissionAmount = 0.0;
-        // var adminAddress = '';
+        var walletInfo = await apiService.getWalletDetails(address);
 
-        // var blockchain = "tron";
-        //call function to calculate admin commission
-        calculateCommission(blockchain, finalAmount);
+        var inAppUser = 'in_app';
+        // Check if walletInfo is not null and if 'data' is a list
+        if (walletInfo != null && walletInfo['data'] != null && walletInfo['data'] is List) {
+          // Check if the list has any elements
+          inAppUser = walletInfo['data'].isNotEmpty ? 'in_app' : 'outside_app';
+        } else {
+          // Handle cases where 'data' is null or not a list
+          inAppUser = 'outside_app';
+        }
+
+        //call function to calculate admin commission //adminCommissionAmount
+        calculateCommission(blockchain, finalAmount, inAppUser);
+        //function for get admin commission wallet address according to blockchain //adminAddress
         await getCommissionWallets(blockchain);
 
-        // if(blockchain == 'ethereum'){
-        //   commissionAmount = 0.01;
-        //   adminAddress = '0x50ad50e334f13d6bdda46ff7d800f2c1f3b3f64a';  //testing
-        //   // adminAddress = '0x3b5d925d4e229fce9407371507f9f2b5c7eb6621'; // live
-        // }else if(blockchain == 'tron'){
-        //   if(finalAmount >= 25000){
-        //     commissionAmount = 5;
-        //     adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';  //testing
-        //     // adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';   //live
-        //   }else if(finalAmount <= 25000 && finalAmount >= 10000){
-        //     commissionAmount = 3.2;
-        //     adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';  //testing
-        //     // adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';  //live
-        //   }else if(finalAmount <= 10000 && finalAmount >= 5000){
-        //     commissionAmount = 2.5;
-        //     adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';  //testing
-        //     // adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';  //live
-        //   }else if(finalAmount >= 1000 && finalAmount <= 5000){
-        //     commissionAmount = 1.5;
-        //     adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';  //testing
-        //     // adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';  //live
-        //   }else{
-        //     //we can use it for bitcoin
-        //     commissionAmount = 0.0;
-        //     adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';  //testing
-        //     // adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';  //live
-        //   }
-        // }
+        var response =  await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amount, 'slow', note, address, adminAddress, adminCommissionAmount, inAppUser);
 
-        await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amount, 'slow', note, address, adminAddress, adminCommissionAmount);
-        NavigatorService.pushNamed(AppRoutes.approvalScreen, argument: {'blockchain': blockchain,'status': 'pending',
-          'address': fromAddress, 'amount': amount, 'fee': 'slow', 'note': note, 'date': formattedDate, 'page': 'home', 'trxId': '', 'toAddress':''});
+        // var walletInfo = await apiService.getWalletDetails(response['data']['receiver_wallet_address']);
+
+        if(walletInfo['data'].length > 0) {
+          if (response['status'] == 'success') {
+            await apiService.sendTrxToVaultody(
+              response['data']['inserted_id'],
+              response['data']['sender_id'],
+              response['data']['receiver_id'],
+              response['data']['sender_wallet_address'],
+              response['data']['crypto_type'],
+              response['data']['network'],
+              response['data']['amount'],
+              response['data']['feePriority'],
+              response['data']['receiver_wallet_address'],
+              response['data']['commissionAmount'],
+            );
+            NavigatorService.pushNamed(AppRoutes.approvalScreen,
+                argument: {
+                  'blockchain': blockchain,
+                  'page': 'home',
+                  'trxId': '',
+                  'id': response['data']['inserted_id']
+                });
+          }
+        }
+
+        print('PPPPPPPPPPPPPPPPPP11111111111');
+
       } else {
         CommonWidget().snackBar(context, appTheme.red, response['message']);
       }
     }catch(e){
       print(e);
     }finally {
+      print('PPPPPPPPPPPPPPPPPP222222222222222222');
+      _trxLoading = false;
       _isLoading = false;
       notifyIfNotDisposed();
       // notifyListeners();
     }
   }
 
-  Future checkMpin(context, pin, address, cryptoType, amount, note, fromAddress) async{
+  Future checkMpin(context, pin, address, cryptoType, amount, note, fromAddress, page) async{
+    _isLoading = true;
+    _trxLoading = true;
+    notifyListeners();
     try{
       final response = await apiService.verifyMpin(pin);
       if (response != null && response['status'] == 'success') {
@@ -481,56 +511,54 @@ class TransactionProvider extends ChangeNotifier{
         String formattedDate = DateFormat('dd-MMM-yyyy').format(now);
 
         var blockchain = (cryptoType == 'Ethereum')?"ethereum":(cryptoType == 'USDT')?"tron":"bitcoin";
-        // var network = (cryptoType == 'Ethereum')?"mainnet":(cryptoType == 'USDT')?"mainnet":"mainnet";
-        var network = (cryptoType == 'Ethereum')?"sepolia":(cryptoType == 'USDT')?"nile":"mainnet";
+        var network = (cryptoType == 'Ethereum')?"mainnet":(cryptoType == 'USDT')?"mainnet":"mainnet";
+        // var network = (cryptoType == 'Ethereum')?"sepolia":(cryptoType == 'USDT')?"nile":"mainnet";
 
         var finalAmount = double.parse(amount);
-        var ethCommission = 0.01;
-        double amountAfterCommission = finalAmount;
+        var walletInfo = await apiService.getWalletDetails(address);
 
-        var commissionAmount = 0.0;
-        // var adminAddress = '';
+        var inAppUser = 'in_app';
+        // Check if walletInfo is not null and if 'data' is a list
+        if (walletInfo != null && walletInfo['data'] != null && walletInfo['data'] is List) {
+          // Check if the list has any elements
+          inAppUser = walletInfo['data'].isNotEmpty ? 'in_app' : 'outside_app';
+        } else {
+          // Handle cases where 'data' is null or not a list
+          inAppUser = 'outside_app';
+        }
 
-        //call function to calculate admin commission
-        calculateCommission(blockchain, finalAmount);
+        //call function to calculate admin commission //adminCommissionAmount
+        calculateCommission(blockchain, finalAmount, inAppUser);
+        //function for get admin commission wallet address according to blockchain //adminAddress
         await getCommissionWallets(blockchain);
 
-        // updateAdminAddress(blockchain);
+        var response = await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amount, 'slow', note, address, adminAddress, adminCommissionAmount, inAppUser);
 
-        // if(blockchain == 'ethereum'){
-        //   commissionAmount = 0.01;
-        //   adminAddress = '0x50ad50e334f13d6bdda46ff7d800f2c1f3b3f64a'; //testng
-        //   // adminAddress = '0x3b5d925d4e229fce9407371507f9f2b5c7eb6621'; //live
-        // }else if(blockchain == 'tron'){
-        //   if(finalAmount >= 25000){
-        //     commissionAmount = 5;
-        //     adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';  //testing
-        //     // adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';  //live
-        //   }else if(finalAmount <= 25000 && finalAmount >= 10000){
-        //     commissionAmount = 3.2;
-        //     adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';  //testing
-        //     // adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';  //live
-        //   }else if(finalAmount <= 10000 && finalAmount >= 5000){
-        //     commissionAmount = 2.5;
-        //     adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';  //testing
-        //     // adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';  //live
-        //   }else if(finalAmount >= 1000 && finalAmount <= 5000){
-        //     commissionAmount = 1.5;
-        //     adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';  //testing
-        //     // adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';  //live
-        //   }else{
-        //     //we can use it for bitcoin
-        //     commissionAmount = 0.0;
-        //     adminAddress = 'TTXeityJb4vsLNDepDi583NwioiYy7ixRw';  //testing
-        //     // adminAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';  //live
-        //   }
-        // }
+        // var walletInfo = await apiService.getWalletDetails(response['data']['receiver_wallet_address']);
+        //check sender and receiver both user in our app then send direct to vaultody otherwise request is pending and admin approve from web
+        if(walletInfo['data'].length > 0){
+            if(response['status'] == 'success'){
+              await apiService.sendTrxToVaultody(
+                response['data']['inserted_id'],
+                response['data']['sender_id'],
+                response['data']['receiver_id'],
+                response['data']['sender_wallet_address'],
+                response['data']['crypto_type'],
+                response['data']['network'],
+                response['data']['amount'],
+                response['data']['feePriority'],
+                response['data']['receiver_wallet_address'],
+                response['data']['commissionAmount'],
+              );
+            }
+          }
 
+        NavigatorService.pushNamed(AppRoutes.approvalScreen, argument: {'blockchain': blockchain, 'page': 'home', 'trxId': '', 'id': response['data']['inserted_id']});
 
-        await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amount, 'slow', note, address, adminAddress, adminCommissionAmount);
         // await sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amount, 'slow', note, address, adminAddress, commissionAmount);
-        NavigatorService.pushNamed(AppRoutes.approvalScreen, argument: {'blockchain': blockchain,'status': 'pending', 'address': fromAddress, 'amount': amount,
-          'fee': 'slow', 'note': note, 'date': formattedDate, 'page': 'home', 'trxId': '', 'toAddress':''});
+
+        // NavigatorService.pushNamed(AppRoutes.approvalScreen, argument: {'blockchain': blockchain,'status': 'pending', 'address': fromAddress, 'amount': amount,
+        //   'fee': 'slow', 'note': note, 'date': formattedDate, 'page': 'home', 'trxId': '', 'toAddress':''});
       } else {
         CommonWidget.showToastView(response['message'], appTheme.red);
         // CommonWidget().snackBar(context, appTheme.red, response['message']);
@@ -538,22 +566,38 @@ class TransactionProvider extends ChangeNotifier{
     }catch(e){
       print(e);
     }finally {
+      _trxLoading = false;
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amount, fee, note, toAddress, adminAddress, commissionAmount) async{
+  Future sendTransactionForAdminApproval(context, fromAddress, blockchain, network, amount, fee, note, toAddress, adminAddress, commissionAmount, inAppUser) async{
+    _isLoading = true;
+    _trxLoading = true;
+    notifyListeners();
+
+    print('PPPPPPPPPPPPPPPPPP33333333333');
     try{
       final response = await apiService.sendTransactioToAdmin(fromAddress, blockchain, network, amount, fee, note, toAddress, adminAddress, commissionAmount);
       if (response != null && response['status'] == 'success') {
-        CommonWidget.showToastView(response['message'], appTheme.gray8989);
+        // CommonWidget.showToastView(response['message'], appTheme.gray8989);
+
+        if(inAppUser == 'outside_app'){
+          NavigatorService.pushNamed(AppRoutes.approvalScreen, argument: {'blockchain': blockchain, 'page': 'home', 'trxId': '', 'id': response['data']['inserted_id']});
+        }
+        return response;
       } else {
         CommonWidget.showToastView(response['message'], appTheme.red);
+        return response;
       }
+
     }catch(e){
       print(e);
     }finally {
+
+      print('PPPPPPPPPPPPPPPPPP444444444444');
+      _trxLoading = false;
       _isLoading = false;
       notifyListeners();
     }
@@ -573,7 +617,8 @@ class TransactionProvider extends ChangeNotifier{
         notifyListeners();
         // CommonWidget.showToastView(response['message'], appTheme.gray8989);
       } else {
-        CommonWidget.showToastView(response['message'], appTheme.red);
+        print('.........validateAddress.......................${response['message']}');
+        // CommonWidget.showToastView(response['message'], appTheme.red);
       }
     }catch(e){
       print(e);
@@ -585,12 +630,9 @@ class TransactionProvider extends ChangeNotifier{
 
   /// Function to get commission rate based on the input amount
   double? getCommissionRateForAmount(double amount, String cryptoType) {
-
-
     if (_commissionSettingsData == null || _commissionSettingsData!.data.isEmpty) {
       return null; // Return null if data is not available
     }
-
     // Loop through the list of commission settings
     for (var setting in _commissionSettingsData!.data) {
       // Check the crypto type
@@ -609,7 +651,6 @@ class TransactionProvider extends ChangeNotifier{
         }
       }
     }
-
     return null; // Return null if no matching range or crypto_type is found
   }
 
@@ -622,7 +663,32 @@ class TransactionProvider extends ChangeNotifier{
       if (response != null && response['status'] == 'success') {
         //get wallet data and set in list
         if(response['data'].length > 0){
+
           setWalletData(response['data']);
+
+          for (var wallet in response['data']) {
+            String cryptoType = wallet['crypto_type'];
+            double balance = wallet['balance']?.toDouble() ?? 0;
+
+            // Store balance according to crypto_type
+            switch (cryptoType.toLowerCase()) {
+              case 'ethereum':
+                cryptocompare('ETH');
+                _ethereumWalletBalance = balance;
+                break;
+              case 'bitcoin':
+                cryptocompare('BTC');
+                _bitcoinWalletBalance = balance;
+                break;
+              case 'tron':
+                cryptocompare('USDT');
+                _tronWalletBalance = balance;
+                break;
+              default:
+                print('Unknown crypto type: $cryptoType');
+            }
+          }
+
         }
       }else {
         CommonWidget.showToastView(response['message'], appTheme.gray8989);
@@ -691,13 +757,25 @@ class TransactionProvider extends ChangeNotifier{
 
   Future<void> cryptocompare(String type) async {
     final url = Uri.parse(
-        'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD');
+        'https://min-api.cryptocompare.com/data/price?fsym=$type&tsyms=USD');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         // Update the price if the API returns the correct data
         if (data['USD'] != null) {
+
+          if(type == 'ETH'){
+            _ethereumConvertedBalance = data['USD'];
+            notifyListeners();
+          }else if(type == 'BTC'){
+            _bitcoinConvertedBalance = data['USD'];
+            notifyListeners();
+          }else if(type == 'USDT'){
+            _tronConvertedBalance = data['USD'];
+            notifyListeners();
+          }
+
           _cryptoCompareUSD = data['USD'];
         } else {
           _cryptoCompareUSD = 0.0;
@@ -706,16 +784,89 @@ class TransactionProvider extends ChangeNotifier{
         throw Exception('Failed to load price');
       }
     } catch (error) {
-      print('Error fetching ETH price: $error');
+      print('Error fetching $type price: $error');
       _cryptoCompareUSD = 0.0;
     }
     // Notify listeners about the data change
     notifyListeners();
   }
 
+  Future<void> cryptoConvert(String from, String to,) async {
+    final url = Uri.parse(
+        'https://min-api.cryptocompare.com/data/price?fsym=$from&tsyms=$to');
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+
+        if(to == 'ETH'){
+          _convertedAmount = data['ETH'];
+          notifyListeners();
+        }else if(to == 'BTC'){
+          _convertedAmount = data['BTC'];
+          notifyListeners();
+        }else if(to == 'USDT'){
+          _convertedAmount = data['USDT'];
+          notifyListeners();
+        }
+
+      } else {
+        throw Exception('Failed to load price');
+      }
+    } catch (error) {
+      print('Error fetching $to price: $error');
+      _cryptoCompareUSD = 0.0;
+    }
+    // Notify listeners about the data change
+    notifyListeners();
+  }
+
+  Future<void> trxDetails(id) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try{
+      final response = await apiService.trxById(id);
+      //check response
+      if (response != null && response['status'] == 'success') {
+        setTransaction(response['data'][0]);
+      }else {
+        CommonWidget.showToastView(response['message'], appTheme.gray8989);
+      }
+    }catch (e) {
+      print(e);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> trxDetailsByTransactionId(id) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try{
+      final response = await apiService.trxByTrxId(id);
+      //check response
+      if (response != null && response['status'] == 'success') {
+        setTransaction(response['data'][0]);
+      }else {
+        CommonWidget.showToastView(response['message'], appTheme.gray8989);
+      }
+    }catch (e) {
+      print(e);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   @override
   void dispose() {
     _isDisposed = true;
+    _fromController.dispose();
+    _toController.dispose();
     super.dispose();
   }
 

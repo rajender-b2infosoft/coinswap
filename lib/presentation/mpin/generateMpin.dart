@@ -20,13 +20,14 @@ class GenerateMpin extends StatefulWidget {
 
 class _GenerateMpinState extends State<GenerateMpin> {
   late MpinProvider provider;
-
+  late ThemeProvider themeProvider;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      provider = Provider.of<MpinProvider>(context,listen: false);
+      provider = Provider.of<MpinProvider>(context, listen: false);
+      themeProvider = Provider.of<ThemeProvider>(context, listen: false);
       FocusScope.of(context).requestFocus(provider.focusNodes[0]);
     });
     super.initState();
@@ -62,7 +63,7 @@ class _GenerateMpinState extends State<GenerateMpin> {
           height: SizeUtils.height,
           width: SizeUtils.width,
           decoration: BoxDecoration(
-              color: appTheme.white,
+              color: appTheme.white1,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(50),
                 topRight: Radius.circular(50),
@@ -70,33 +71,51 @@ class _GenerateMpinState extends State<GenerateMpin> {
           child: SingleChildScrollView(
             child: Form(
               key: _formKey,
-              child: Consumer<MpinProvider>(
-                  builder: (context, provider, child) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Enter your Mpin',
-                        style: CustomTextStyles.pageTitleMain,
-                      ),
-                      const SizedBox(height: 5,),
-                      Text((!provider.isConfirmed)?'Enter a 4 digit number':'Re-enter your number', style: CustomTextStyles.gray12,),
-                      const SizedBox(height: 50,),
-                      (!provider.isConfirmed)?Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: List.generate(provider.otpLength, (index) => _buildOtpField(index, provider)),
-                      ):Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: List.generate(provider.reotpLength, (index) => _buildReEnterOtpField(index, provider)),
-                      ),
-                      const SizedBox(height: 50,),
-                      keyboard(),
-                      const SizedBox(height: 50,),
-                      _confirmButton()
-                    ],
-                  );
-                }
-              ),
+              child:
+                  Consumer<MpinProvider>(builder: (context, provider, child) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Enter your Mpin',
+                      style: CustomTextStyles.pageTitleMain_mpin,
+                    ),
+                    const SizedBox(
+                      height: 5,
+                    ),
+                    Text(
+                      (!provider.isConfirmed)
+                          ? 'Enter a 4 digit number'
+                          : 'Re-enter your number',
+                      style: CustomTextStyles.gray12,
+                    ),
+                    const SizedBox(
+                      height: 50,
+                    ),
+                    (!provider.isConfirmed)
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: List.generate(provider.otpLength,
+                                (index) => _buildOtpField(index, provider)),
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: List.generate(
+                                provider.reotpLength,
+                                (index) =>
+                                    _buildReEnterOtpField(index, provider)),
+                          ),
+                    const SizedBox(
+                      height: 50,
+                    ),
+                    keyboard(),
+                    const SizedBox(
+                      height: 30,
+                    ),
+                    _confirmButton()
+                  ],
+                );
+              }),
             ),
           ),
         ),
@@ -104,8 +123,8 @@ class _GenerateMpinState extends State<GenerateMpin> {
     );
   }
 
-  Widget keyboard(){
-    return  SizedBox(
+  Widget keyboard() {
+    return SizedBox(
       height: SizeUtils.height / 2.5,
       child: GridView.builder(
         shrinkWrap: true,
@@ -148,7 +167,8 @@ class _GenerateMpinState extends State<GenerateMpin> {
             buttonText = 'C';
             // onPressed = provider.removeLastCharacter;
             onPressed = provider.onBackspacePressed;
-            buttonContent = Image.asset(ImageConstant.clear,
+            buttonContent = Image.asset(
+              ImageConstant.clear,
               width: 30, // Adjust width if necessary
               height: 30, // Adjust height if necessary
             );
@@ -200,15 +220,19 @@ class _GenerateMpinState extends State<GenerateMpin> {
       width: 55,
       height: 60,
       child: RawKeyboardListener(
-        focusNode: FocusNode(),  // FocusNode for the RawKeyboardListener
+        focusNode: FocusNode(), // FocusNode for the RawKeyboardListener
         onKey: (RawKeyEvent event) {
-          if (event is RawKeyDownEvent && event.logicalKey == LogicalKeyboardKey.backspace) {
+          if (event is RawKeyDownEvent &&
+              event.logicalKey == LogicalKeyboardKey.backspace) {
             if (provider.controllers[index].text.isNotEmpty) {
               provider.controllers[index].clear();
             } else if (index > 0) {
-              FocusScope.of(context).requestFocus(provider.focusNodes[index - 1]);
-              provider.controllers[index - 1].clear();  // Clear text in the previous field
-              provider.controllers[index - 1].selection = TextSelection.fromPosition(
+              FocusScope.of(context)
+                  .requestFocus(provider.focusNodes[index - 1]);
+              provider.controllers[index - 1]
+                  .clear(); // Clear text in the previous field
+              provider.controllers[index - 1].selection =
+                  TextSelection.fromPosition(
                 const TextPosition(offset: 0),
               );
             }
@@ -220,28 +244,37 @@ class _GenerateMpinState extends State<GenerateMpin> {
           keyboardType: TextInputType.none,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           maxLength: 1,
+          style: TextStyle(
+              color: (themeProvider.themeType == "lightCode")
+                  ? appTheme.lightBlue
+                  : appTheme.gray),
           textAlign: TextAlign.center,
-          textInputAction: index < provider.otpLength - 1 ? TextInputAction.next : TextInputAction.done,
+          textInputAction: index < provider.otpLength - 1
+              ? TextInputAction.next
+              : TextInputAction.done,
           decoration: InputDecoration(
             counterText: '',
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.h),
               borderSide: BorderSide(
-                color: hasFocus || hasValue ? appTheme.main : appTheme.gray,
+                color:
+                    hasFocus || hasValue ? appTheme.main_mpin : appTheme.gray,
                 width: 2,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.h),
               borderSide: BorderSide(
-                color: hasFocus || hasValue ? appTheme.main : appTheme.gray,
+                color:
+                    hasFocus || hasValue ? appTheme.main_mpin : appTheme.gray,
                 width: 1,
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.h),
               borderSide: BorderSide(
-                color: hasFocus || hasValue ? appTheme.main : appTheme.gray,
+                color:
+                    hasFocus || hasValue ? appTheme.main_mpin : appTheme.gray,
                 width: 1,
               ),
             ),
@@ -250,7 +283,8 @@ class _GenerateMpinState extends State<GenerateMpin> {
             if (value.isNotEmpty) {
               // Move to the next field if input is not empty and it's not the last field
               if (index < provider.otpLength - 1) {
-                FocusScope.of(context).requestFocus(provider.focusNodes[index + 1]);
+                FocusScope.of(context)
+                    .requestFocus(provider.focusNodes[index + 1]);
               }
             }
           },
@@ -272,15 +306,19 @@ class _GenerateMpinState extends State<GenerateMpin> {
       width: 55,
       height: 60,
       child: RawKeyboardListener(
-        focusNode: FocusNode(),  // FocusNode for the RawKeyboardListener
+        focusNode: FocusNode(), // FocusNode for the RawKeyboardListener
         onKey: (RawKeyEvent event) {
-          if (event is RawKeyDownEvent && event.logicalKey == LogicalKeyboardKey.backspace) {
+          if (event is RawKeyDownEvent &&
+              event.logicalKey == LogicalKeyboardKey.backspace) {
             if (provider.reenterControllers[index].text.isNotEmpty) {
               provider.reenterControllers[index].clear();
             } else if (index > 0) {
-              FocusScope.of(context).requestFocus(provider.reenterFocusNodes[index - 1]);
-              provider.reenterControllers[index - 1].clear();  // Clear text in the previous field
-              provider.reenterControllers[index - 1].selection = TextSelection.fromPosition(
+              FocusScope.of(context)
+                  .requestFocus(provider.reenterFocusNodes[index - 1]);
+              provider.reenterControllers[index - 1]
+                  .clear(); // Clear text in the previous field
+              provider.reenterControllers[index - 1].selection =
+                  TextSelection.fromPosition(
                 const TextPosition(offset: 0),
               );
             }
@@ -292,28 +330,37 @@ class _GenerateMpinState extends State<GenerateMpin> {
           keyboardType: TextInputType.none,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           maxLength: 1,
+          style: TextStyle(
+              color: (themeProvider.themeType == "lightCode")
+                  ? appTheme.lightBlue
+                  : appTheme.gray),
           textAlign: TextAlign.center,
-          textInputAction: index < provider.reotpLength - 1 ? TextInputAction.next : TextInputAction.done,
+          textInputAction: index < provider.reotpLength - 1
+              ? TextInputAction.next
+              : TextInputAction.done,
           decoration: InputDecoration(
             counterText: '',
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.h),
               borderSide: BorderSide(
-                color: hasFocus || hasValue ? appTheme.main : appTheme.gray,
+                color:
+                    hasFocus || hasValue ? appTheme.main_mpin : appTheme.gray,
                 width: 2,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.h),
               borderSide: BorderSide(
-                color: hasFocus || hasValue ? appTheme.main : appTheme.gray,
+                color:
+                    hasFocus || hasValue ? appTheme.main_mpin : appTheme.gray,
                 width: 1,
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.h),
               borderSide: BorderSide(
-                color: hasFocus || hasValue ? appTheme.main : appTheme.gray,
+                color:
+                    hasFocus || hasValue ? appTheme.main_mpin : appTheme.gray,
                 width: 1,
               ),
             ),
@@ -322,7 +369,8 @@ class _GenerateMpinState extends State<GenerateMpin> {
             if (value.isNotEmpty) {
               // Move to the next field if input is not empty and it's not the last field
               if (index < provider.reotpLength - 1) {
-                FocusScope.of(context).requestFocus(provider.reenterFocusNodes[index + 1]);
+                FocusScope.of(context)
+                    .requestFocus(provider.reenterFocusNodes[index + 1]);
               }
             }
           },
@@ -341,39 +389,40 @@ class _GenerateMpinState extends State<GenerateMpin> {
     return Center(
       child: CustomElevatedButton(
         buttonStyle: ElevatedButton.styleFrom(
-            backgroundColor: appTheme.main,
+            backgroundColor: appTheme.main_mpin,
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(50.0)
-            ),
-            elevation: 0
-        ),
+                borderRadius: BorderRadius.circular(50.0)),
+            elevation: 0),
         buttonTextStyle: CustomTextStyles.white18,
         height: 50,
         width: 250,
-        text: (!provider.isConfirmed)?"Confirm":'Proceed',  // Empty text if loading
+        text: (!provider.isConfirmed)
+            ? "Confirm"
+            : 'Proceed', // Empty text if loading
         onPressed: () async {
           final enteredOtp = provider.getEnteredOtp();
           final reenteredOtp = provider.getReenteredOtp();
 
-          if(!provider.isConfirmed){
-            if(enteredOtp.length !< 4) {
-              CommonWidget.showToastView('Please Enter valid pin', appTheme.red);
-            }else if(enteredOtp.length == 4){
+          if (!provider.isConfirmed) {
+            if (enteredOtp.length! < 4) {
+              CommonWidget.showToastView(
+                  'Please Enter valid pin', appTheme.red);
+            } else if (enteredOtp.length == 4) {
               provider.setIsConfirmed(true);
             }
-          }else{
-            if(reenteredOtp.length !< 4) {
-              CommonWidget.showToastView('Please Enter valid re-enter pin', appTheme.red);
-            }else if(reenteredOtp.length == 4){
+          } else {
+            if (reenteredOtp.length! < 4) {
+              CommonWidget.showToastView(
+                  'Please Enter valid re-enter pin', appTheme.red);
+            } else if (reenteredOtp.length == 4) {
               final isOtpMAtch = provider.isOtpMatching();
-              if(!isOtpMAtch){
+              if (!isOtpMAtch) {
                 CommonWidget.showToastView('Pin does not match', appTheme.red);
-              }else{
+              } else {
                 provider.setMpin(context, reenteredOtp);
               }
             }
           }
-
         },
       ),
     );

@@ -51,6 +51,12 @@ class HomeScreenProvider extends ChangeNotifier {
   String? _userStatus = '';
   String? get userStatus => _userStatus;
 
+  changeStatus(val){
+    _userStatus = val;
+    print('UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU111UUUUUUUUUUUUUU_userStatusUUUU$_userStatus');
+    notifyListeners();
+  }
+
   setUserStatus(val)async{
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('status', val);
@@ -65,11 +71,11 @@ class HomeScreenProvider extends ChangeNotifier {
     _userStatus = status;
   }
 
-  // final CryptoWebSocketService _webSocketService = CryptoWebSocketService(
-  //     apiKey: '892f03857a58a0e4e9d7ab9721ba0a80',
-  //     apiSecret: 'dFj8fhnuuvtQKhKoErr2Hbo/cABByGV/YxnE4DltS8AzEDzbMmovTwSBJiQGav9NROvfcwwkth3yx05+RJv+5w==',
-  //     passphrase: '7qzkaq49eqg'
-  // );
+  final CryptoWebSocketService _webSocketService = CryptoWebSocketService(
+      apiKey: '892f03857a58a0e4e9d7ab9721ba0a80',
+      apiSecret: 'dFj8fhnuuvtQKhKoErr2Hbo/cABByGV/YxnE4DltS8AzEDzbMmovTwSBJiQGav9NROvfcwwkth3yx05+RJv+5w==',
+      passphrase: '7qzkaq49eqg'
+  );
 
   final StreamController<Map<String, dynamic>> _streamController = StreamController.broadcast();
 
@@ -98,34 +104,34 @@ class HomeScreenProvider extends ChangeNotifier {
     _startPeriodicUpdates();
 
     sharedPrefData();
-    // _webSocketService.subscribeToSymbols(['BTC-USD', 'ETH-USD', 'USDT-USD']);
-    // _webSocketService.stream.listen((data) {
-    //
-    //   if (data['type'] == 'ticker') {
-    //
-    //       final symbol = data['product_id'];
-    //       final price = double.tryParse(data['price'] ?? '') ?? 0.0;
-    //       final percentageChange = data['percentage_change'] ?? '0.00';
-    //       final color = data['color'] ?? 'red'; // Default color is red
-    //
-    //       final currentTime = DateTime.now();
-    //       // Change interval from 24 hour
-    //       if (_lastUpdate == null || currentTime.difference(_lastUpdate!).inMinutes >= 1) {
-    //         _lastUpdate = currentTime;
-    //         if (price != 0.0) {
-    //           _prices[symbol] = price;
-    //           _colors[symbol] = color;
-    //           _percentages[symbol] = percentageChange;
-    //           _streamController.add(data);
-    //           // notifyListeners();
-    //           _notifyIfNotDisposed();
-    //         }
-    //         // notifyListeners();
-    //         _notifyIfNotDisposed();
-    //       }
-    //
-    //   }
-    // });
+    _webSocketService.subscribeToSymbols(['BTC-USD', 'ETH-USD', 'USDT-USD']);
+    _webSocketService.stream.listen((data) {
+
+      if (data['type'] == 'ticker') {
+
+          final symbol = data['product_id'];
+          final price = double.tryParse(data['price'] ?? '') ?? 0.0;
+          final percentageChange = data['percentage_change'] ?? '0.00';
+          final color = data['color'] ?? 'red'; // Default color is red
+
+          final currentTime = DateTime.now();
+          // Change interval from 24 hour
+          if (_lastUpdate == null || currentTime.difference(_lastUpdate!).inMinutes >= 1) {
+            _lastUpdate = currentTime;
+            if (price != 0.0) {
+              _prices[symbol] = price;
+              _colors[symbol] = color;
+              _percentages[symbol] = percentageChange;
+              _streamController.add(data);
+              // notifyListeners();
+              _notifyIfNotDisposed();
+            }
+            // notifyListeners();
+            _notifyIfNotDisposed();
+          }
+
+      }
+    });
   }
 
   void _startPeriodicUpdates() {
@@ -301,7 +307,7 @@ class HomeScreenProvider extends ChangeNotifier {
     _isDisposed = true;
     _timer?.cancel();
     _streamController.close();
-    // _webSocketService.close();
+    _webSocketService.close();
     super.dispose();
   }
 

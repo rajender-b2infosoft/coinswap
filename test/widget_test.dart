@@ -21,7 +21,7 @@ void main() {
 
     // Create the SocketIOClient and initialize WebSocket connection
     final socketClient = SocketIOClient(flutterLocalNotificationsPlugin);
-    await socketClient.initializeNotifications();
+    // await socketClient.initializeNotifications();
 
     // Build our app and trigger a frame.
     await tester.pumpWidget(MyApp(socketClient: socketClient));

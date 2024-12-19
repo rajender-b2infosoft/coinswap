@@ -43,6 +43,7 @@ class TransactionData {
   String? cryptoType;
   String? network;
   String? amount;
+  String? commissionAmount;
   String? status;
   String? createdAt;
   String? updatedAt;
@@ -63,6 +64,7 @@ class TransactionData {
     this.cryptoType,
     this.network,
     this.amount,
+    this.commissionAmount,
     this.status,
     this.createdAt,
     this.updatedAt,
@@ -85,6 +87,7 @@ class TransactionData {
       cryptoType: json['crypto_type'],
       network: json['network'],
       amount: json['amount'],
+      commissionAmount: json['commission_amount'],
       status: json['status'],
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
@@ -108,6 +111,7 @@ class TransactionData {
       'crypto_type': cryptoType,
       'network': network,
       'amount': amount,
+      'commissionAmount': commissionAmount,
       'status': status,
       'created_at': createdAt,
       'updated_at': updatedAt,

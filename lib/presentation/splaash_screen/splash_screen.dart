@@ -21,8 +21,10 @@ class SplashScreen extends StatefulWidget {
   }
 }
 
-class SplashScreenState extends State<SplashScreen> with WidgetsBindingObserver{
-  final SocketIOClient _webSocketClient = SocketIOClient(flutterLocalNotificationsPlugin); // Pass the instance here
+class SplashScreenState extends State<SplashScreen>
+    with WidgetsBindingObserver {
+  final SocketIOClient _webSocketClient =
+      SocketIOClient(flutterLocalNotificationsPlugin); // Pass the instance here
 
   // final SocketIOClient _webSocketClient = SocketIOClient();
   late SplashProvider splashProvider;
@@ -37,10 +39,18 @@ class SplashScreenState extends State<SplashScreen> with WidgetsBindingObserver{
       authProvider = Provider.of<AuthProvider>(context, listen: false);
       splashProvider = Provider.of<SplashProvider>(context, listen: false);
       splashProvider.initialize();
+      getTheme();
     });
 
     WidgetsBinding.instance.addObserver(this);
     _reconnectWebSocketIfNecessary();
+  }
+
+  getTheme() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? currentTheme = prefs.getString('themeData');
+    String themeVal = (currentTheme==null)?'lightCode':currentTheme;
+    prefs.setString('themeData', themeVal);
   }
 
   Future<void> _checkAuth() async {
@@ -53,13 +63,6 @@ class SplashScreenState extends State<SplashScreen> with WidgetsBindingObserver{
     await Future.delayed(const Duration(seconds: 1));
     if (accessToken != null && accessToken != '') {
       await authProvider.getUserInfoByID(user_id);
-      // User is logged in, navigate to the appropriate screen based on role
-      // if (type == 'user') {
-      //   NavigatorService.pushNamed(AppRoutes.homeScreen);
-      // }else {
-      //   NavigatorService.pushNamed(AppRoutes.loginScreen);
-      //   // NavigatorService.pushNamed(AppRoutes.getStartedScreen);
-      // }
     } else {
       NavigatorService.pushNamed(AppRoutes.loginScreen);
       // NavigatorService.pushNamed(AppRoutes.getStartedScreen);
@@ -74,7 +77,8 @@ class SplashScreenState extends State<SplashScreen> with WidgetsBindingObserver{
       int? userId = prefs.getInt('user_id');
 
       if (token != null && userId != null) {
-        _webSocketClient.connectSocket(token, userId.toString(), context,homeProvider);
+        _webSocketClient.connectSocket(
+            token, userId.toString(), context, homeProvider);
       }
     } catch (e) {
       print("Failed to reconnect WebSocket: $e");
@@ -94,6 +98,7 @@ class SplashScreenState extends State<SplashScreen> with WidgetsBindingObserver{
     _webSocketClient.dispose();
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(

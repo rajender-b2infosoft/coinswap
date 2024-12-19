@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-// import 'package:crypto_app/presentation/splaash_screen/models/splash_model.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class SplashProvider extends ChangeNotifier {
-  // SplashModel splashModelObj = SplashModel();
-
   Future<bool> initialize() async {
     bool permissionsGranted = await checkPermissions();
 
@@ -24,7 +21,7 @@ class SplashProvider extends ChangeNotifier {
   }
 
   @override
-  void dispose(){
+  void dispose() {
     super.dispose();
   }
 }

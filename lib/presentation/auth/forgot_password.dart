@@ -14,7 +14,8 @@ class ForgotPassword extends StatefulWidget {
   @override
   State<ForgotPassword> createState() => _ForgotPasswordState();
   static Widget builder(BuildContext context) {
-    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    final args =
+        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     return ChangeNotifierProvider(
       create: (context) => ForgotPasswordProvider(),
       child: ForgotPassword(page: args['page']),
@@ -78,8 +79,8 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                   ),
                 ),
                 Positioned(
-                  left: (SizeUtils.width-120)/2.2,
-                  bottom: SizeUtils.height/1.35,
+                  left: (SizeUtils.width - 120) / 2.2,
+                  bottom: SizeUtils.height / 1.35,
                   child: CustomImageView(
                     imagePath: ImageConstant.logo,
                     height: 140.v,
@@ -88,7 +89,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                 ),
                 Positioned(
                   right: 0,
-                  bottom: SizeUtils.height/1.6,
+                  bottom: SizeUtils.height / 1.6,
                   child: CustomImageView(
                     imagePath: ImageConstant.LooperGroupBottom,
                     height: 140.v,
@@ -101,9 +102,9 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                   right: 0,
                   child: Container(
                     padding: const EdgeInsets.all(20),
-                    height: SizeUtils.height/1.5,
+                    height: SizeUtils.height / 1.5,
                     decoration: BoxDecoration(
-                      color: appTheme.white,
+                      color: appTheme.white1,
                       borderRadius: const BorderRadius.only(
                         topRight: Radius.circular(50),
                         topLeft: Radius.circular(50),
@@ -112,47 +113,61 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                     child: Padding(
                       padding: const EdgeInsets.only(top: 15.0),
                       child: Consumer<AuthProvider>(
-                        builder: (context, authProvider, child) => SingleChildScrollView(
+                        builder: (context, authProvider, child) =>
+                            SingleChildScrollView(
                           child: Form(
                             key: _formKey,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text((widget.page == 'profile')?'Reset password':'Forgot password ?',style: CustomTextStyles.pageTitleMain,),
-                                const SizedBox(height: 20,),
+                                Text(
+                                  (widget.page == 'profile')
+                                      ? 'Reset password'
+                                      : 'Forgot password ?',
+                                  style: CustomTextStyles.pageTitleMain_mpin,
+                                ),
+                                const SizedBox(
+                                  height: 20,
+                                ),
                                 SizedBox(
                                   // height: 50,
                                   child: TextFormField(
                                     focusNode: _focusNodeEmail,
                                     controller: provider.emailController,
-                                    style: CustomTextStyles.blue17,
+                                    style: CustomTextStyles.blue17_dark,
                                     onChanged: (value) {
                                       provider.updateEmail(value);
                                     },
                                     decoration: InputDecoration(
-                                      contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 13),
-                                      fillColor: hasFocus || hasValue ? Colors.white : appTheme.f6f6f6,
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              vertical: 10, horizontal: 13),
+                                      fillColor: hasFocus || hasValue
+                                          ? appTheme.white1 : appTheme.f6f6f6,
                                       filled: true,
                                       labelText: 'Enter Email',
                                       labelStyle: TextStyle(
-                                          color: hasFocus || hasValue ? appTheme.blueDark : Colors.grey,
+                                          color: hasFocus || hasValue
+                                              ? appTheme.main_mpin : Colors.grey,
                                           fontSize: 16,
-                                          fontWeight: FontWeight.normal
-                                      ),
+                                          fontWeight: FontWeight.normal),
                                       border: OutlineInputBorder(
                                         borderSide: BorderSide(
-                                          color: hasFocus || hasValue ? Colors.blue : const Color(0XFFF6F6F6),
+                                          color: hasFocus || hasValue
+                                              ? appTheme.main_mpin : appTheme.gray7272,
                                         ),
                                       ),
                                       focusedBorder: OutlineInputBorder(
                                         borderSide: BorderSide(
-                                          color: hasFocus || hasValue ? Colors.blue : Colors.grey,
+                                          color: hasFocus || hasValue
+                                              ? appTheme.main_mpin : appTheme.gray7272,
                                         ),
                                       ),
                                       enabledBorder: OutlineInputBorder(
                                         borderSide: BorderSide(
                                           width: 1,
-                                          color: hasFocus || hasValue ? Colors.blue : const Color(0XFF838383).withOpacity(0.1),
+                                          color: hasFocus || hasValue
+                                              ? appTheme.main_mpin : appTheme.gray7272.withOpacity(0.5),
                                         ),
                                       ),
                                     ),
@@ -166,7 +181,9 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                                     },
                                   ),
                                 ),
-                                const SizedBox(height: 30,),
+                                const SizedBox(
+                                  height: 30,
+                                ),
                                 _proceedButton(context),
                               ],
                             ),
@@ -183,48 +200,40 @@ class _ForgotPasswordState extends State<ForgotPassword> {
       ),
     );
   }
+
   _proceedButton(BuildContext context) {
-    return
-    //   (provider.isLoading)?Center(
-    //   child: Container(
-    //     height: 50,
-    //     width: 250,
-    //     decoration: BoxDecoration(
-    //         borderRadius: BorderRadius.circular(50),
-    //         color: appTheme.main
-    //     ),
-    //     child: provider.isLoading ? const Center(
-    //         child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5,)) : null,
-    //   ),
-    // ):
-    (provider.isLoading)?Center(child: CommonWidget().customAnimation(context, 50.0, 250.0)):
-    Center(
-      child: CustomElevatedButton(
-        buttonStyle: ElevatedButton.styleFrom(
-            backgroundColor: appTheme.main,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(50.0)
+    return (provider.isLoading)
+        ? Center(child: CommonWidget().customAnimation(context, 50.0, 250.0))
+        : Center(
+            child: CustomElevatedButton(
+              buttonStyle: ElevatedButton.styleFrom(
+                  backgroundColor: appTheme.main_mpin,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(50.0)),
+                  elevation: 0),
+              buttonTextStyle: CustomTextStyles.white18,
+              height: 50,
+              width: 250,
+              text: provider.isLoading
+                  ? ''
+                  : "Request OTP", // Empty text if loading
+              onPressed: () async {
+                if (!provider.isLoading) {
+                  var email = provider.emailController.text.trim();
+                  String lowercasedEmail = email.toLowerCase();
+                  if (_formKey.currentState!.validate()) {
+                    provider.setLoding(true);
+                    await Provider.of<ForgotPasswordProvider>(context,
+                            listen: false)
+                        .forgotPassword(
+                            context, lowercasedEmail, 'otp', widget.page);
+                    provider.setLoding(false);
+                  } else {
+                    provider.setLoding(false);
+                  }
+                }
+              },
             ),
-            elevation: 0
-        ),
-        buttonTextStyle: CustomTextStyles.white18,
-        height: 50,
-        width: 250,
-        text: provider.isLoading ? '' : "Request OTP",  // Empty text if loading
-        onPressed: () async {
-          if (!provider.isLoading) {
-            var email = provider.emailController.text.trim();
-            String lowercasedEmail = email.toLowerCase();
-            if (_formKey.currentState!.validate()) {
-              provider.setLoding(true);
-              await Provider.of<ForgotPasswordProvider>(context, listen: false).forgotPassword(context, lowercasedEmail, 'otp', widget.page);
-              provider.setLoding(false);
-            } else {
-              provider.setLoding(false);
-            }
-          }
-        },
-      ),
-    );
+          );
   }
 }

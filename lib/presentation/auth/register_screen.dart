@@ -11,9 +11,9 @@ class RegisterScreen extends StatefulWidget {
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
-  static Widget builder(BuildContext context){
+  static Widget builder(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context)=> AuthProvider(),
+      create: (context) => AuthProvider(),
       child: const RegisterScreen(),
     );
   }
@@ -28,7 +28,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _focusNodePass = FocusNode();
 
   bool isApiCallInProgress = false;
-
 
   @override
   void initState() {
@@ -93,8 +92,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 Positioned(
-                  left: (SizeUtils.width-120)/2.2,
-                  bottom: SizeUtils.height/1.35,
+                  left: (SizeUtils.width - 120) / 2.2,
+                  bottom: SizeUtils.height / 1.35,
                   child: CustomImageView(
                     imagePath: ImageConstant.logo,
                     height: 140.v,
@@ -103,7 +102,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 Positioned(
                   right: 0,
-                  bottom: SizeUtils.height/1.6,
+                  bottom: SizeUtils.height / 1.6,
                   child: CustomImageView(
                     imagePath: ImageConstant.LooperGroupBottom,
                     height: 140.v,
@@ -116,9 +115,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   right: 0,
                   child: Container(
                     // padding: const EdgeInsets.all(20),
-                    height: SizeUtils.height/1.5,
+                    height: SizeUtils.height / 1.5,
                     decoration: BoxDecoration(
-                      color: appTheme.white,
+                      color: appTheme.white1,
                       borderRadius: const BorderRadius.only(
                         topRight: Radius.circular(50),
                         topLeft: Radius.circular(50),
@@ -133,25 +132,55 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
-                                padding: const EdgeInsets.only(left: 20.0, right: 20, top: 20),
+                                padding: const EdgeInsets.only(
+                                    left: 20.0, right: 20, top: 20),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('Register',style: CustomTextStyles.pageTitleMain,),
-                                    const SizedBox(height: 20,),
-                                    _buildInput(_focusNodeName, authProvider.nameController, 'Enter Name', 'Please enter name', TextInputType.text),
-                                    const SizedBox(height: 20,),
-                                    _buildEmailInput(_focusNodeEmail, authProvider.emailController, 'Enter Email', 'Please enter email', TextInputType.emailAddress),
-                                    const SizedBox(height: 20,),
-                                    _buildInputPass(_focusNodePass, authProvider.passwordController, 'Password', 'Please enter Password', TextInputType.text),
-                                    const SizedBox(height: 10,),
+                                    Text(
+                                      'Register',
+                                      style: CustomTextStyles.pageTitleMain,
+                                    ),
+                                    const SizedBox(
+                                      height: 20,
+                                    ),
+                                    _buildInput(
+                                        _focusNodeName,
+                                        authProvider.nameController,
+                                        'Enter Name',
+                                        'Please enter name',
+                                        TextInputType.text),
+                                    const SizedBox(
+                                      height: 20,
+                                    ),
+                                    _buildEmailInput(
+                                        _focusNodeEmail,
+                                        authProvider.emailController,
+                                        'Enter Email',
+                                        'Please enter email',
+                                        TextInputType.emailAddress),
+                                    const SizedBox(
+                                      height: 20,
+                                    ),
+                                    _buildInputPass(
+                                        _focusNodePass,
+                                        authProvider.passwordController,
+                                        'Password',
+                                        'Please enter Password',
+                                        TextInputType.text),
+                                    const SizedBox(
+                                      height: 10,
+                                    ),
                                     Text(
                                       'Password must be at least 8 characters long, include:',
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontFamily: 'Poppins',
                                         fontWeight: FontWeight.w400,
-                                        color: authProvider.isLengthValid  ? appTheme.green : appTheme.gray,),
+                                        color: authProvider.isLengthValid
+                                            ? appTheme.green
+                                            : appTheme.gray,
+                                      ),
                                     ),
                                     Text(
                                       '• One number',
@@ -159,7 +188,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                         fontSize: 12,
                                         fontFamily: 'Poppins',
                                         fontWeight: FontWeight.w400,
-                                        color: authProvider.hasNumber ? appTheme.green : appTheme.gray,
+                                        color: authProvider.hasNumber
+                                            ? appTheme.green
+                                            : appTheme.gray,
                                       ),
                                     ),
                                     Text(
@@ -168,7 +199,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                         fontSize: 12,
                                         fontFamily: 'Poppins',
                                         fontWeight: FontWeight.w400,
-                                        color: authProvider.hasUppercase  ? appTheme.green : appTheme.gray,
+                                        color: authProvider.hasUppercase
+                                            ? appTheme.green
+                                            : appTheme.gray,
                                       ),
                                     ),
                                     Text(
@@ -177,27 +210,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                         fontSize: 12,
                                         fontFamily: 'Poppins',
                                         fontWeight: FontWeight.w400,
-                                        color: authProvider.hasSpecialCharacter  ? appTheme.green : appTheme.gray,
+                                        color: authProvider.hasSpecialCharacter
+                                            ? appTheme.green
+                                            : appTheme.gray,
                                       ),
                                     ),
-                                    const SizedBox(height: 10,),
+                                    const SizedBox(
+                                      height: 10,
+                                    ),
                                   ],
                                 ),
                               ),
-
                               Padding(
-                                padding: const EdgeInsets.only(left: 10.0, ),
+                                padding: const EdgeInsets.only(
+                                  left: 10.0,
+                                ),
                                 child: Row(
                                   children: [
                                     Transform.scale(
                                       scale: 1.4,
                                       child: Checkbox(
                                         value: authProvider.privacy_policy,
-                                        activeColor: Colors.blue,
+                                        activeColor: appTheme.main_mpin,
                                         checkColor: Colors.white,
                                         onChanged: (bool? value) {
                                           setState(() {
-                                            authProvider.setPrivacyPolicy(value);
+                                            authProvider
+                                                .setPrivacyPolicy(value);
                                           });
                                         },
                                         side: const BorderSide(
@@ -207,19 +246,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       ),
                                     ),
                                     Expanded(
-                                      child: Text('I have read and agreed to the CoinSwap agreement and privacy policy',
+                                      child: Text(
+                                        'I have read and agreed to the CoinSwap agreement and privacy policy',
                                         style: CustomTextStyles.gray12,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-
-
-
-                              const SizedBox(height: 20,),
+                              const SizedBox(
+                                height: 20,
+                              ),
                               _proceedButton(context),
-                              const SizedBox(height: 10,),
+                              const SizedBox(
+                                height: 10,
+                              ),
                               Row(
                                 children: [
                                   Expanded(
@@ -230,12 +271,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       endIndent: 0,
                                     ),
                                   ),
-                                  const SizedBox(width: 5,),
+                                  const SizedBox(
+                                    width: 5,
+                                  ),
                                   Text(
                                     'or',
                                     style: CustomTextStyles.gray14,
                                   ),
-                                  const SizedBox(width: 5,),
+                                  const SizedBox(
+                                    width: 5,
+                                  ),
                                   Expanded(
                                     child: Divider(
                                       color: appTheme.gray,
@@ -246,9 +291,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 10,),
+                              const SizedBox(
+                                height: 10,
+                              ),
                               _loginButton(context),
-                              const SizedBox(height: 10,),
+                              const SizedBox(
+                                height: 10,
+                              ),
                             ],
                           ),
                         ),
@@ -266,7 +315,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   _loginButton(BuildContext context) {
     return InkWell(
-      onTap: (){
+      onTap: () {
         NavigatorService.pushNamed(AppRoutes.loginScreen);
       },
       child: Center(
@@ -274,111 +323,86 @@ class _RegisterScreenState extends State<RegisterScreen> {
           width: 250,
           height: 50,
           decoration: BoxDecoration(
-            border: Border.all(color: appTheme.main),
+            border: Border.all(color: appTheme.main_mpin),
             borderRadius: BorderRadius.circular(50),
           ),
-          child: Center(child: Text('Login', style: CustomTextStyles.main18,)),
+          child: Center(
+              child: Text(
+            'Login',
+            style: CustomTextStyles.main18_mpin,
+          )),
         ),
       ),
     );
   }
 
   _proceedButton(BuildContext context) {
-    return (authProvider.isLoading)?Center(child: CommonWidget().customAnimation(context, 50.0, 250.0)):Center(
-      child: CustomElevatedButton(
-        buttonStyle: ElevatedButton.styleFrom(
-          backgroundColor: appTheme.main,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(50.0)
-          ),
-          elevation: 0
-        ),
-        buttonTextStyle: CustomTextStyles.white18,
-        height: 50,
-        width: 250,
-        text: authProvider.isLoading ? '' : "Request OTP",  // Empty text if loading
-        onPressed: () async {
-          if (!authProvider.isLoading) {
-              authProvider.setLoding(true);
+    return (authProvider.isLoading)
+        ? Center(child: CommonWidget().customAnimation(context, 50.0, 250.0))
+        : Center(
+            child: CustomElevatedButton(
+              buttonStyle: ElevatedButton.styleFrom(
+                  backgroundColor: appTheme.main_mpin,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(50.0)),
+                  elevation: 0),
+              buttonTextStyle: CustomTextStyles.white18,
+              height: 50,
+              width: 250,
+              text: authProvider.isLoading
+                  ? ''
+                  : "Request OTP", // Empty text if loading
+              onPressed: () async {
+                if (!authProvider.isLoading) {
+                  authProvider.setLoding(true);
 
-            if (_formKey.currentState!.validate()) {
-              if (!authProvider.privacy_policy) {
-                CommonWidget().snackBar(context, appTheme.red, 'Please check privacy policy');
-                authProvider.setLoding(false);
-              } else if (authProvider.passwordController.text.length < 8) {
-                CommonWidget().snackBar(context, appTheme.red, 'Password must be at least 8 characters long');
-                authProvider.setLoding(false);
-              } else if (!RegExp(r'\d').hasMatch(authProvider.passwordController.text)) {
-                CommonWidget().snackBar(context, appTheme.red, 'Password must contain a number');
-                authProvider.setLoding(false);
-              } else if (!RegExp(r'[A-Z]').hasMatch(authProvider.passwordController.text)) {
-                CommonWidget().snackBar(context, appTheme.red, 'Password must contain an uppercase letter');
-                authProvider.setLoding(false);
-              } else {
-                final requestOtp = RequestOtp(
-                  username: authProvider.emailController.text.trim(),
-                  name: authProvider.nameController.text.trim(),
-                  password: authProvider.passwordController.text.trim(),
-                  privacy_policy: authProvider.privacy_policy,
-                );
+                  if (_formKey.currentState!.validate()) {
+                    if (!authProvider.privacy_policy) {
+                      CommonWidget().snackBar(
+                          context, appTheme.red, 'Please check privacy policy');
+                      authProvider.setLoding(false);
+                    } else if (authProvider.passwordController.text.length <
+                        8) {
+                      CommonWidget().snackBar(context, appTheme.red,
+                          'Password must be at least 8 characters long');
+                      authProvider.setLoding(false);
+                    } else if (!RegExp(r'\d')
+                        .hasMatch(authProvider.passwordController.text)) {
+                      CommonWidget().snackBar(context, appTheme.red,
+                          'Password must contain a number');
+                      authProvider.setLoding(false);
+                    } else if (!RegExp(r'[A-Z]')
+                        .hasMatch(authProvider.passwordController.text)) {
+                      CommonWidget().snackBar(context, appTheme.red,
+                          'Password must contain an uppercase letter');
+                      authProvider.setLoding(false);
+                    } else {
+                      final requestOtp = RequestOtp(
+                        username: authProvider.emailController.text.trim(),
+                        name: authProvider.nameController.text.trim(),
+                        password: authProvider.passwordController.text.trim(),
+                        privacy_policy: authProvider.privacy_policy,
+                      );
 
-                // Call your API or any async task
-                await Provider.of<AuthProvider>(context, listen: false).requestOtp(context, requestOtp);
+                      // Call your API or any async task
+                      await Provider.of<AuthProvider>(context, listen: false)
+                          .requestOtp(context, requestOtp);
 
-                // Navigate or perform other actions upon success
+                      // Navigate or perform other actions upon success
 
-                authProvider.setLoding(false);
-              }
-            } else {
-              authProvider.setLoding(false);
-            }
-          }
-        },
-        // text: "Request OTP",
-        // onPressed: () async {
-        //
-        //   // if (!isApiCallInProgress) {
-        //     // setState(() {
-        //     //   isApiCallInProgress = true;
-        //     // });
-        //     if (_formKey.currentState!.validate()) {
-        //       if(!authProvider.privacy_policy){
-        //         CommonWidget().snackBar(context, appTheme.red, 'Please check privacy policy');
-        //       } else if (authProvider.passwordController.text.length < 8) {
-        //         CommonWidget().snackBar(context, appTheme.red, 'Password must be at least 8 characters long');
-        //
-        //       } else if (!RegExp(r'\d').hasMatch(authProvider.passwordController.text)) {
-        //         CommonWidget().snackBar(context, appTheme.red, 'Password must contain a number');
-        //
-        //       } else if (!RegExp(r'[A-Z]').hasMatch(authProvider.passwordController.text)) {
-        //         CommonWidget().snackBar(context, appTheme.red, 'Password must contain an uppercase letter');
-        //
-        //       }else{
-        //         final requestOtp = RequestOtp(
-        //             username: authProvider.emailController.text.trim(),
-        //             name: authProvider.nameController.text.trim(),
-        //             password: authProvider.passwordController.text.trim(),
-        //             privacy_policy: authProvider.privacy_policy
-        //         );
-        //
-        //         // NavigatorService.pushNamed(AppRoutes.verifyOtp,
-        //         //     argument: {'username': authProvider.emailController.text,
-        //         //       'password': authProvider.passwordController.text,
-        //         //       'name': authProvider.nameController.text, 'type': 'register',
-        //         //       'privacy_policy': authProvider.privacy_policy});
-        //
-        //         Provider.of<AuthProvider>(context, listen: false)
-        //             .requestOtp(context, requestOtp);
-        //       }
-        //     }
-        //   // }
-        //
-        // },
-      ),
-    );
+                      authProvider.setLoding(false);
+                    }
+                  } else {
+                    authProvider.setLoding(false);
+                  }
+                }
+              },
+            ),
+          );
   }
 
-  Widget _buildInput(node,TextEditingController controller, String label, String error, TextInputType type) {
+  Widget _buildInput(node, TextEditingController controller, String label,
+      String error, TextInputType type) {
     final hasFocus = node.hasFocus;
     final hasValue = controller.text.isNotEmpty;
     return Container(
@@ -386,31 +410,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
       child: TextFormField(
         focusNode: node,
         controller: controller,
-        style: CustomTextStyles.blue17,
+        style: CustomTextStyles.blue17_dark,
         decoration: InputDecoration(
-          contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 13),
-          fillColor: hasFocus || hasValue ? Colors.white : appTheme.f6f6f6,
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 10, horizontal: 13),
+          fillColor: hasFocus || hasValue ? appTheme.white1 : appTheme.f6f6f6,
           filled: true,
           labelText: label,
           labelStyle: TextStyle(
-            color: hasFocus || hasValue ? appTheme.blueDark : Colors.grey,
-            fontSize: 16,
-            fontWeight: FontWeight.normal
-          ),
+              color: hasFocus || hasValue ? appTheme.main_mpin : Colors.grey,
+              fontSize: 16,
+              fontWeight: FontWeight.normal),
           border: OutlineInputBorder(
             borderSide: BorderSide(
-              color: hasFocus || hasValue ? appTheme.blueDark : const Color(0XFFF6F6F6),
+              color: hasFocus || hasValue
+                  ? appTheme.main_mpin
+                  : const Color(0XFFF6F6F6),
             ),
           ),
           focusedBorder: OutlineInputBorder(
             borderSide: BorderSide(
-              color: hasFocus || hasValue ? appTheme.blueDark : Colors.grey,
+              color: hasFocus || hasValue ? appTheme.main_mpin : Colors.grey,
             ),
           ),
           enabledBorder: OutlineInputBorder(
             borderSide: BorderSide(
               width: 1,
-              color: hasFocus || hasValue ? Colors.blue : const Color(0XFF838383).withOpacity(0.1),
+              color: hasFocus || hasValue
+                  ? appTheme.main_mpin : appTheme.gray.withOpacity(0.5),
             ),
           ),
         ),
@@ -419,7 +446,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildInputPass(node,TextEditingController controller, String label, String error, TextInputType type) {
+  Widget _buildInputPass(node, TextEditingController controller, String label,
+      String error, TextInputType type) {
     final hasFocus = node.hasFocus;
     final hasValue = controller.text.isNotEmpty;
     return Container(
@@ -429,41 +457,46 @@ class _RegisterScreenState extends State<RegisterScreen> {
         controller: controller,
         obscureText: authProvider.obscureText,
         onChanged: (value) {
-          Provider.of<AuthProvider>(context, listen: false).updatePassword(value);
+          Provider.of<AuthProvider>(context, listen: false)
+              .updatePassword(value);
         },
-        style: CustomTextStyles.blue17,
+        style: CustomTextStyles.blue17_dark,
         decoration: InputDecoration(
-          contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 13),
-          fillColor: hasFocus || hasValue ? Colors.white : appTheme.f6f6f6,
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 10, horizontal: 13),
+          fillColor: hasFocus || hasValue ? appTheme.white1 : appTheme.f6f6f6,
           filled: true,
           labelText: label,
           labelStyle: TextStyle(
-            color: hasFocus || hasValue ? appTheme.blueDark : Colors.grey,
-            fontSize: 16,
-            fontWeight: FontWeight.normal
-          ),
+              color: hasFocus || hasValue ? appTheme.main_mpin : Colors.grey,
+              fontSize: 16,
+              fontWeight: FontWeight.normal),
           border: OutlineInputBorder(
             borderSide: BorderSide(
-              color: hasFocus || hasValue ? appTheme.blueDark : const Color(0XFFF6F6F6),
+              color: hasFocus || hasValue
+                  ? appTheme.main_mpin : appTheme.gray,
             ),
           ),
           focusedBorder: OutlineInputBorder(
             borderSide: BorderSide(
-              color: hasFocus || hasValue ? appTheme.blueDark : Colors.grey,
+              color: hasFocus || hasValue ? appTheme.main_mpin : appTheme.gray,
             ),
           ),
           enabledBorder: OutlineInputBorder(
             borderSide: BorderSide(
               width: 1,
-              color: hasFocus || hasValue ? Colors.blue : const Color(0XFF838383).withOpacity(0.1),
+              color: hasFocus || hasValue
+                  ? appTheme.main_mpin : appTheme.gray.withOpacity(0.5),
             ),
           ),
           suffixIcon: IconButton(
             icon: Icon(
-              authProvider.obscureText ? Icons.visibility : Icons.visibility_off,
+              authProvider.obscureText
+                  ? Icons.visibility
+                  : Icons.visibility_off,
               color: Colors.grey,
             ),
-            onPressed: (){
+            onPressed: () {
               authProvider.setObscureText();
             },
           ),
@@ -473,7 +506,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildEmailInput(node,TextEditingController controller, String label, String error, TextInputType type) {
+  Widget _buildEmailInput(node, TextEditingController controller, String label,
+      String error, TextInputType type) {
     final hasFocus = node.hasFocus;
     final hasValue = controller.text.isNotEmpty;
     return Container(
@@ -481,31 +515,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
       child: TextFormField(
         focusNode: node,
         controller: controller,
-        style: CustomTextStyles.blue17,
+        style: CustomTextStyles.blue17_dark,
         decoration: InputDecoration(
-          contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 13),
-          fillColor: hasFocus || hasValue ? Colors.white : appTheme.f6f6f6,
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 10, horizontal: 13),
+          fillColor: hasFocus || hasValue ? appTheme.white1 : appTheme.f6f6f6,
           filled: true,
           labelText: label,
           labelStyle: TextStyle(
-              color: hasFocus || hasValue ? appTheme.blueDark : Colors.grey,
+              color: hasFocus || hasValue ?  appTheme.main_mpin : Colors.grey,
               fontSize: 16,
-              fontWeight: FontWeight.normal
-          ),
+              fontWeight: FontWeight.normal),
           border: OutlineInputBorder(
             borderSide: BorderSide(
-              color: hasFocus || hasValue ? appTheme.blueDark : const Color(0XFFF6F6F6),
+              color: hasFocus || hasValue
+                  ?  appTheme.main_mpin : appTheme.gray,
             ),
           ),
           focusedBorder: OutlineInputBorder(
             borderSide: BorderSide(
-              color: hasFocus || hasValue ? appTheme.blueDark : Colors.grey,
+              color: hasFocus || hasValue ? appTheme.main_mpin : appTheme.gray,
             ),
           ),
           enabledBorder: OutlineInputBorder(
             borderSide: BorderSide(
               width: 1,
-              color: hasFocus || hasValue ? Colors.blue : const Color(0XFF838383).withOpacity(0.1),
+              color: hasFocus || hasValue
+                  ? appTheme.main_mpin : appTheme.gray.withOpacity(0.5),
             ),
           ),
         ),
@@ -520,5 +556,4 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
   }
-
 }

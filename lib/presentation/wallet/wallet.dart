@@ -30,6 +30,7 @@ class _WalletScreenState extends State<WalletScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       provider = Provider.of<WalletScreenProvider>(context, listen: false);
       provider.userWalletData();
+      provider.userWalletConvertedBalance();
     });
   }
 
@@ -64,7 +65,7 @@ class _WalletScreenState extends State<WalletScreen> {
           padding: const EdgeInsets.all(20),
           height: SizeUtils.height,
           decoration: BoxDecoration(
-              color: appTheme.white,
+              color: appTheme.white1,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(50),
                 topRight: Radius.circular(50),
@@ -91,7 +92,7 @@ class _WalletScreenState extends State<WalletScreen> {
                           if (provider.walletData == null || provider.walletData!.data.isEmpty) {
                             return Center(
                                 child: Padding(
-                                  padding: EdgeInsets.all(20.0),
+                                  padding: const EdgeInsets.all(20.0),
                                   child: Text('Wallet data not available', style: CustomTextStyles.gray7272_16,),
                                 ));
                           }
@@ -108,13 +109,18 @@ class _WalletScreenState extends State<WalletScreen> {
                           itemBuilder: (context, index) {
                             final w = data[index];
 
-                            var balance = (w.cryptoType == 'bitcoin')?provider.btcBalance:(w.cryptoType == 'ethereum')?provider.ethBalance:provider.usdtBalance;
+                            var balance = (w.cryptoType == 'usdtTron')?provider.usdtTronBalance:(w.cryptoType == 'bitcoin')?provider.btcBalance:(w.cryptoType == 'ethereum')?provider.ethBalance:provider.usdtBalance;
+
+
+                            var name = (w.cryptoType.toString() == 'usdtTron')?'tron':(w.cryptoType.toString() == 'tron')?'usdt':w.cryptoType.toString();
 
                             return (w.walletAddress!=null) ? _buildCryptoTile(
-                              cryptoName: w.cryptoType.toString()[0].toUpperCase() + w.cryptoType!.substring(1).toLowerCase(),
-                              cryptoSymbol: (w.cryptoType == 'bitcoin')?"BTC":(w.cryptoType == 'ethereum')?"ETH":"USDT",
-                              cryptoIcon: (w.cryptoType == 'bitcoin')?ImageConstant.bit:(w.cryptoType == 'ethereum')?ImageConstant.eth:ImageConstant.t,
-                              amount: balance.toString(),
+                              // cryptoName: w.cryptoType.toString()[0].toUpperCase() + w.cryptoType!.substring(1).toLowerCase(),
+                              cryptoName: name[0].toUpperCase() + name.substring(1).toLowerCase(),
+                              cryptoSymbol: (w.cryptoType == 'bitcoin')?"BTC":(w.cryptoType == 'ethereum')?"ETH":"TRX",
+                              cryptoIcon: (w.cryptoType == 'usdtTron')?ImageConstant.tron:(w.cryptoType == 'bitcoin')?ImageConstant.bit:(w.cryptoType == 'ethereum')?ImageConstant.eth:ImageConstant.t,
+                              convertedAmount: balance.toString(),
+                              amount: w.balance.toString(),
                               // amount: w.balance.toString(),
                               walletAddress: w.walletAddress.toString(),
                               privateKey: w.publicKey.toString(),
@@ -147,6 +153,7 @@ class _WalletScreenState extends State<WalletScreen> {
     required String cryptoName,
     required String cryptoSymbol,
     required cryptoIcon,
+    required String convertedAmount,
     required String amount,
     required String walletAddress,
     required String privateKey,
@@ -158,33 +165,45 @@ class _WalletScreenState extends State<WalletScreen> {
       padding: const EdgeInsets.all(8.0),
       child: Container(
         decoration: BoxDecoration(
-          color: appTheme.lightBlue,
+          color: appTheme.color_E4F0FF,
           boxShadow: [
             BoxShadow(
               color: appTheme.color549FE3,
               blurRadius: 1.0,
             ),
           ],
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Theme(
           data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
           child: ExpansionTile(
+            clipBehavior: Clip.antiAlias,
             leading: CustomImageView(
               imagePath: cryptoIcon,
               height: 40,
               width: 40,
             ),
-            title: Text(
+            title:  Text(
               cryptoName,
-              style: CustomTextStyles.gray7272_15,
+              style: CustomTextStyles.color7272_15,
             ),
-            subtitle: Text(cryptoSymbol, style: TextStyle(
-              fontFamily: "Poppins",
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: cryptoColor
-            ),),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(cryptoSymbol, style: TextStyle(
+                  fontFamily: "Poppins",
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: cryptoColor
+                ),),
+                Text('(\$${double.parse(convertedAmount).toStringAsFixed(4)})', style: TextStyle(
+                  fontFamily: "Poppins",
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: cryptoColor
+                ),),
+              ],
+            ),
             trailing: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -194,18 +213,24 @@ class _WalletScreenState extends State<WalletScreen> {
                   child: Center(
                     child: Text(amount,
                         overflow: TextOverflow.ellipsis,
-                        style: CustomTextStyles.gray7272_15),
+                        style: CustomTextStyles.color7272_15),
                   ),
                 ),
-                Text(isExpanded ? "Hide Details" : "Show Details", style: CustomTextStyles.gray12),
+                Text(isExpanded ? "Hide Details" : "Show Details", style: CustomTextStyles.f8f8_12),
               ],
             ),
+
             onExpansionChanged: onExpansionChanged,
             children: [
               Container(
+                padding: const EdgeInsets.only(top: 10, bottom: 10),
                 decoration: BoxDecoration(
-                  color: appTheme.white,
-                  borderRadius: BorderRadius.circular(10),
+                  color: appTheme.white1,
+                  // borderRadius: BorderRadius.circular(10),
+                  borderRadius: const BorderRadius.only(
+                    bottomRight: Radius.circular(8),
+                    bottomLeft: Radius.circular(8),
+                  ),
                 ),
                 child: Column(
                   children: [
@@ -230,24 +255,6 @@ class _WalletScreenState extends State<WalletScreen> {
                         ),
                       ),
                     ),
-                    // ListTile(
-                    //   title: Text(
-                    //     "Private Key",
-                    //     style: CustomTextStyles.main16,
-                    //   ),
-                    //   subtitle: Text(privateKey,
-                    //     overflow: TextOverflow.ellipsis,style: CustomTextStyles.gray7272_15,),
-                    //   trailing: Padding(
-                    //     padding: const EdgeInsets.only(top: 20.0),
-                    //     child: IconButton(
-                    //       icon: Icon(Icons.copy, size: 20 , color: appTheme.gray7272,),
-                    //       onPressed: () {
-                    //         Clipboard.setData(ClipboardData(
-                    //             text: privateKey.toString()));
-                    //       },
-                    //     ),
-                    //   ),
-                    // ),
                   ],
                 ),
               ),
@@ -258,4 +265,3 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 }
-

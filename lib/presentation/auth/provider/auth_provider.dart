@@ -43,6 +43,8 @@ class AuthProvider with ChangeNotifier {
   bool get hasSpecialCharacter => _hasSpecialCharacter;
   bool get isLengthValid => _isLengthValid;
 
+  var storeValue;
+
   void updatePassword(String newPassword) {
     _password = newPassword;
     _hasUppercase = newPassword.contains(RegExp(r'[A-Z]'));
@@ -91,9 +93,9 @@ class AuthProvider with ChangeNotifier {
   TextEditingController get passwordController => _passwordController;
   TextEditingController get nameController => _nameController;
 
-  Future verifyLoginOtp(context, email, password, otp) async{
+  Future verifyLoginOtp(context, email, password, otp, fcmToken) async{
     try{
-      final response = await apiService.verifyLoginOtp(email, password, otp);
+      final response = await apiService.verifyLoginOtp(email, password, otp, fcmToken);
 
       if(response['status'] == 'success'){
         LoginModel loginData = LoginModel.fromJson(response);
@@ -233,10 +235,10 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future verifyOtp(context, RequestOtp requestOtp, otp) async{
+  Future verifyOtp(context, RequestOtp requestOtp, otp, fcmToken) async{
     var data = requestOtp.toJson();
     try{
-      final response = await apiService.verifyOtp(data, otp);
+      final response = await apiService.verifyOtp(data, otp, fcmToken);
       if(response['status'] == 'success'){
 
         LoginModel loginData = LoginModel.fromJson(response);
@@ -304,12 +306,30 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  Future<void> sendEmail() async{
+    try{
+      final response = await apiService.sendSuccessEmail();
+      if(response['status'] == 'success'){
+        print(response['message']);
+      }else{
+        print(response['message']);
+      }
+    }catch(e){
+      print(e);
+    }finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
 
   //Function for logout remove all data from shared preferences
   void logout() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    storeValue = prefs.getString('themeData');
     // await prefs.remove('themeData');
     prefs.clear();
+    prefs.setString('themeData', (storeValue!=null)?storeValue:'lightCode');
     notifyListeners();
     NavigatorService.pushNamedAndRemoveUntil(AppRoutes.loginScreen);
   }

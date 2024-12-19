@@ -21,6 +21,7 @@ class ReceiveScreen extends StatefulWidget {
 
 class _ReceiveScreenState extends State<ReceiveScreen> {
   late TransactionProvider transactionProvider;
+  late ThemeProvider themeProvider;
   final _secureStorage = const FlutterSecureStorage();
 
   @override
@@ -28,6 +29,8 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
     super.initState();
     transactionProvider =
         Provider.of<TransactionProvider>(context, listen: false);
+    themeProvider =
+        Provider.of<ThemeProvider>(context, listen: false);
     getValue();
   }
 
@@ -60,7 +63,8 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
         automaticallyImplyLeading: false,
         leading: InkWell(
             onTap: () {
-              NavigatorService.goBack();
+              NavigatorService.pushNamed(AppRoutes.homeScreen);
+              // NavigatorService.goBack();
             },
             child: Icon(
               Icons.arrow_back_ios,
@@ -77,7 +81,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
           padding: const EdgeInsets.all(20),
           height: SizeUtils.height,
           decoration: BoxDecoration(
-              color: appTheme.white,
+              color: appTheme.white1,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(50),
                 topRight: Radius.circular(50),
@@ -183,7 +187,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                         color: appTheme.f6f6f6,
                         border: Border.all(
                             width: 1.5,
-                            color: appTheme.color8383.withOpacity(0.2)),
+                            color: (themeProvider.themeType == "lightCode")?appTheme.color8383.withOpacity(0.2):appTheme.white),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: DropdownButtonHideUnderline(
@@ -279,14 +283,14 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
-            color: Colors.white,
+            color: appTheme.white1,
             border: Border.all(width: 1, color: appTheme.blueLight)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Network',
-              style: CustomTextStyles.main14,
+              style: CustomTextStyles.recievermain14,
             ),
             Text(
               '${transactionProvider.depositCurrency} $blockchainNetwork',
@@ -297,7 +301,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
             ),
             Text(
               'Address',
-              style: CustomTextStyles.main14,
+              style: CustomTextStyles.recievermain14,
             ),
             Row(
               children: [
@@ -329,8 +333,10 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
             ),
             Center(
               child: QrImageView(
+                foregroundColor: (themeProvider.themeType == "lightCode")?Colors.black:appTheme.white,
                 // data: '{"toAddress":"${transactionProvider.address}","privateKey":"${transactionProvider.privateKey}"}',
-                data: '{"toAddress":"${transactionProvider.address}"}',
+                data: transactionProvider.address,
+                // data: '{"toAddress":"${transactionProvider.address}"}',
                 version: QrVersions.auto,
                 size: 150.0,
               ),

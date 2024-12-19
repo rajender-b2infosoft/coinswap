@@ -22,6 +22,13 @@ class BtcProvider with ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
 
+  bool _isPageLoading = true;
+  get isPageLoading => _isPageLoading;
+  setIsPageLoading(val){
+    _isPageLoading=val;
+    notifyListeners();
+  }
+
   Future<void> fetchPriceData(String type) async {
     try {
       _isLoading = true;

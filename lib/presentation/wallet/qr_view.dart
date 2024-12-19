@@ -65,14 +65,19 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
   }
 
-  void getScannerData(Barcode? rawResult) async {
+  Future<void> getScannerData(Barcode? rawResult) async {
     if (rawResult != null) {
-      final jsonString = json.decode(rawResult.code.toString());
-      if (jsonString['toAddress'] != null && jsonString['toAddress'].isNotEmpty) {
-        Provider.of<TransactionProvider>(context, listen: false).setAddressController(jsonString['toAddress']);
+      // final jsonString = json.decode(rawResult.code.toString());
+
+      // if (jsonString['toAddress'] != null && jsonString['toAddress'].isNotEmpty) {
+      if (rawResult.code != null && rawResult.code!.isNotEmpty) {
+
+        // Provider.of<TransactionProvider>(context, listen: false).setAddressController(jsonString['toAddress']);
+        Provider.of<TransactionProvider>(context, listen: false).setAddressController(rawResult.code.toString());
         await Future.delayed(const Duration(seconds: 2));
         // NavigatorService.pushNamed(AppRoutes.transferScreen, argument: {'toAddress': jsonString['toAddress'], 'cryptoType': 'Ethereum', 'amount': ''});
-        NavigatorService.pushNamed(AppRoutes.transferScreen, argument: {'toAddress': jsonString['toAddress'], 'cryptoType': widget.blockchain, 'amount': ''});
+        NavigatorService.pushNamed(AppRoutes.transferScreen, argument: {'toAddress': rawResult.code.toString(), 'cryptoType': widget.blockchain, 'amount': ''});
+        // NavigatorService.pushNamed(AppRoutes.transferScreen, argument: {'toAddress': jsonString['toAddress'], 'cryptoType': widget.blockchain, 'amount': ''});
       } else {
         showErrorToast("Invalid QR Code. Address is empty.");
       }
@@ -183,18 +188,23 @@ class _ScannerScreenState extends State<ScannerScreen> {
     setState(() {
       this.controller = controller;
     });
-    controller.scannedDataStream.listen((scanData) {
+    controller.scannedDataStream.listen((scanData) async {
       try {
         // setState(() {
         //   result = scanData;
         //   getScannerData(result);
         // });
+
         if (scanData.code != null) {
           setState(() {
             result = scanData;
           });
+
+          print('Scan Data:::::::::::::1212::: ${result?.code}');
+          controller.pauseCamera(); // Pause camera after scanning
+
           getScannerData(result);
-          controller.pauseCamera(); // Pause the camera after a successful scan
+          // controller.pauseCamera(); // Pause the camera after a successful scan
         }
       } catch (e) {
         print('Error processing scan data:::::::::::::::: $e');

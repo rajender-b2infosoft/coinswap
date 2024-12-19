@@ -5,6 +5,7 @@ class ImageConstant {
   static String LooperGroup = '$imagePath/LooperGroup.png';
   static String scanner = '$imagePath/scanner.png';
   static String bit = '$imagePath/bit.png';
+  static String tron = '$imagePath/tron.png';
   static String loop = '$imagePath/loop.png';
   static String completed = '$imagePath/completed.png';
   static String logo = '$imagePath/logo.png';
@@ -56,5 +57,13 @@ class ImageConstant {
   static String iconUser = '$imagePath/iconUser.png';
   static String iconMpin = '$imagePath/iconMpin.png';
   static String iconLogout = '$imagePath/iconLogout.png';
+  static String comming_soon = '$imagePath/comming_soon.png';
+  static String arrowTop_dark = '$imagePath/up_arrow_dark.png';
+  static String passport_dark = '$imagePath/passport_dark.png';
+  static String password_dark= '$imagePath/password_dark.png';
+  static String round_done_dark = '$imagePath/round_done_dark.png';
+  static String userWithRounded_dark = '$imagePath/userWithRounded_dark.png';
+  static String approval_dark = '$imagePath/Approval_dark.png';
+  // static String popUplogout = '$imagePath/logout_image.png';
 
 }

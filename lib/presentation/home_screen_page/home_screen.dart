@@ -11,6 +11,7 @@ import '../../main.dart';
 import '../../routes/routeaprovider.dart';
 import '../../services/socketService.dart';
 import '../auth/provider/auth_provider.dart';
+import 'models/livePrice.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -28,10 +29,12 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late HomeScreenProvider homeProvider;
+  late ThemeProvider themeProvider;
 
   late AuthProvider authProvider;
   var count = 0;
   late SocketIOClient _webSocketClient;
+  // final WebSocketService _webSocketService = WebSocketService();
 
 
   final _linkStream = StreamController<String>();
@@ -56,6 +59,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     // _webSocketClient = SocketIOClient();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       homeProvider = Provider.of<HomeScreenProvider>(context, listen: false);
+      themeProvider = Provider.of<ThemeProvider>(context, listen: false);
       //get user info like address, status, balance and other
       homeProvider.userWalletData();
       //create function to get wallet converted balance
@@ -113,6 +117,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     homeProvider = Provider.of<HomeScreenProvider>(context, listen: true);
     authProvider = Provider.of<AuthProvider>(context, listen: true);
+    themeProvider = Provider.of<ThemeProvider>(context, listen: false);
 
     return WillPopScope(
       onWillPop: () async {
@@ -138,41 +143,97 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         'CoinSwap',
                         style: CustomTextStyles.title27_400,
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 5),
-                        child: InkWell(
-                          onTap: (){
-                            PopupUtil().popUp(context,"${homeProvider.userStatus.toString()}", CustomTextStyles.white17_400,"Your account is currently ${homeProvider.userStatus.toString()}.");
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.fromLTRB(5, 1, 5, 2),
-                            decoration: BoxDecoration(
-                                color: (homeProvider.userStatus.toString() == 'Under Review')
-                                    ? appTheme.colorEA96
-                                    : (homeProvider.userStatus.toString() == 'Active' || homeProvider.userStatus.toString() == 'active')
-                                    ? appTheme.green
-                                    : appTheme.colorE132,
-                                borderRadius: BorderRadius.circular(10)
+              Padding(
+                padding: const EdgeInsets.only(left: 5),
+                child: Consumer<HomeScreenProvider>(
+                  builder: (context, homeProvider, child) {
+
+                    return InkWell(
+                      onTap: () {
+                        //get user info like address, status, balance and other
+                        homeProvider.userWalletData();
+                        //create function to get wallet converted balance
+                        homeProvider.userWalletConvertedBalance();
+                        //Get user recent transaction
+                        homeProvider.recentTransactionsData();
+                        //Get crypto live price
+                        homeProvider.getCryptoLivePrice();
+
+                        PopupUtil().popUp(
+                          context,
+                          "${homeProvider.userStatus}",
+                          CustomTextStyles.white17_400,
+                          "Your account is currently ${homeProvider.userStatus}.",
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.fromLTRB(5, 1, 5, 2),
+                        decoration: BoxDecoration(
+                          color: (homeProvider.userStatus == 'Under Review')
+                              ? appTheme.colorEA96
+                              : (homeProvider.userStatus == 'Active' || homeProvider.userStatus == 'active')
+                              ? appTheme.green
+                              : appTheme.colorE132,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "${homeProvider.userStatus}",
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 11,
+                                color: appTheme.white,
+                                fontWeight: FontWeight.w400,
+                              ),
                             ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text("${homeProvider.userStatus.toString()}",
-                                  style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 11,
-                                      color: appTheme.white,
-                                      fontWeight: FontWeight.w400
-                                  ),
-                                ),
-                                const SizedBox(width: 5,),
-                                Icon(Icons.info, color: appTheme.white, size: 15,)
-                              ],
-                            ),
-                          ),
+                            const SizedBox(width: 5),
+                            Icon(Icons.info, color: appTheme.white, size: 15),
+                          ],
                         ),
                       ),
+                    );
+                  },
+                ),
+              )
+
+              // Padding(
+                      //   padding: const EdgeInsets.only(left: 5),
+                      //   child: InkWell(
+                      //     onTap: (){
+                      //       PopupUtil().popUp(context,"${homeProvider.userStatus.toString()}", CustomTextStyles.white17_400,"Your account is currently ${homeProvider.userStatus.toString()}.");
+                      //     },
+                      //     child: Container(
+                      //       padding: const EdgeInsets.fromLTRB(5, 1, 5, 2),
+                      //       decoration: BoxDecoration(
+                      //           color: (homeProvider.userStatus.toString() == 'Under Review')
+                      //               ? appTheme.colorEA96
+                      //               : (homeProvider.userStatus.toString() == 'Active' || homeProvider.userStatus.toString() == 'active')
+                      //               ? appTheme.green
+                      //               : appTheme.colorE132,
+                      //           borderRadius: BorderRadius.circular(10)
+                      //       ),
+                      //       child: Row(
+                      //         crossAxisAlignment: CrossAxisAlignment.center,
+                      //         mainAxisAlignment: MainAxisAlignment.center,
+                      //         children: [
+                      //           Text("${homeProvider.userStatus.toString()}",
+                      //             style: TextStyle(
+                      //                 fontFamily: 'Poppins',
+                      //                 fontSize: 11,
+                      //                 color: appTheme.white,
+                      //                 fontWeight: FontWeight.w400
+                      //             ),
+                      //           ),
+                      //           const SizedBox(width: 5,),
+                      //           Icon(Icons.info, color: appTheme.white, size: 15,)
+                      //         ],
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
                     ],
                   ),
                   Padding(
@@ -215,10 +276,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           onTap: (){
                               NavigatorService.pushNamed(AppRoutes.walletScreen);
                           },
-                          child: CustomImageView(
-                            imagePath: ImageConstant.wallet,
-                            width: 30,
-                            height: 30,
+                          child: Container(
+                            padding: const EdgeInsets.all(3,),
+                            decoration: BoxDecoration(
+                              color: appTheme.white,
+                              borderRadius: BorderRadius.circular(50)
+                            ),
+                            child: CustomImageView(
+                              imagePath: ImageConstant.WalletIcon,
+                              width: 20,
+                              height: 20,
+                              color: appTheme.main_mpin,
+                            ),
                           ),
                         ),
                       ],
@@ -230,7 +299,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     child: SizedBox(
                       width: SizeUtils.width,
                       child: Text(
-                        '\$${(homeProvider.walletBalance=='null')?'0.0':homeProvider.walletBalance}',
+                        // '\$${(homeProvider.walletBalance=='null')?'0.0':homeProvider.walletBalance}',
+                        '\$${(homeProvider.walletBalance=='null')?'0.0':(double.parse(homeProvider.walletBalance)).toStringAsFixed(5).replaceAll(RegExp(r'0+$'), '')}',
                         overflow: TextOverflow.ellipsis,
                         style: CustomTextStyles.white30,
                       ),
@@ -265,7 +335,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               child: Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                    color: appTheme.white,
+                    color: appTheme.white1,
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(50),
                       topRight: Radius.circular(50),
@@ -279,29 +349,103 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         style: CustomTextStyles.gray7272_17,
                       ),
                       const SizedBox(height: 16),
-                            SizedBox(
-                              height: 130,
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: homeProvider.cryptoList.length,
-                                itemBuilder: (context, index){
+                            // SizedBox(
+                            //   height: 130,
+                            //   child: ListView.builder(
+                            //     scrollDirection: Axis.horizontal,
+                            //     itemCount: homeProvider.cryptoList.length,
+                            //     itemBuilder: (context, index){
+                            //
+                            //       var cryptoType = (homeProvider.cryptoList[index].cryptoType=='bitcoin')?'BTC':(homeProvider.cryptoList[index].cryptoType=='ethereum')?'ETH':'USDT';
+                            //       var color = (homeProvider.cryptoList[index].cryptoType=='bitcoin')?appTheme.orange:(homeProvider.cryptoList[index].cryptoType=='ethereum')?appTheme.color7CA:appTheme.green;
+                            //       var img = (homeProvider.cryptoList[index].cryptoType=='bitcoin')?ImageConstant.bit:(homeProvider.cryptoList[index].cryptoType=='ethereum')?ImageConstant.eth:ImageConstant.t;
+                            //       var price = double.parse(homeProvider.cryptoList[index].price);
+                            //       String formattedPrice = price.toStringAsFixed(3);
+                            //
+                            //       return Padding(
+                            //         padding: EdgeInsets.only(left: (index==1)?8.0:(index==2)?8.0:0.0),
+                            //         child: _buildInfoCard(img, cryptoType, formattedPrice,homeProvider.cryptoList[index].usd24hChange, color, 'btcColor', homeProvider.cryptoList[index].cryptoType),
+                            //       );
+                            //
+                            //       // return _buildInfoCard(ImageConstant.bit, 'BTC', bit_price.toString(),
+                            //       //           bit_percentage, appTheme.orange, 'btcColor', 'bitcoin');
+                            //     }
+                            //   ),
+                            // ),
 
-                                  var cryptoType = (homeProvider.cryptoList[index].cryptoType=='bitcoin')?'BTC':(homeProvider.cryptoList[index].cryptoType=='ethereum')?'ETH':'USDT';
-                                  var color = (homeProvider.cryptoList[index].cryptoType=='bitcoin')?appTheme.orange:(homeProvider.cryptoList[index].cryptoType=='ethereum')?appTheme.color7CA:appTheme.green;
-                                  var img = (homeProvider.cryptoList[index].cryptoType=='bitcoin')?ImageConstant.bit:(homeProvider.cryptoList[index].cryptoType=='ethereum')?ImageConstant.eth:ImageConstant.t;
-                                  var price = double.parse(homeProvider.cryptoList[index].price);
-                                  String formattedPrice = price.toStringAsFixed(3);
+                      Consumer<HomeScreenProvider>(
+                          builder: (context, homeProvider, child) {
 
-                                  return Padding(
-                                    padding: EdgeInsets.only(left: (index==1)?8.0:(index==2)?8.0:0.0),
-                                    child: _buildInfoCard(img, cryptoType, formattedPrice,homeProvider.cryptoList[index].usd24hChange, color, 'btcColor', homeProvider.cryptoList[index].cryptoType),
-                                  );
+                            var bit_price = homeProvider.getPrice('BTC-USD');
+                            var eth_price = homeProvider.getPrice('ETH-USD');
+                            var usdt_price = homeProvider.getPrice('USDT-USD');
 
-                                  // return _buildInfoCard(ImageConstant.bit, 'BTC', bit_price.toString(),
-                                  //           bit_percentage, appTheme.orange, 'btcColor', 'bitcoin');
-                                }
+                            // var bit_percentage = homeProvider.getPercentage('BTC-USD');
+                            // var eth_percentage = homeProvider.getPercentage('ETH-USD');
+                            // var usdt_percentage = homeProvider.getPercentage('USDT-USD');
+
+
+                            var bitcoinData = homeProvider.cryptoList.firstWhere(
+                                  (crypto) => crypto.cryptoType == 'bitcoin',
+                              orElse: () => CryptoLivePriceModel(
+                                id: 0,
+                                cryptoType: 'bitcoin',
+                                price: '0',
+                                usd24hChange: '0',
+                                createdAt: '',
+                                updatedAt: '',
                               ),
-                            ),
+                            );
+
+                            var ethereumData = homeProvider.cryptoList.firstWhere(
+                                  (crypto) => crypto.cryptoType == 'ethereum',
+                              orElse: () => CryptoLivePriceModel(
+                                id: 0,
+                                cryptoType: 'ethereum',
+                                price: '0',
+                                usd24hChange: '0',
+                                createdAt: '',
+                                updatedAt: '',
+                              ),
+                            );
+
+                            var tetherData = homeProvider.cryptoList.firstWhere(
+                                  (crypto) => crypto.cryptoType == 'tether',
+                              orElse: () => CryptoLivePriceModel(
+                                id: 0,
+                                cryptoType: 'tether',
+                                price: '0',
+                                usd24hChange: '0',
+                                createdAt: '',
+                                updatedAt: '',
+                              ),
+                            );
+
+                            // Extract price and usd24hChange
+                            var bitcoinPrice = bitcoinData.price;
+                            var bitcoinUsdChange = bitcoinData.usd24hChange;
+                            var ethereumPrice = ethereumData.price;
+                            var ethereumUsdChange = ethereumData.usd24hChange;
+                            var tetherPrice = tetherData.price;
+                            var tetherUsdChange = tetherData.usd24hChange;
+
+                            var bitPrice = (bit_price==0)?bitcoinPrice:bit_price;
+                            var ethPrice = (eth_price==0)?ethereumPrice:eth_price;
+                            var usdtPrice = (usdt_price==0)?tetherPrice:usdt_price;
+
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                _buildInfoCard(ImageConstant.bit, 'BTC', bitPrice.toString(),
+                                    bitcoinUsdChange, appTheme.orange, 'btcColor'),
+                                _buildInfoCard(ImageConstant.eth, 'ETH', ethPrice.toString(),
+                                    ethereumUsdChange, appTheme.color7CA, 'ethColor'),
+                                _buildInfoCard(ImageConstant.t, 'USDT', usdtPrice.toString(),
+                                    tetherUsdChange, appTheme.green, 'usdtColor'),
+                              ],
+                            );
+                          }
+                      ),
 
                           //   var bit_price = homeProvider.getPrice('BTC-USD');
                           //   var eth_price = homeProvider.getPrice('ETH-USD');
@@ -352,12 +496,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               child: Consumer<HomeScreenProvider>(
                                   builder: (context, provider, child) {
                                     if (provider.isLoading) {
-                                      return Center(child: CircularProgressIndicator());
+                                      return const Center(child: CircularProgressIndicator());
                                     }
                                     if (provider.recenTransactionData == null || provider.recenTransactionData!.data.isEmpty) {
                                       return Center(
                                           child: Padding(
-                                            padding: EdgeInsets.all(0.0),
+                                            padding: const EdgeInsets.all(0.0),
                                             child: Text('No transaction available', style: CustomTextStyles.gray7272_16),
                                           ));
                                     }
@@ -374,8 +518,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                       var amount = (tr.transactionType=='dr')?'-${tr.amount}':'${tr.amount}';
                                       DateTime parsedDate = DateTime.parse(tr.createdAt.toString());
                                       String formattedDate = DateFormat('dd-MMM-yyyy').format(parsedDate);
+                                      String trxAmount = double.parse(tr.amount.toString()).toStringAsFixed(2);
 
-                                      return _buildActivityCard(tr.receiverWalletAddress.toString(), cryptoType, '\$${tr.amount}',
+                                      return _buildActivityCard(tr.receiverWalletAddress.toString(), cryptoType, '${trxAmount}',
                                           tr.status.toString(), formattedDate);
 
                                       // return _buildActivityCard('1Lbcfr7sAHTD9CgdQo3', 'BTC', '\$3412',
@@ -407,6 +552,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               SizedBox(
                 width: 290,
                 child: Drawer(
+                  backgroundColor: appTheme.drawerColor,
                   child: Padding(
                     padding: const EdgeInsets.only(top: 20.0),
                     child: ListView(
@@ -446,7 +592,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   Text(
                                     '${homeProvider.name}',
                                     style: TextStyle(
-                                      color: appTheme.color0071D0,
+                                      // color: appTheme.color0071D0,
+                                      color: appTheme.main_mpin,
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                       fontFamily: "Poppins"
@@ -469,7 +616,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ),
                         const SizedBox(height: 10,),
                         Divider(
-                          color: appTheme.color0071D0,
+                          color: appTheme.main_mpin,
                           height: 20,
                           thickness: 2,
                           indent: 0,
@@ -500,7 +647,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       height: 30,
                       width: 30,
                       decoration: BoxDecoration(
-                        color: appTheme.main,
+                        color: appTheme.main_mpin,
                         borderRadius: BorderRadius.circular(50),
                       ),
                       child: Padding(
@@ -522,7 +669,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       padding: const EdgeInsets.only(right: 50.0),
       child: Container(
         decoration: BoxDecoration(
-            color: (homeProvider.isClicked==name)?appTheme.main:Colors.transparent,
+            color: (homeProvider.isClicked==name)?appTheme.main_mpin:Colors.transparent,
             borderRadius: const BorderRadius.only(
               bottomRight: Radius.circular(50),
               topRight: Radius.circular(50),
@@ -540,7 +687,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           onTap: () {
             homeProvider.setIsClicked(name);
             if(name == 'Logout'){
-              authProvider.logout();
+              // authProvider.logout();
+              PopupUtil().logOutPopUp(context, () {
+                authProvider.logout();
+                NavigatorService.pushNamedAndRemoveUntil(
+                    AppRoutes.loginScreen);
+              },);
             }else if(name == 'Transactions'){
               NavigatorService.pushNamed(redirect, argument: {'toAddress': ''});
             }else {
@@ -577,6 +729,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(5),
             color: (homeProvider.userStatus.toString() == 'Active' || homeProvider.userStatus.toString() == 'active') ? const Color(0XFF3E91DC) : const Color(0XFF6485A3),
+            gradient:  (themeProvider.themeType == 'lightCode'|| themeProvider.themeType == "system")?null:const LinearGradient(colors: [
+              Color(0XFF5774CA), Color(0XFF445898)
+            ])
         ),
         child: Center(child: Text(text, style: CustomTextStyles.white17,)),
       ),
@@ -615,12 +770,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
+  // Widget _buildInfoCard(
+  //     img, String currency, String amount, String change, Color changeColor, percentColor, type) {
   Widget _buildInfoCard(
-      img, String currency, String amount, String change, Color changeColor, percentColor, type) {
+      img, String currency, String amount, String change, Color changeColor, percentColor) {
     return InkWell(
-      onTap: (){
+      onTap: ()async{
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        String? currentTheme = prefs.getString('themeData');
+        String themeVal = (currentTheme=='darkCode')?'dark':'light';
 
-        NavigatorService.pushNamed(AppRoutes.lineChartScreen, argument: {"type": type});
+        NavigatorService.pushNamed(AppRoutes.tradingViewChartPage, argument: {"type": currency, "theme": themeVal});
+        // NavigatorService.pushNamed(AppRoutes.lineChartScreen, argument: {"type": type});
 
         // if(homeProvider.userStatus.toString() == 'Active' || homeProvider.userStatus.toString() == 'active'){
         //   var cryptoType = (currency=='BTC')?'Bitcoin':(currency=='ETH')?'Ethereum':'USDT';
@@ -638,7 +799,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         padding: const EdgeInsets.fromLTRB(16, 5, 16, 5),
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
-            color: Colors.white,
+            color: appTheme.white1,
             border: Border.all(width: 0.8, color: appTheme.blueLight)
         ),
         child: Column(
@@ -703,9 +864,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           Text('${change.toStringAsFixed(2)}%',
             style: TextStyle(
               color: appTheme.red,
-              fontSize: 13,
+              fontSize: 11,
               fontFamily: 'Poppins',
-              fontWeight: FontWeight.w400,
+              fontWeight: FontWeight.w200,
             ),
           ),
         ],
@@ -722,9 +883,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           Text('${change.toStringAsFixed(2)}%',
             style: TextStyle(
               color: appTheme.green,
-              fontSize: 13,
+              fontSize: 11,
               fontFamily: 'Poppins',
-              fontWeight: FontWeight.w400,
+              fontWeight: FontWeight.w200,
             ),
           ),
         ],
@@ -734,6 +895,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Widget _buildActivityCard(String name, String currency, String amount,
       String status, String date) {
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 10.0),
       child: Container(
@@ -748,12 +910,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               decoration: BoxDecoration(
                   color: appTheme.lightBlue,
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(10),
-                    bottomLeft: Radius.circular(10),
+                    topLeft: Radius.circular(8),
+                    bottomLeft: Radius.circular(8),
                   )),
               child: CustomImageView(
                 fit: BoxFit.contain,
                 imagePath: ImageConstant.arrowBottom,
+                color: (themeProvider.themeType == "lightCode")?appTheme.blueDark:appTheme.white,
                 width: 22,
                 height: 25,
               ),
@@ -765,7 +928,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 150,
+                  width: 140,
                   child: Text(
                     name,
                     overflow: TextOverflow.ellipsis,
@@ -794,9 +957,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(
-                    status.toUpperCase(),
-                    style: CustomTextStyles.gray7272_12,
+                  Container(
+                    padding: EdgeInsets.only(left: 8, right: 8),
+                    decoration: BoxDecoration(
+                      color: (status=='created')?appTheme.red:appTheme.green,
+                      borderRadius: BorderRadius.circular(20,),
+                    ),
+                    child: Text(
+                    (status=='created')?'PENDING':status.toUpperCase(),
+                      style: CustomTextStyles.white_12,
+                    ),
                   ),
                   Text(
                     date,

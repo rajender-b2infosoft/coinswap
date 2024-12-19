@@ -26,6 +26,8 @@ class WalletScreenProvider extends ChangeNotifier{
   String get btcBalance => _btcBalance;
   String _usdtBalance = '0';
   String get usdtBalance => _usdtBalance;
+  String _usdtTronBalance = '0';
+  String get usdtTronBalance => _usdtTronBalance;
 
   setLoding(val){
     _isLoading = val;
@@ -41,7 +43,7 @@ class WalletScreenProvider extends ChangeNotifier{
       //check response
       if (response != null && response['status'] == 'success') {
         //function for convert user wallet amount
-        await userWalletConvertedBalance();
+        // await userWalletConvertedBalance();
         _walletData = UserProfileResponse.fromJson(response);
         // CommonWidget.showToastView('Wallets data fetched successfully', appTheme.gray8989);
       }else {
@@ -73,6 +75,7 @@ class WalletScreenProvider extends ChangeNotifier{
           _ethBalance = response['data'][0]['eth'].toString();
           _btcBalance = response['data'][0]['btc'].toString();
           _usdtBalance = response['data'][0]['usdt'].toString();
+          _usdtTronBalance = response['data'][0]['usdtTron'].toString();
         }
       }else {
         CommonWidget.showToastView(response['message'], appTheme.gray8989);

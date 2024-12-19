@@ -16,7 +16,8 @@ class ForgotPasswordOtp extends StatefulWidget {
   @override
   State<ForgotPasswordOtp> createState() => _ForgotPasswordOtpState();
   static Widget builder(BuildContext context) {
-    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    final args =
+        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     return ChangeNotifierProvider(
       create: (context) => ForgotPasswordProvider(),
       child: ForgotPasswordOtp(email: args['email'], page: args['page']),
@@ -26,6 +27,7 @@ class ForgotPasswordOtp extends StatefulWidget {
 
 class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
   late ForgotPasswordProvider provider;
+  late ThemeProvider themeProvider;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   int _otpLength = 4;
   late List<TextEditingController> _controllers;
@@ -39,8 +41,10 @@ class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
   void initState() {
     super.initState();
     provider = Provider.of<ForgotPasswordProvider>(context, listen: false);
+    themeProvider = Provider.of<ThemeProvider>(context, listen: false);
 
-    _controllers = List.generate(_otpLength, (index) => TextEditingController());
+    _controllers =
+        List.generate(_otpLength, (index) => TextEditingController());
     _focusNodes = List.generate(_otpLength, (index) => FocusNode());
 
     for (var node in _focusNodes) {
@@ -85,7 +89,7 @@ class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
       } else {
         setState(() {
           _start--;
-          _progress  = _start/45;
+          _progress = _start / 45;
         });
       }
     });
@@ -103,7 +107,6 @@ class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
 
   @override
   Widget build(BuildContext context) {
-
     return SafeArea(
       child: Scaffold(
         resizeToAvoidBottomInset: false,
@@ -126,8 +129,8 @@ class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
                   ),
                 ),
                 Positioned(
-                  left: (SizeUtils.width-120)/2.2,
-                  bottom: SizeUtils.height/1.35,
+                  left: (SizeUtils.width - 120) / 2.2,
+                  bottom: SizeUtils.height / 1.35,
                   child: CustomImageView(
                     imagePath: ImageConstant.logo,
                     height: 140.v,
@@ -136,7 +139,7 @@ class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
                 ),
                 Positioned(
                   right: 0,
-                  bottom: SizeUtils.height/1.6,
+                  bottom: SizeUtils.height / 1.6,
                   child: CustomImageView(
                     imagePath: ImageConstant.LooperGroupBottom,
                     height: 140.v,
@@ -149,9 +152,9 @@ class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
                   right: 0,
                   child: Container(
                     padding: const EdgeInsets.all(20),
-                    height: SizeUtils.height/1.5,
+                    height: SizeUtils.height / 1.5,
                     decoration: BoxDecoration(
-                      color: appTheme.white,
+                      color: appTheme.white1,
                       borderRadius: const BorderRadius.only(
                         topRight: Radius.circular(50),
                         topLeft: Radius.circular(50),
@@ -165,77 +168,58 @@ class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Text('Enter the OTP',style: CustomTextStyles.pageTitleMain25,),
-                              const SizedBox(height: 8,),
-                              // Row(
-                              //   mainAxisAlignment: MainAxisAlignment.center,
-                              //   children: [
-                                  Text('Check your email address ',
-                                    textAlign: TextAlign.center,
-                                    style: CustomTextStyles.gray12,
-                                  ),
+                              Text(
+                                'Enter the OTP',
+                                style: CustomTextStyles.pageTitleMain_mpin,
+                              ),
+                              const SizedBox(
+                                height: 8,
+                              ),
+                              Text(
+                                'Check your email address ',
+                                textAlign: TextAlign.center,
+                                style: CustomTextStyles.gray12,
+                              ),
                               InkWell(
-                                onTap: (){
+                                onTap: () {
                                   NavigatorService.goBack();
                                 },
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        if (widget.page.trim() != 'mpin')
-                                        Container(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    if (widget.page.trim() != 'mpin')
+                                      Container(
                                           height: 22,
                                           width: 22,
                                           decoration: BoxDecoration(
-                                            color: appTheme.main,
-                                            borderRadius: BorderRadius.circular(50),
+                                            color: appTheme.mainTitle,
+                                            borderRadius:
+                                                BorderRadius.circular(50),
                                           ),
-                                            child: Icon(Icons.edit, size: 15, color: appTheme.white,)),
-                                        Text(' ${widget.email}',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            color: appTheme.gray,
-                                            fontSize: 13,
-                                            fontFamily: 'Poppins',
-                                            fontWeight: FontWeight.w800,
-                                          ),
-                                        ),
-                                      ],
+                                          child: Icon(
+                                            Icons.edit,
+                                            size: 15,
+                                            color: appTheme.white,
+                                          )),
+                                    Text(
+                                      ' ${widget.email}',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: appTheme.gray,
+                                        fontSize: 13,
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w800,
+                                      ),
                                     ),
-                                  ),
-                              //   ],
-                              // ),
-
-                              // const SizedBox(height: 10),
-                              // Padding(
-                              //   padding: const EdgeInsets.only(left: 40),
-                              //   child: InkWell(
-                              //     onTap: (){
-                              //       NavigatorService.goBack();
-                              //     },
-                              //     child: Row(
-                              //       children: [
-                              //         Center(
-                              //           child: Container(
-                              //             padding: EdgeInsets.all(2),
-                              //               decoration: BoxDecoration(
-                              //                   color: appTheme.main,
-                              //                   borderRadius: BorderRadius.circular(50)
-                              //               ),
-                              //               child: Icon(Icons.edit, size: 10, color: appTheme.white,)),
-                              //         ),
-                              //         SizedBox(width: 3,),
-                              //         Text('Edit Email',
-                              //           textAlign: TextAlign.center,
-                              //           style: CustomTextStyles.main13,
-                              //         ),
-                              //       ],
-                              //     ),
-                              //   ),
-                              // ),
+                                  ],
+                                ),
+                              ),
                               const SizedBox(height: 40),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: List.generate(_otpLength, (index) => _buildOtpField(index)),
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: List.generate(_otpLength,
+                                    (index) => _buildOtpField(index)),
                               ),
                               const SizedBox(height: 40),
                               if (_isTimerActive)
@@ -244,14 +228,16 @@ class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
                                   children: [
                                     CustomPaint(
                                       size: Size(60, 60), // Size of the circle
-                                      painter: GradientCircularProgressPainter(double.parse(_start.toString())),
+                                      painter: GradientCircularProgressPainter(
+                                          double.parse(_start.toString())),
                                     ),
                                     Text(
                                       '${_start.toInt()}',
                                       style: TextStyle(
-                                        color: appTheme.main,
+                                        color: appTheme.main_mpin,
                                         fontWeight: FontWeight.w400,
-                                        fontSize: 14, // Adjust font size as needed
+                                        fontSize:
+                                            14, // Adjust font size as needed
                                       ),
                                     ),
                                   ],
@@ -261,13 +247,14 @@ class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
                                     onTap: () {
                                       _resendOtp();
                                     },
-                                    child: Text('Resend OTP',
-                                      style: TextStyle(
-                                        color: appTheme.gray7272
-                                      ),
-                                    )
-                                ),
-                              const SizedBox(height: 40,),
+                                    child: Text(
+                                      'Resend OTP',
+                                      style:
+                                          TextStyle(color: appTheme.gray7272),
+                                    )),
+                              const SizedBox(
+                                height: 40,
+                              ),
                               _proceedButton(context),
                             ],
                           ),
@@ -291,9 +278,10 @@ class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
       width: 55,
       height: 60,
       child: RawKeyboardListener(
-        focusNode: FocusNode(),  // FocusNode for the RawKeyboardListener
+        focusNode: FocusNode(), // FocusNode for the RawKeyboardListener
         onKey: (RawKeyEvent event) {
-          if (event is RawKeyDownEvent && event.logicalKey == LogicalKeyboardKey.backspace) {
+          if (event is RawKeyDownEvent &&
+              event.logicalKey == LogicalKeyboardKey.backspace) {
             if (_controllers[index].text.isNotEmpty) {
               // If the current text field is not empty, delete the text
               _controllers[index].clear();
@@ -301,9 +289,12 @@ class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
               // Move to the previous field if the current field is empty
               // Clear text in the previous field and move the cursor
               FocusScope.of(context).requestFocus(_focusNodes[index - 1]);
-              _controllers[index - 1].clear();  // Clear text in the previous field
+              _controllers[index - 1]
+                  .clear(); // Clear text in the previous field
               _controllers[index - 1].selection = TextSelection.fromPosition(
-                TextPosition(offset: 0),  // Set cursor position to the start (or you can use length for the end)
+                TextPosition(
+                    offset:
+                        0), // Set cursor position to the start (or you can use length for the end)
               );
             }
           }
@@ -314,28 +305,37 @@ class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           maxLength: 1,
+          style: TextStyle(
+              color: (themeProvider.themeType == "lightCode")
+                  ? appTheme.main
+                  : appTheme.gray),
           textAlign: TextAlign.center,
-          textInputAction: index < _otpLength - 1 ? TextInputAction.next : TextInputAction.done,
+          textInputAction: index < _otpLength - 1
+              ? TextInputAction.next
+              : TextInputAction.done,
           decoration: InputDecoration(
             counterText: '',
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.h),
               borderSide: BorderSide(
-                color: hasFocus || hasValue ? appTheme.main : appTheme.gray,
+                color:
+                    hasFocus || hasValue ? appTheme.main_mpin : appTheme.gray,
                 width: 2,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.h),
               borderSide: BorderSide(
-                color: hasFocus || hasValue ? appTheme.main : appTheme.gray,
+                color:
+                    hasFocus || hasValue ? appTheme.main_mpin : appTheme.gray,
                 width: 1,
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.h),
               borderSide: BorderSide(
-                color: hasFocus || hasValue ? appTheme.main : appTheme.gray,
+                color:
+                    hasFocus || hasValue ? appTheme.main_mpin : appTheme.gray,
                 width: 1,
               ),
             ),
@@ -356,81 +356,34 @@ class _ForgotPasswordOtpState extends State<ForgotPasswordOtp> {
           },
         ),
       ),
-      // child: TextField(
-      //   controller: _controllers[index],
-      //   focusNode: _focusNodes[index],
-      //   keyboardType: TextInputType.number,
-      //   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      //   maxLength: 1,
-      //   textAlign: TextAlign.center,
-      //   decoration: InputDecoration(
-      //     counterText: '',
-      //     border: OutlineInputBorder(
-      //       borderRadius: BorderRadius.circular(8.h),
-      //       borderSide: BorderSide(
-      //         color: hasFocus || hasValue ? appTheme.main : appTheme.gray,
-      //         width: 2,
-      //       ),
-      //     ),
-      //     enabledBorder: OutlineInputBorder(
-      //       borderRadius: BorderRadius.circular(8.h),
-      //       borderSide: BorderSide(
-      //         color: hasFocus || hasValue ? appTheme.main : appTheme.gray,
-      //         width: 1,
-      //       ),
-      //     ),
-      //     focusedBorder: OutlineInputBorder(
-      //       borderRadius: BorderRadius.circular(8.h),
-      //       borderSide: BorderSide(
-      //         color: hasFocus || hasValue ? appTheme.main : appTheme.gray,
-      //         width: 1,
-      //       ),
-      //     ),
-      //   ),
-      //   onChanged: (value) {
-      //     if (value.isNotEmpty && index < _otpLength - 1) {
-      //       FocusScope.of(context).requestFocus(_focusNodes[index + 1]);
-      //     } else if (value.isEmpty && index > 0) {
-      //       FocusScope.of(context).requestFocus(_focusNodes[index - 1]);
-      //     }
-      //   },
-      //   onEditingComplete: () {
-      //     // Hide keyboard when all fields are filled
-      //     if (index == _otpLength - 1) {
-      //       FocusScope.of(context).unfocus();
-      //     }
-      //   },
-      // ),
     );
   }
 
   Widget _proceedButton(BuildContext context) {
     return CustomElevatedButton(
       buttonStyle: ElevatedButton.styleFrom(
-          backgroundColor: appTheme.main,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(50.0)
-          ),
-          elevation: 0
-      ),
+          backgroundColor: appTheme.main_mpin,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
+          elevation: 0),
       buttonTextStyle: CustomTextStyles.white18,
       height: 50,
       width: 250,
       text: "Proceed",
       onPressed: () {
-
         String otp = _controllers.map((controller) => controller.text).join();
-        if(otp.length < 4){
-          CommonWidget().snackBar(context, appTheme.red, 'Please Enter valid otp');
-        }else{
-            Provider.of<ForgotPasswordProvider>(context, listen: false)
-                .verifyForgotPasswordOtp(context, widget.email, otp, 'verify', widget.page);
+        if (otp.length < 4) {
+          CommonWidget()
+              .snackBar(context, appTheme.red, 'Please Enter valid otp');
+        } else {
+          Provider.of<ForgotPasswordProvider>(context, listen: false)
+              .verifyForgotPasswordOtp(
+                  context, widget.email, otp, 'verify', widget.page);
         }
       },
     );
   }
 }
-
 
 class GradientCircularProgressPainter extends CustomPainter {
   final double percentage;
@@ -447,10 +400,10 @@ class GradientCircularProgressPainter extends CustomPainter {
       startAngle: -pi / 2,
       endAngle: 2 * pi,
       colors: [
-        Colors.blue,
-        Colors.blue.withOpacity(0.4),
-        Colors.blue.withOpacity(0.2),
-        Colors.blue.withOpacity(0.1),
+        appTheme.main_mpin,
+        appTheme.main_mpin.withOpacity(0.4),
+        appTheme.main_mpin.withOpacity(0.2),
+        appTheme.main_mpin.withOpacity(0.1),
       ],
       stops: [0.0, 0.33, 0.66, 1.0],
     );

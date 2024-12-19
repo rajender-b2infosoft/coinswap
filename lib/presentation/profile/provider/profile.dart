@@ -5,14 +5,12 @@ import '../../../services/api_service.dart';
 import '../../../theme/theme_helper.dart';
 import '../models/profile.dart';
 
-
-class ProfileProvider extends ChangeNotifier{
+class ProfileProvider extends ChangeNotifier {
   final apiService = ApiService();
 
-  ProfileProvider(){
+  ProfileProvider() {
     getUserInfo();
   }
-
 
   String _totalBalance = '0';
   String get totalBalance => _totalBalance;
@@ -22,6 +20,8 @@ class ProfileProvider extends ChangeNotifier{
   String get btcBalance => _btcBalance;
   String _usdtBalance = '0';
   String get usdtBalance => _usdtBalance;
+  String _usdtTronBalance = '0';
+  String get usdtTronBalance => _usdtTronBalance;
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -34,6 +34,8 @@ class ProfileProvider extends ChangeNotifier{
 
   String? _name = '';
   String? get name => _name;
+  String? _status = '';
+  String? get status => _status;
   String? _email = '';
   String? get email => _email;
   String? _selfie = '';
@@ -41,32 +43,35 @@ class ProfileProvider extends ChangeNotifier{
   int? _user_id = 0;
   int? get user_id => _user_id;
 
-  getUserInfo()async{
+
+  getUserInfo() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     _name = prefs.getString('userName');
     _email = prefs.getString('email');
     _selfie = prefs.getString('profileImage');
     _user_id = prefs.getInt('user_id');
+    _status = prefs.getString('status');
     notifyListeners();
   }
-
 
   Future<void> userProfileData() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
-    try{
+    try {
       final response = await apiService.getUserProfile();
       //check response
       if (response != null && response['status'] == 'success') {
-        await userWalletConvertedBalance();
         _profileData = UserProfileResponse.fromJson(response);
+
+        // notifyListeners();
+        // await userWalletConvertedBalance();
         // CommonWidget.showToastView(response?['message'], appTheme.gray8989);
-      }else {
+      } else {
         _errorMessage = "Failed to load data";
         CommonWidget.showToastView(response?['message'], appTheme.gray8989);
       }
-    }catch (e) {
+    } catch (e) {
       _errorMessage = "An error occurred: $e";
       print(e);
     } finally {
@@ -82,26 +87,26 @@ class ProfileProvider extends ChangeNotifier{
     SharedPreferences prefs = await SharedPreferences.getInstance();
     int? userId = prefs.getInt('user_id');
 
-    try{
+    try {
       final response = await apiService.getUserBalance(userId);
       //check response
       if (response != null && response['status'] == 'success') {
-        if(response['data'].length > 0){
+        if (response['data'].length > 0) {
           //get user all 3 wallets total to display on home page
-          _totalBalance = response['data'][0]['totalAmount'].toString();
+          _totalBalance = response['data'][0]['totalAmount'].toString()??'0';
           _ethBalance = response['data'][0]['eth'].toString();
           _btcBalance = response['data'][0]['btc'].toString();
           _usdtBalance = response['data'][0]['usdt'].toString();
+          _usdtTronBalance = response['data'][0]['usdtTron'].toString();
         }
-      }else {
+      } else {
         CommonWidget.showToastView(response['message'], appTheme.gray8989);
       }
-    }catch (e) {
+    } catch (e) {
       print(e);
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
-
 }

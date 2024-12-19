@@ -34,6 +34,7 @@ class CommissionData {
   final int fromRange;
   final int toRange;
   final double commissionRate;
+  final String transaction_type;
   final String createdAt;
   final String? updatedAt;
   final String? deletedAt;
@@ -44,6 +45,7 @@ class CommissionData {
     required this.fromRange,
     required this.toRange,
     required this.commissionRate,
+    required this.transaction_type,
     required this.createdAt,
     this.updatedAt,
     this.deletedAt,
@@ -52,10 +54,11 @@ class CommissionData {
   factory CommissionData.fromJson(Map<String, dynamic> json) {
     return CommissionData(
       id: json['id'],
-      cryptoType: json['crrypto_type'],
+      cryptoType: json['crypto_type'],
       fromRange: json['from_range'],
       toRange: json['to_range'],
       commissionRate: json['commission_rate'].toDouble(),
+      transaction_type: json['transaction_type'],
       createdAt: json['created_at'],
       updatedAt: json['updaed_at'],
       deletedAt: json['deleted_at'],
@@ -65,10 +68,11 @@ class CommissionData {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'crrypto_type': cryptoType,
+      'crypto_type': cryptoType,
       'from_range': fromRange,
       'to_range': toRange,
       'commission_rate': commissionRate,
+      'transaction_type': transaction_type,
       'created_at': createdAt,
       'updaed_at': updatedAt,
       'deleted_at': deletedAt,
